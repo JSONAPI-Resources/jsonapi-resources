@@ -312,6 +312,9 @@ TestApp.routes.draw do
         jsonapi_link :author, except: [:destroy]
         jsonapi_links :tags, only: [:show, :create]
       end
+
+      jsonapi_resources :planets
+      jsonapi_resources :moons
     end
 
     JSONAPI.configuration.route_format = :camelized_route

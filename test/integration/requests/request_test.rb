@@ -1866,4 +1866,10 @@ class RequestTest < ActionDispatch::IntegrationTest
     JSONAPI.configuration = original_config
     $test_user = $original_test_user
   end
+
+  def test_include_optional_linkage_data_with_join
+    get "/api/v3/moons", headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+    assert_jsonapi_response 200
+    refute_nil json_response['data'][0]['relationships']['planet']
+  end
 end
