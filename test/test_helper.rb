@@ -699,6 +699,10 @@ class ActionController::TestCase
     @queries = orig_queries
   end
 
+  def through_primary?
+    JSONAPI.configuration.default_find_related_through == :primary
+  end
+
   def testing_v10?
     JSONAPI.configuration.default_resource_retrieval_strategy == 'JSONAPI::ActiveRelationRetrievalV10'
   end

@@ -39,12 +39,12 @@ module JSONAPI
       @resource_klasses.each_key do |resource_klass|
         missed_resource_ids[resource_klass] ||= []
 
-        serializer_config_key = serializer.config_key(resource_klass).gsub("/", "_")
-        context_json = resource_klass.attribute_caching_context(context).to_json
-        context_b64 = JSONAPI.configuration.resource_cache_digest_function.call(context_json)
-        context_key = "ATTR-CTX-#{context_b64.gsub("/", "_")}"
-
         if resource_klass.caching?
+          serializer_config_key = serializer.config_key(resource_klass).gsub("/", "_")
+          context_json = resource_klass.attribute_caching_context(context).to_json
+          context_b64 = JSONAPI.configuration.resource_cache_digest_function.call(context_json)
+          context_key = "ATTR-CTX-#{context_b64.gsub("/", "_")}"
+
           cache_ids = @resource_klasses[resource_klass].map do |(k, v)|
             # Store the hashcode of the cache_field to avoid storing objects and to ensure precision isn't lost
             # on timestamp types (i.e. string conversions dropping milliseconds)

@@ -905,7 +905,8 @@ class SerializerTest < ActionDispatch::IntegrationTest
 
       directives = JSONAPI::IncludeDirectives.new(PostResource, ['author'])
 
-      resource_set = JSONAPI::ResourceSet.new(PostResource.find_by_key(1), directives[:include_related], {})
+      options = {}
+      resource_set = JSONAPI::ResourceSet.new(PostResource.find_by_key(1, options), directives[:include_related], {})
       resource_set.populate!(serializer, {}, {})
 
       serialized = serializer.serialize_resource_set_to_hash_single(resource_set)

@@ -47,6 +47,8 @@ module JSONAPI
                 :default_exclude_links,
                 :default_resource_retrieval_strategy,
                 :use_related_resource_records_for_joins,
+                :default_find_related_through,
+                :default_find_related_through_polymorphic,
                 :related_identities_set
 
     def initialize
@@ -181,12 +183,35 @@ module JSONAPI
       # per resource (or base resource) using the class method `load_resource_retrieval_strategy`.
       #
       # Available strategies:
-      # 'JSONAPI::ActiveRelationRetrieval'
-      # 'JSONAPI::ActiveRelationRetrievalV09'
-      # 'JSONAPI::ActiveRelationRetrievalV10'
+      # 'JSONAPI::ActiveRelationRetrieval' - This is the default strategy. In addition, this strategy allows for will
+      # use a single phased approach to retrieve primary resources when caching is not enabled for a resource class.
+      # When caching is enabled, the retrieval of the primary resources is a two phased approach. The first phase gets
+      # the ids and cache fields. The second phase gets any cache misses from the related resource. Retrieval of related
+      # resources is configurable with the `default_find_related_through` and `default_find_related_through_polymorphic`
+      # described below.
+      # 'JSONAPI::ActiveRelationRetrievalV09' - Retrieves resources using the v0.9.x approach. This uses rails'
+      # `includes` method to retrieve related models. This requires overriding the `records_for` method on the resource
+      # to control filtering of included resources.
+      # 'JSONAPI::ActiveRelationRetrievalV10' - Retrieves resources using the v0.10.x approach. This always retrieves
+      # related resources through the primary resource joined to the related resource (through_primary).
+      # Custom - Specify the a custom retrieval strategy module name as a string
       # :none
       # :self
       self.default_resource_retrieval_strategy = 'JSONAPI::ActiveRelationRetrieval'
+
+      # For 'JSONAPI::ActiveRelationRetrieval' we can refine how related resources are retrieved with options for
+      # monomorphic and polymorphic relationships. The default is :inverse for both.
+      # :inverse - use the inverse relationship on the related resource. This joins the related resource to the
+      # primary resource table. To use this a relationship to the primary resource must be defined on the related
+      # resource.
+      # :primary - use the primary resource joined with the related resources table. This results in a two phased
+      # querying approach. The first phase gets the ids and cache fields. The second phase gets any cache misses
+      # from the related resource. In the second phase permissions are not applied since they were already applied in
+      # the first phase. This behavior is consistent with JR v0.10.x, with the exception that when caching is disabled
+      # the retrieval of the primary resources does not need to be done in two phases.
+
+      self.default_find_related_through = :inverse
+      self.default_find_related_through_polymorphic = :inverse
 
       # For 'JSONAPI::ActiveRelationRetrievalV10': use a related resource's `records` when performing joins.
       # This setting allows included resources to account for permission scopes. It can be overridden explicitly per
@@ -358,6 +383,10 @@ module JSONAPI
     attr_writer :default_resource_retrieval_strategy
 
     attr_writer :use_related_resource_records_for_joins
+
+    attr_writer :default_find_related_through
+
+    attr_writer :default_find_related_through_polymorphic
 
     attr_writer :related_identities_set
   end

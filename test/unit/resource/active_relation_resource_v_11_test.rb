@@ -68,7 +68,8 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
 
   def test_find_fragments_no_attributes
     filters = {}
-    posts_identities = V11::PostResource.find_fragments(filters)
+    options = {}
+    posts_identities = V11::PostResource.find_fragments(filters, options)
 
     assert_equal 20, posts_identities.length
     assert_equal JSONAPI::ResourceIdentity.new(V11::PostResource, 1), posts_identities.keys[0]

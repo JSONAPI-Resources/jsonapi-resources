@@ -3,23 +3,28 @@
 module JSONAPI
   module ActiveRelation
 
-    # Stores relationship paths starting from the resource_klass, consolidating duplicate paths from
-    # relationships, filters and sorts. When joins are made the table aliases are tracked in join_details
-    class JoinManagerV10
+  # Stores relationship paths starting from the resource_klass, consolidating duplicate paths from
+  # relationships, filters and sorts. When joins are made the table aliases are tracked in join_details
+  class JoinManagerThroughInverse
       attr_reader :resource_klass,
                   :source_relationship,
                   :resource_join_tree,
-                  :join_details
+                  :join_details,
+                  :through_source
 
       def initialize(resource_klass:,
                      source_relationship: nil,
+                     source_resource_klass: nil,
+                     through_source: false,
                      relationships: nil,
                      filters: nil,
                      sort_criteria: nil)
 
         @resource_klass = resource_klass
+        @source_resource_klass = source_resource_klass
         @join_details = nil
         @collected_aliases = Set.new
+        @through_source = through_source
 
         @resource_join_tree = {
             root: {
@@ -47,7 +52,7 @@ module JSONAPI
       # this method gets the join details whether they are on a relationship or are just pseudo details for the base
       # resource. Specify the resource type for polymorphic relationships
       #
-      def source_join_details(type=nil)
+      def source_join_details(type = nil)
         if source_relationship
           related_resource_klass = type ? resource_klass.resource_klass_for(type) : source_relationship.resource_klass
           segment = PathSegment::Relationship.new(relationship: source_relationship, resource_klass: related_resource_klass)
@@ -72,7 +77,7 @@ module JSONAPI
         @join_details[segment]
       end
 
-      def self.get_join_arel_node(records, relationship, join_type, options = {})
+      def self.get_join_arel_node(records, relationship, join_type, options)
         init_join_sources = records.arel.join_sources
         init_join_sources_length = init_join_sources.length
 
@@ -110,14 +115,20 @@ module JSONAPI
       end
 
       def self.alias_from_arel_node(node)
-        case node.left
+        # case node.left
+        case node&.left
         when Arel::Table
           node.left.name
         when Arel::Nodes::TableAlias
           node.left.right
         when Arel::Nodes::StringJoin
           # :nocov:
-          warn "alias_from_arel_node: Unsupported join type - use custom filtering and sorting"
+          warn "alias_from_arel_node: Unsupported join type `Arel::Nodes::StringJoin` - use custom filtering and sorting"
+          nil
+          # :nocov:
+        else
+          # :nocov:
+          warn "alias_from_arel_node: Unsupported join type `#{node&.left.to_s}`"
           nil
           # :nocov:
         end
@@ -167,15 +178,9 @@ module JSONAPI
             related_resource_klass = join_details[:related_resource_klass]
             join_type = relationship_details[:join_type]
 
-            join_options = {
-              relationship: relationship,
-              relationship_details: relationship_details,
-              related_resource_klass: related_resource_klass,
-            }
-
             if relationship == :root
               unless source_relationship
-                add_join_details('', {alias: resource_klass._table_name, join_type: :root, join_options: join_options})
+                add_join_details('', {alias: resource_klass._table_name, join_type: :root})
               end
               next
             end
@@ -189,7 +194,8 @@ module JSONAPI
                 options: options)
             }
 
-            details = {alias: self.class.alias_from_arel_node(join_node), join_type: join_type, join_options: join_options}
+            join_alias = self.class.alias_from_arel_node(join_node)
+            details = {alias: join_alias, join_type: join_type}
 
             if relationship == source_relationship
               if relationship.polymorphic? && relationship.belongs_to?
@@ -201,15 +207,19 @@ module JSONAPI
 
             # We're adding the source alias with two keys. We only want the check for duplicate aliases once.
             # See the note in `add_join_details`.
-            check_for_duplicate_alias = !(relationship == source_relationship)
-            add_join_details(PathSegment::Relationship.new(relationship: relationship, resource_klass: related_resource_klass), details, check_for_duplicate_alias)
+            check_for_duplicate_alias = relationship != source_relationship
+            path_segment = PathSegment::Relationship.new(relationship: relationship,
+                                                         resource_klass: related_resource_klass)
+
+            add_join_details(path_segment, details, check_for_duplicate_alias)
           end
         end
         records
       end
 
       def add_join(path, default_type = :inner, default_polymorphic_join_type = :left)
-        if source_relationship
+        # puts "add_join #{path} default_type=#{default_type} default_polymorphic_join_type=#{default_polymorphic_join_type}"
+        if source_relationship && through_source
           if source_relationship.polymorphic?
             # Polymorphic paths will come it with the resource_type as the first segment (for example `#documents.comments`)
             # We just need to prepend the relationship portion the
@@ -221,9 +231,9 @@ module JSONAPI
           sourced_path = path
         end
 
-        join_manager, _field = parse_path_to_tree(sourced_path, resource_klass, default_type, default_polymorphic_join_type)
+        join_tree, _field = parse_path_to_tree(sourced_path, resource_klass, default_type, default_polymorphic_join_type)
 
-        @resource_join_tree[:root].deep_merge!(join_manager) { |key, val, other_val|
+        @resource_join_tree[:root].deep_merge!(join_tree) { |key, val, other_val|
           if key == :join_type
             if val == other_val
               val

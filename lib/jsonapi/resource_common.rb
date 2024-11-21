@@ -425,11 +425,15 @@ module JSONAPI
       :completed
     end
 
-    def find_related_ids(relationship, options = {})
+    def find_related_ids(relationship, _options)
       send(relationship.foreign_key)
     end
 
     module ClassMethods
+      def default_find_related_through(_polymorphic = false)
+        nil
+      end
+
       def resource_retrieval_strategy(module_name = JSONAPI.configuration.default_resource_retrieval_strategy)
         module_name = module_name.to_s
 
@@ -710,11 +714,11 @@ module JSONAPI
       # ```
       # so in order to invoke the right class from subclasses,
       # we should call this method to override it.
-      def model_name(model, options = {})
+      def model_name(model, add_model_hint: true)
         @model_class = nil
         @_model_name = model.to_sym
 
-        model_hint(model: @_model_name, resource: self) unless options[:add_model_hint] == false
+        model_hint(model: @_model_name, resource: self) if add_model_hint
 
         rebuild_relationships(_relationships)
       end

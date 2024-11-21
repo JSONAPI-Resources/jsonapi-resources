@@ -3,12 +3,23 @@
 module JSONAPI
   module ActiveRelationRetrieval
     include ::JSONAPI::RelationRetrieval
+    include ::JSONAPI::ActiveRelationRetrieval::FindRelatedThroughPrimary
 
-    def find_related_ids(relationship, options = {})
+    def find_related_ids(relationship, options)
       self.class.find_related_fragments(self, relationship, options).keys.collect { |rid| rid.id }
     end
 
     module ClassMethods
+      include JSONAPI::ActiveRelationRetrieval::FindRelatedThroughPrimary::ClassMethods
+
+      def default_find_related_through(polymorphic = false)
+        if polymorphic
+          JSONAPI.configuration.default_find_related_through_polymorphic
+        else
+          JSONAPI.configuration.default_find_related_through
+        end
+      end
+
       # Finds Resources using the `filters`. Pagination and sort options are used when provided
       #
       # @param filters [Hash] the filters hash
@@ -17,12 +28,12 @@ module JSONAPI
       # @option options [Hash] :include_directives The `include_directives`
       #
       # @return [Array<Resource>] the Resource instances matching the filters, sorting and pagination rules.
-      def find(filters, options = {})
+      def find(filters, options)
         sort_criteria = options.fetch(:sort_criteria) { [] }
 
-        join_manager = ActiveRelation::JoinManager.new(resource_klass: self,
-                                                       filters: filters,
-                                                       sort_criteria: sort_criteria)
+        join_manager = ActiveRelation::JoinManagerThroughInverse.new(resource_klass: self,
+                                                                     filters: filters,
+                                                                     sort_criteria: sort_criteria)
 
         paginator = options[:paginator]
 
@@ -41,9 +52,9 @@ module JSONAPI
       # @option options [Hash] :context The context of the request, set in the controller
       #
       # @return [Integer] the count
-      def count(filters, options = {})
-        join_manager = ActiveRelation::JoinManager.new(resource_klass: self,
-                                                       filters: filters)
+      def count(filters, options)
+        join_manager = ActiveRelation::JoinManagerThroughInverse.new(resource_klass: self,
+                                                                     filters: filters)
 
         records = apply_request_settings_to_records(records: records(options),
                                filters: filters,
@@ -57,7 +68,7 @@ module JSONAPI
       #
       # @param key the primary key of the resource to find
       # @option options [Hash] :context The context of the request, set in the controller
-      def find_by_key(key, options = {})
+      def find_by_key(key, options)
         record = find_record_by_key(key, options)
         resource_for(record, options[:context])
       end
@@ -66,7 +77,7 @@ module JSONAPI
       #
       # @param keys [Array<key>] Array of primary keys to find resources for
       # @option options [Hash] :context The context of the request, set in the controller
-      def find_by_keys(keys, options = {})
+      def find_by_keys(keys, options)
         records = find_records_by_keys(keys, options)
         resources_for(records, options[:context])
       end
@@ -76,7 +87,7 @@ module JSONAPI
       #
       # @param keys [Array<key>] Array of primary keys to find resources for
       # @option options [Hash] :context The context of the request, set in the controller
-      def find_to_populate_by_keys(keys, options = {})
+      def find_to_populate_by_keys(keys, options)
         records = records_for_populate(options).where(_primary_key => keys)
         resources_for(records, options[:context])
       end
@@ -93,7 +104,7 @@ module JSONAPI
       # @return [Hash{ResourceIdentity => {identity: => ResourceIdentity, cache: cache_field}]
       #    the ResourceInstances matching the filters, sorting, and pagination rules along with any request
       #    additional_field values
-      def find_fragments(filters, options = {})
+      def find_fragments(filters, options)
         include_directives = options.fetch(:include_directives, {})
         resource_klass = self
 
@@ -103,11 +114,11 @@ module JSONAPI
 
         sort_criteria = options.fetch(:sort_criteria) { [] }
 
-        join_manager = ActiveRelation::JoinManager.new(resource_klass: resource_klass,
-                                                       source_relationship: nil,
-                                                       relationships: linkage_relationships.collect(&:name),
-                                                       sort_criteria: sort_criteria,
-                                                       filters: filters)
+        join_manager = ActiveRelation::JoinManagerThroughInverse.new(resource_klass: resource_klass,
+                                                                     source_relationship: nil,
+                                                                     relationships: linkage_relationships.collect(&:name),
+                                                                     sort_criteria: sort_criteria,
+                                                                     filters: filters)
 
         paginator = options[:paginator]
 
@@ -119,6 +130,11 @@ module JSONAPI
                                options: options)
 
         if options[:cache]
+          # When using caching the a two step process is used. First the records ids are retrieved and then the
+          # records are retrieved using the ids. Then the ids are used to query the database again to get the
+          # cache misses. In the second phase the records are not sorted or paginated and the `records_for_populate`
+          # method is used to ensure any dependent includes or custom database fields are calculated.
+
           # This alias is going to be resolve down to the model's table name and will not actually be an alias
           resource_table_alias = resource_klass._table_name
 
@@ -189,6 +205,10 @@ module JSONAPI
             warn "Performance issue detected: `#{self.name.to_s}.records` returned non-normalized results in `#{self.name.to_s}.find_fragments`."
           end
         else
+          # When not using caching resources can be generated after querying. The `records_for_populate`
+          # method is merged in to ensure any dependent includes or custom database fields are calculated.
+          records = records.merge(records_for_populate(options))
+
           linkage_fields = []
 
           linkage_relationships.each do |linkage_relationship|
@@ -259,51 +279,75 @@ module JSONAPI
       # @return [Hash{ResourceIdentity => {identity: => ResourceIdentity, cache: cache_field, related: {relationship_name: [] }}}]
       #    the ResourceInstances matching the filters, sorting, and pagination rules along with any request
       #    additional_field values
-      def find_related_fragments(source_fragment, relationship, options = {})
-        if relationship.polymorphic? # && relationship.foreign_key_on == :self
-          source_resource_klasses = if relationship.foreign_key_on == :self
-                                      relationship.polymorphic_types.collect do |polymorphic_type|
-                                        resource_klass_for(polymorphic_type)
-                                      end
-                                    else
-                                      source.collect { |fragment| fragment.identity.resource_klass }.to_set
-                                    end
-
-          fragments = {}
-          source_resource_klasses.each do |resource_klass|
-            inverse_direct_relationship = _relationship(resource_klass._type.to_s.singularize)
-
-            fragments.merge!(resource_klass.find_related_fragments_from_inverse([source_fragment], inverse_direct_relationship, options, false))
+      def find_related_fragments(source_fragment, relationship, options)
+        case relationship.find_related_through
+        when :primary
+          if relationship.polymorphic?
+            find_related_polymorphic_fragments_through_primary([source_fragment], relationship, options, false)
+          else
+            find_related_monomorphic_fragments_through_primary([source_fragment], relationship, options, false)
           end
-          fragments
+        when :inverse
+          if relationship.polymorphic? # && relationship.foreign_key_on == :self
+            source_resource_klasses = if relationship.foreign_key_on == :self
+                                        relationship.polymorphic_types.collect do |polymorphic_type|
+                                          resource_klass_for(polymorphic_type)
+                                        end
+                                      else
+                                        source.collect { |fragment| fragment.identity.resource_klass }.to_set
+                                      end
+
+            fragments = {}
+            source_resource_klasses.each do |resource_klass|
+              inverse_direct_relationship = _relationship(resource_klass._type.to_s.singularize)
+
+              fragments.merge!(resource_klass.find_related_fragments_through_inverse([source_fragment], inverse_direct_relationship, options, false))
+            end
+            fragments
+          else
+            relationship.resource_klass.find_related_fragments_through_inverse([source_fragment], relationship, options, false)
+          end
         else
-          relationship.resource_klass.find_related_fragments_from_inverse([source_fragment], relationship, options, false)
+          raise "Unknown find_related_through: #{relationship.find_related_through}"
+          {}
         end
       end
 
       def find_included_fragments(source_fragments, relationship, options)
-        if relationship.polymorphic? # && relationship.foreign_key_on == :self
-          source_resource_klasses = if relationship.foreign_key_on == :self
-                                      relationship.polymorphic_types.collect do |polymorphic_type|
-                                        resource_klass_for(polymorphic_type)
-                                      end
-                                    else
-                                      source_fragments.collect { |fragment| fragment.identity.resource_klass }.to_set
-                                    end
-
-          fragments = {}
-          source_resource_klasses.each do |resource_klass|
-            inverse_direct_relationship = _relationship(resource_klass._type.to_s.singularize)
-
-            fragments.merge!(resource_klass.find_related_fragments_from_inverse(source_fragments, inverse_direct_relationship, options, true))
+        case relationship.find_related_through
+        when :primary
+          if relationship.polymorphic?
+            find_related_polymorphic_fragments_through_primary(source_fragments, relationship, options, true)
+          else
+            find_related_monomorphic_fragments_through_primary(source_fragments, relationship, options, true)
           end
-          fragments
+        when :inverse
+          if relationship.polymorphic? # && relationship.foreign_key_on == :self
+            source_resource_klasses = if relationship.foreign_key_on == :self
+                                        relationship.polymorphic_types.collect do |polymorphic_type|
+                                          resource_klass_for(polymorphic_type)
+                                        end
+                                      else
+                                        source.collect { |fragment| fragment.identity.resource_klass }.to_set
+                                      end
+
+            fragments = {}
+            source_resource_klasses.each do |resource_klass|
+              inverse_direct_relationship = _relationship(resource_klass._type.to_s.singularize)
+
+              fragments.merge!(resource_klass.find_related_fragments_through_inverse(source_fragments, inverse_direct_relationship, options, true))
+            end
+            fragments
+          else
+            relationship.resource_klass.find_related_fragments_through_inverse(source_fragments, relationship, options, true)
+          end
         else
-          relationship.resource_klass.find_related_fragments_from_inverse(source_fragments, relationship, options, true)
+          raise "Unknown find_related_through: #{relationship.options[:find_related_through]}"
+          {}
         end
       end
 
-      def find_related_fragments_from_inverse(source, source_relationship, options, connect_source_identity)
+      def find_related_fragments_through_inverse(source, source_relationship, options, connect_source_identity)
         inverse_relationship = source_relationship._inverse_relationship
         return {} if inverse_relationship.blank?
 
@@ -331,11 +375,11 @@ module JSONAPI
           end
         end
 
-        join_manager = ActiveRelation::JoinManager.new(resource_klass: self,
-                                                       source_relationship: inverse_relationship,
-                                                       relationships: linkage_relationships.collect(&:name),
-                                                       sort_criteria: sort_criteria,
-                                                       filters: filters)
+        join_manager = ActiveRelation::JoinManagerThroughInverse.new(resource_klass: self,
+                                                                     source_relationship: inverse_relationship,
+                                                                     relationships: linkage_relationships.collect(&:name),
+                                                                     sort_criteria: sort_criteria,
+                                                                     filters: filters)
 
         paginator = options[:paginator]
 
@@ -498,11 +542,11 @@ module JSONAPI
       #
       # @return [Integer] the count
 
-      def count_related(source, relationship, options = {})
-        relationship.resource_klass.count_related_from_inverse(source, relationship, options)
+      def count_related(source, relationship, options)
+        relationship.resource_klass.count_related_through_inverse(source, relationship, options)
       end
 
-      def count_related_from_inverse(source_resource, source_relationship, options = {})
+      def count_related_through_inverse(source_resource, source_relationship, options)
         inverse_relationship = source_relationship._inverse_relationship
         return -1 if inverse_relationship.blank?
 
@@ -511,9 +555,9 @@ module JSONAPI
         filters = options.fetch(:filters, {})
 
         # Joins in this case are related to the related_klass
-        join_manager = ActiveRelation::JoinManager.new(resource_klass: self,
-                                                       source_relationship: inverse_relationship,
-                                                       filters: filters)
+        join_manager = ActiveRelation::JoinManagerThroughInverse.new(resource_klass: self,
+                                                                     source_relationship: inverse_relationship,
+                                                                     filters: filters)
 
         records = apply_request_settings_to_records(records: records(options),
                                                     resource_klass: self,
@@ -542,7 +586,7 @@ module JSONAPI
       # @option options [Hash] :context The context of the request, set in the controller
       #
       # @return [ActiveRecord::Relation]
-      def records_base(_options = {})
+      def records_base(_options)
         _model_class.all
       end
 
@@ -552,7 +596,7 @@ module JSONAPI
       # @option options [Hash] :context The context of the request, set in the controller
       #
       # @return [ActiveRecord::Relation]
-      def records(options = {})
+      def records(options)
         records_base(options)
       end
 
@@ -563,7 +607,7 @@ module JSONAPI
       # @option options [Hash] :context The context of the request, set in the controller
       #
       # @return [ActiveRecord::Relation]
-      def records_for_populate(options = {})
+      def records_for_populate(options)
         records_base(options)
       end
 
@@ -572,7 +616,7 @@ module JSONAPI
       # @option options [Hash] :context The context of the request, set in the controller
       #
       # @return [ActiveRecord::Relation]
-      def records_for_source_to_related(options = {})
+      def records_for_source_to_related(options)
         records_base(options)
       end
 
@@ -637,18 +681,18 @@ module JSONAPI
 
       # protected
 
-      def find_record_by_key(key, options = {})
+      def find_record_by_key(key, options)
         record = apply_request_settings_to_records(records: records(options), primary_keys: key, options: options).first
         fail JSONAPI::Exceptions::RecordNotFound.new(key) if record.nil?
         record
       end
 
-      def find_records_by_keys(keys, options = {})
+      def find_records_by_keys(keys, options)
         apply_request_settings_to_records(records: records(options), primary_keys: keys, options: options)
       end
 
       def apply_request_settings_to_records(records:,
-                                            join_manager: ActiveRelation::JoinManager.new(resource_klass: self),
+                                            join_manager: ActiveRelation::JoinManagerThroughInverse.new(resource_klass: self),
                                             resource_klass: self,
                                             source_ids: nil,
                                             filters: {},
@@ -839,7 +883,7 @@ module JSONAPI
         %{"#{field.to_s}"}
       end
 
-      def apply_filters(records, filters, options = {})
+      def apply_filters(records, filters, options)
         if filters
           filters.each do |filter, value|
             records = apply_filter(records, filter, value, options)
@@ -865,7 +909,7 @@ module JSONAPI
         concat_table_field(table_alias, field_segment.delegated_field_name)
       end
 
-      def apply_filter(records, filter, value, options = {})
+      def apply_filter(records, filter, value, options)
         strategy = _allowed_filters.fetch(filter.to_sym, Hash.new)[:apply]
 
         if strategy

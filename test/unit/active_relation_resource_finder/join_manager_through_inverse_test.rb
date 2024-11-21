@@ -1,7 +1,7 @@
 require File.expand_path('../../../test_helper', __FILE__)
 require 'jsonapi-resources'
 
-class JoinManagerTest < ActiveSupport::TestCase
+class JoinManagerThroughInverseTest < ActiveSupport::TestCase
   # def setup
   #   JSONAPI.configuration.default_alias_on_join = false
   # end
@@ -11,7 +11,7 @@ class JoinManagerTest < ActiveSupport::TestCase
   # end
 
   def test_no_added_joins
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource)
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: PostResource)
 
     records = PostResource.records({})
     records = join_manager.join(records, {})
@@ -22,7 +22,7 @@ class JoinManagerTest < ActiveSupport::TestCase
 
   def test_add_single_join
     filters = {'tags' => ['1']}
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource, filters: filters)
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: PostResource, filters: filters)
     records = PostResource.records({})
     records = join_manager.join(records, {})
     assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"', sql_for_compare(records.to_sql)
@@ -32,7 +32,7 @@ class JoinManagerTest < ActiveSupport::TestCase
 
   def test_add_single_sort_join
     sort_criteria = [{field: 'tags.name', direction: :desc}]
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource, sort_criteria: sort_criteria)
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: PostResource, sort_criteria: sort_criteria)
     records = PostResource.records({})
     records = join_manager.join(records, {})
 
@@ -44,7 +44,7 @@ class JoinManagerTest < ActiveSupport::TestCase
   def test_add_single_sort_and_filter_join
     filters = {'tags' => ['1']}
     sort_criteria = [{field: 'tags.name', direction: :desc}]
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource, sort_criteria: sort_criteria, filters: filters)
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: PostResource, sort_criteria: sort_criteria, filters: filters)
     records = PostResource.records({})
     records = join_manager.join(records, {})
     assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"', sql_for_compare(records.to_sql)
@@ -58,7 +58,7 @@ class JoinManagerTest < ActiveSupport::TestCase
         'author' => ['1']
     }
 
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource, filters: filters)
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: PostResource, filters: filters)
     records = PostResource.records({})
     records = join_manager.join(records, {})
 
@@ -70,7 +70,7 @@ class JoinManagerTest < ActiveSupport::TestCase
 
 
   def test_add_joins_source_relationship
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource,
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: PostResource,
                                                                           source_relationship: PostResource._relationship(:comments))
     records = PostResource.records({})
     records = join_manager.join(records, {})
@@ -81,7 +81,7 @@ class JoinManagerTest < ActiveSupport::TestCase
 
 
   def test_add_joins_source_relationship_with_custom_apply
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: Api::V10::PostResource,
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: Api::V10::PostResource,
                                                                           source_relationship: Api::V10::PostResource._relationship(:comments))
     records = Api::V10::PostResource.records({})
     records = join_manager.join(records, {})
@@ -100,7 +100,7 @@ class JoinManagerTest < ActiveSupport::TestCase
         'author' => ['1']
     }
 
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: Api::V10::PostResource, filters: filters)
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: Api::V10::PostResource, filters: filters)
     records = Api::V10::PostResource.records({})
     records = join_manager.join(records, {})
 
@@ -117,7 +117,7 @@ class JoinManagerTest < ActiveSupport::TestCase
         'comments.tags' => ['1']
     }
 
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: Api::V10::PostResource, filters: filters)
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: Api::V10::PostResource, filters: filters)
     records = Api::V10::PostResource.records({})
     records = join_manager.join(records, {})
 
@@ -135,7 +135,7 @@ class JoinManagerTest < ActiveSupport::TestCase
         'author.foo' => ['1']
     }
 
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: Api::V10::PostResource, filters: filters)
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: Api::V10::PostResource, filters: filters)
     records = Api::V10::PostResource.records({})
     records = join_manager.join(records, {})
 
@@ -149,7 +149,7 @@ class JoinManagerTest < ActiveSupport::TestCase
   def test_add_joins_with_sub_relationship
     relationships = %w(author author.comments tags)
 
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: Api::V10::PostResource, relationships: relationships,
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: Api::V10::PostResource, relationships: relationships,
                                                                           source_relationship: Api::V10::PostResource._relationship(:comments))
     records = Api::V10::PostResource.records({})
     records = join_manager.join(records, {})
@@ -168,7 +168,7 @@ class JoinManagerTest < ActiveSupport::TestCase
 
     relationships = %w(author author.comments tags)
 
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource,
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: PostResource,
                                                                           filters: filters,
                                                                           relationships: relationships,
                                                                           source_relationship: PostResource._relationship(:comments))
@@ -183,7 +183,7 @@ class JoinManagerTest < ActiveSupport::TestCase
   end
 
   def test_polymorphic_join_belongs_to_just_source
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(
       resource_klass: PictureResource,
       source_relationship: PictureResource._relationship(:imageable)
     )
@@ -200,7 +200,7 @@ class JoinManagerTest < ActiveSupport::TestCase
 
   def test_polymorphic_join_belongs_to_filter
     filters = {'imageable' => ['Foo']}
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PictureResource, filters: filters)
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: PictureResource, filters: filters)
 
     records = PictureResource.records({})
     records = join_manager.join(records, {})
@@ -217,7 +217,7 @@ class JoinManagerTest < ActiveSupport::TestCase
     }
 
     relationships = %w(imageable file_properties)
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PictureResource,
+    join_manager = JSONAPI::ActiveRelation::JoinManagerThroughInverse.new(resource_klass: PictureResource,
                                                                           filters: filters,
                                                                           relationships: relationships)
 

@@ -2,14 +2,25 @@
 
 module JSONAPI
   class Relationship
-    attr_reader :acts_as_set, :foreign_key, :options, :name,
-                :class_name, :polymorphic, :always_include_optional_linkage_data, :exclude_linkage_data,
-                :parent_resource, :eager_load_on_include, :custom_methods,
-                :inverse_relationship, :allow_include, :hidden, :use_related_resource_records_for_joins
+    attr_reader :acts_as_set,
+                :foreign_key,
+                :options,
+                :name,
+                :class_name,
+                :polymorphic,
+                :always_include_optional_linkage_data,
+                :exclude_linkage_data,
+                :parent_resource,
+                :eager_load_on_include,
+                :custom_methods,
+                :inverse_relationship,
+                :hidden,
+                :use_related_resource_records_for_joins,
+                :find_related_through
 
-    attr_writer :allow_include
-
-    attr_accessor :_routed, :_warned_missing_route, :_warned_missing_inverse_relationship
+    attr_accessor :allow_include,
+                  :_routed,
+                  :_warned_missing_route, :_warned_missing_inverse_relationship
 
     def initialize(name, options = {})
       @name = name.to_s
@@ -42,6 +53,9 @@ module JSONAPI
       @eager_load_on_include = options.fetch(:eager_load_on_include, true) == true
       @allow_include = options[:allow_include]
       @class_name = nil
+
+      find_related_through = options.fetch(:find_related_through, parent_resource_klass&.default_find_related_through)
+      @find_related_through = find_related_through&.to_sym
 
       @inverse_relationship = options[:inverse_relationship]&.to_sym
 
@@ -86,6 +100,10 @@ module JSONAPI
       end
 
       @inverse_relationship
+    end
+
+    def inverse_relationship_klass
+      @inverse_relationship_klass ||= resource_klass._relationship(inverse_relationship)
     end
 
     def polymorphic_types

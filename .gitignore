@@ -19,8 +19,7 @@ test/version_tmp
 tmp
 coverage
 test/log
-test_db
-test_db-journal
+test_db*
 .idea
 *.iml
 *.override.yml

@@ -1333,7 +1333,7 @@ end
 class SpecialPersonResource < SpecialBaseResource
   model_name 'Person'
 
-  def self.records(options = {})
+  def self.records(options)
     Person.where(special: true)
   end
 end
@@ -1551,19 +1551,19 @@ class PoroResource < JSONAPI::SimpleResource
       EOF
     end
 
-    def find_record_by_key(key, options = {})
+    def find_record_by_key(key, options)
       fail NotImplementedError, <<~EOF
         Should be something like
-        def find_record_by_key(key, options = {})
+        def find_record_by_key(key, options)
           $breed_data.breeds[key.to_i]
         end
       EOF
     end
 
-    def find_records_by_keys(keys, options = {})
+    def find_records_by_keys(keys, options)
       fail NotImplementedError, <<~EOF
         Should be something like
-        def find_records_by_keys(keys, options = {})
+        def find_records_by_keys(keys, options)
           breeds = []
           keys.each do |key|
             breeds.push($breed_data.breeds[key.to_i])
@@ -1581,7 +1581,7 @@ class PoroResource < JSONAPI::SimpleResource
     # @option options [Hash] :include_directives The `include_directives`
     #
     # @return [Array<Resource>] the Resource instances matching the filters, sorting and pagination rules.
-    def find(filters, options = {})
+    def find(filters, options)
       records = find_records(filters, options)
       resources_for(records, options[:context])
     end
@@ -1611,7 +1611,7 @@ class PoroResource < JSONAPI::SimpleResource
     # @option options [Hash] :context The context of the request, set in the controller
     #
     # @return [Integer] the count
-    def count(filters, options = {})
+    def count(filters, options)
       fail NotImplementedError, <<~EOF
         Should be something like
         def count(filters, options)
@@ -1624,12 +1624,12 @@ class PoroResource < JSONAPI::SimpleResource
     #
     # @param key the primary key of the resource to find
     # @option options [Hash] :context The context of the request, set in the controller
-    def find_by_key(key, options = {})
+    def find_by_key(key, options)
       record = find_record_by_key(key, options)
       resource_for(record, options[:context])
     end
 
-    def find_to_populate_by_keys(keys, options = {})
+    def find_to_populate_by_keys(keys, options)
       find_by_keys(keys, options)
     end
 
@@ -1637,7 +1637,7 @@ class PoroResource < JSONAPI::SimpleResource
     #
     # @param keys [Array<key>] Array of primary keys to find resources for
     # @option options [Hash] :context The context of the request, set in the controller
-    def find_by_keys(keys, options = {})
+    def find_by_keys(keys, options)
       records = find_records_by_keys(keys, options)
       resources_for(records, options[:context])
     end
@@ -1651,7 +1651,7 @@ class BreedResource < PoroResource
   routing_options param: :id
 
   class << self
-    def find_records(filters, options = {})
+    def find_records(filters, options)
       breeds = []
       id_filter = filters[:id]
       id_filter = [id_filter] unless id_filter.nil? || id_filter.is_a?(Array)
@@ -1661,11 +1661,11 @@ class BreedResource < PoroResource
       breeds
     end
 
-    def find_record_by_key(key, options = {})
+    def find_record_by_key(key, options)
       $breed_data.breeds[key.to_i]
     end
 
-    def find_records_by_keys(keys, options = {})
+    def find_records_by_keys(keys, options)
       breeds = []
       keys.each do |key|
         breeds.push($breed_data.breeds[key.to_i])
@@ -1959,7 +1959,7 @@ module Api
 
       has_many "authors", class_name: 'Authors'
 
-      has_many "book_comments", relation_name: -> (options = {}) {
+      has_many "book_comments", relation_name: -> (options) {
         context = options[:context]
         current_user = context ? context[:current_user] : nil
 
@@ -1999,7 +1999,7 @@ module Api
           books[:banned].eq(false)
         end
 
-        def records(options = {})
+        def records(options)
           context = options[:context]
           current_user = context ? context[:current_user] : nil
 
@@ -2052,7 +2052,7 @@ module Api
           book_comments[:approved].eq(approved)
         end
 
-        def records(options = {})
+        def records(options)
           current_user = options[:context][:current_user]
           _model_class.for_user(current_user)
         end
@@ -2081,7 +2081,7 @@ module Api
   module V4
     class PostResource < PostResource
       class << self
-        def records(options = {})
+        def records(options)
           # Sets up a performance issue for testing
           super(options).joins(:comments)
         end
