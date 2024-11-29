@@ -22,6 +22,7 @@ ActiveRecord::Schema.define do
   create_table :author_details, force: true do |t|
     t.integer :person_id
     t.string  :author_stuff
+    t.timestamps null: false
   end
 
   create_table :posts, force: true do |t|
@@ -706,6 +707,9 @@ end
 
 ### CONTROLLERS
 class AuthorsController < JSONAPI::ResourceControllerMetal
+end
+
+class AuthorDetailsController < JSONAPI::ResourceControllerMetal
 end
 
 class PeopleController < JSONAPI::ResourceController
@@ -1394,6 +1398,7 @@ class AuthorResource < JSONAPI::Resource
   model_name 'Person'
   attributes :name
 
+  has_one :author_detail, :foreign_key_on => :related
   has_many :books, inverse_relationship: :authors
   has_one :preference
 end
@@ -1410,6 +1415,7 @@ end
 
 class AuthorDetailResource < JSONAPI::Resource
   attributes :author_stuff
+  has_one :author, foreign_key: 'person_id', class_name: 'Person'
 end
 
 class SimpleCustomLinkResource < JSONAPI::Resource

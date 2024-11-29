@@ -7,3 +7,7 @@ b:
   id: 2
   person_id: 2
   author_stuff: blah blah blah
+
+c:
+  id: 3
+  author_stuff: orphaned author_detail

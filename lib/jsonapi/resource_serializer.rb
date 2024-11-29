@@ -345,6 +345,7 @@ module JSONAPI
             relation_resources = [real_res.public_send(rel_name)].flatten(1).compact
             fragments = relation_resources.map{|r| [r.id, r]}.to_h
           end
+
           fragments.each do |id, f|
             add_resource(f, ia)
 

@@ -202,8 +202,8 @@ def assert_query_count(expected, msg = nil, &block)
   @queries = nil
 end
 
-def show_queries
-  @queries.each_with_index do |query, index|
+def show_queries(queries = @queries)
+  queries.each_with_index do |query, index|
     puts "sql[#{index}]: #{query}"
   end
 end
@@ -261,6 +261,7 @@ TestApp.routes.draw do
 
   jsonapi_resources :books
   jsonapi_resources :authors
+  jsonapi_resources :author_details
 
   jsonapi_resources :questions
   jsonapi_resources :answers
@@ -522,6 +523,9 @@ class ActionController::TestCase
   def assert_cacheable_get(action, *args)
     assert_nil JSONAPI.configuration.resource_cache
 
+    test_options = args[0] && args[0][:test_options]
+    allowed_extra_queries = test_options.nil? ? 0 : test_options.fetch(:allowed_extra_queries, 0)
+
     normal_queries = []
     normal_query_callback = lambda {|_, _, _, _, payload| normal_queries.push payload[:sql] }
     ActiveSupport::Notifications.subscribed(normal_query_callback, 'sql.active_record') do
@@ -553,7 +557,9 @@ class ActionController::TestCase
       [:warmup, :lookup].each do |phase|
         begin
           cache_queries = []
-          cache_query_callback = lambda {|_, _, _, _, payload| cache_queries.push payload[:sql] }
+          cache_query_callback = lambda {|_, _, _, _, payload|
+            cache_queries.push payload[:sql]
+          }
           cache_activity[phase] = with_resource_caching(cache, cached_resources) do
             ActiveSupport::Notifications.subscribed(cache_query_callback, 'sql.active_record') do
               @controller = nil
@@ -570,6 +576,7 @@ class ActionController::TestCase
         if response.status != non_caching_status
           pp json_response rescue nil
         end
+
         assert_equal(
           non_caching_status,
           response.status,
@@ -580,10 +587,16 @@ class ActionController::TestCase
           json_response_sans_backtraces.pretty_inspect,
           "Cache (mode: #{mode}) #{phase} response body must match normal response"
         )
+
+        # ToDo: Determine if there is a way to return to allowing normal_queries.size*2
+        # instead of normal_queries.size*2 +allowed_extra_queries
+        # +allowed_extra_queries is to account for the has_one where the foreign key is on self and is nil
+        # in the not cached version this is only one query, however in the cached version
+        # cached_resources_for handles this all in SQL and isn't skipping the query
         assert_operator(
           cache_queries.size,
           :<=,
-          normal_queries.size*2, # Allow up to double the number of queries as the uncached action
+          normal_queries.size*2 + allowed_extra_queries, # Allow up to double the number of queries + 1 as the uncached action
           "Cache (mode: #{mode}) #{phase} action made too many queries:\n#{cache_queries.pretty_inspect}"
         )
       end

@@ -254,6 +254,22 @@ class PostsControllerTest < ActionController::TestCase
     JSONAPI.configuration.allow_filter = true
   end
 
+  def test_include_belongs_to_exists
+    assert_cacheable_get :index, params: {filter: {id: '2'}, include: 'section'}
+    assert_response :success
+    assert_equal 1, json_response['data'].size
+    assert_equal '2', json_response['data'][0]['relationships']['section']['data']['id']
+    assert_equal 1, json_response['included'].size
+  end
+
+  def test_include_belongs_to_nonexistent
+    assert_cacheable_get :index, params: {filter: {id: '1'}, include: 'section'}
+    assert_response :success
+    assert_equal 1, json_response['data'].size
+    assert_nil json_response['data'][0]['relationships']['section']['data']
+    assert_nil json_response['included']
+  end
+
   def test_index_include_one_level_query_count
     assert_query_count(2) do
       assert_cacheable_get :index, params: {include: 'author'}
@@ -3811,6 +3827,47 @@ class VehiclesControllerTest < ActionController::TestCase
       }
     end
   end
+end
+
+class AuthorsControllerTest < ActionController::TestCase
+  def setup
+    JSONAPI.configuration.json_key_format = :dasherized_key
+  end
+
+  def test_include_has_one_exists
+    assert_cacheable_get :index, params: {filter: {id: '2'}, include: 'author-detail'}
+    assert_response :success
+    assert_equal 1, json_response['data'].size
+    assert_equal '2', json_response['data'][0]['relationships']['author-detail']['data']['id']
+    assert_equal 1, json_response['included'].size
+  end
+
+  def test_include_has_one_nonexistent
+    assert_cacheable_get :index, params: {filter: {id: '3'}, include: 'author-detail'}
+    assert_response :success
+    assert_equal 1, json_response['data'].size
+    assert_nil json_response['data'][0]['relationships']['author-detail']['data']
+    assert_nil json_response['included']
+  end
+end
+
+class AuthorDetailsControllerTest < ActionController::TestCase
+  def test_author_details_index_include_has_one_does_exist
+    assert_cacheable_get :index, params: {filter: {id: '1'}, include: 'author'}
+    assert_response :success
+    assert_equal 1, json_response['data'].size
+    assert_equal '1', json_response['data'][0]['relationships']['author']['data']['id']
+    assert_equal 1, json_response['included'].size
+  end
+
+  def test_author_details_index_include_has_one_does_not_exist
+    assert_cacheable_get :index, params: {filter: {id: '3'}, include: 'author'}, test_options: {allowed_extra_queries: 1}
+    assert_response :success
+    assert_equal 1, json_response['data'].size
+    assert_nil json_response['data'][0]['relationships']['author']['data']
+    assert_nil json_response['included']
+  end
+
 end
 
 class Api::V7::ClientsControllerTest < ActionController::TestCase

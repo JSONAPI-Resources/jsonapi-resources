@@ -1335,16 +1335,20 @@ module JSONAPI
               .map{|row| row.last(2) }
               .reject{|row| target_resources[klass.name].has_key?(row.first) }
               .uniq
-            target_resources[klass.name].merge! CachedResourceFragment.fetch_fragments(
-              klass, serializer, context, sub_cache_ids
-            )
+            unless sub_cache_ids.nil? || sub_cache_ids.empty?
+              target_resources[klass.name].merge! CachedResourceFragment.fetch_fragments(
+                klass, serializer, context, sub_cache_ids
+              )
+            end
           else
             sub_res_ids = id_rows
               .map(&:last)
               .reject{|id| target_resources[klass.name].has_key?(id) }
               .uniq
-            found = klass.find({klass._primary_key => sub_res_ids}, context: options[:context])
-            target_resources[klass.name].merge! found.map{|r| [r.id, r] }.to_h
+            unless sub_res_ids.nil? || sub_res_ids.empty?
+              found = klass.find({klass._primary_key => sub_res_ids}, context: options[:context])
+              target_resources[klass.name].merge! found.map{|r| [r.id, r] }.to_h
+            end
           end
 
           id_rows.each do |row|
