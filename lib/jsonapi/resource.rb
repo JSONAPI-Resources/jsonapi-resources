@@ -895,6 +895,13 @@ module JSONAPI
 
       def verify_filter(filter, raw, context = nil)
         filter_values = []
+        if raw == true
+          raw = "true"
+        elsif raw == false
+          raw = "false"
+        else
+          nil # no-op
+        end
         if raw.present?
           begin
             filter_values += raw.is_a?(String) ? CSV.parse_line(raw) : [raw]

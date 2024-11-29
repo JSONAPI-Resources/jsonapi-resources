@@ -321,6 +321,18 @@ class ResourceTest < ActiveSupport::TestCase
     assert(!FelineResource.updatable_fields.include?(:id))
   end
 
+  def test_verify_filter
+    resource_klass = PersonResource
+    context = nil
+    filter = :name
+    assert_equal([filter, ["true"]], resource_klass.verify_filter(filter, true, context))
+    assert_equal([filter, ["false"]], resource_klass.verify_filter(filter, false, context))
+    assert_equal([filter, ["true"]], resource_klass.verify_filter(filter, "true", context))
+    assert_equal([filter, ["false"]], resource_klass.verify_filter(filter, "false", context))
+    assert_equal([filter, []], resource_klass.verify_filter(filter, nil, context))
+    assert_equal([filter, []], resource_klass.verify_filter(filter, "", context))
+  end
+
   def test_filter_on_to_many_relationship_id
     posts = PostResource.find(:comments => 3)
     assert_equal([2], posts.map(&:id))
