@@ -1,0 +1,5 @@
+<% module_namespacing do -%>
+class <%= class_name %>Resource < <%= @application_resource_class %>
+  model_name self.to_s.gsub('Resource', '')
+end
+<% end -%>

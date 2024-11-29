@@ -2,7 +2,7 @@ module Jsonapi
   class ControllerGenerator < Rails::Generators::NamedBase
     source_root File.expand_path('../templates', __FILE__)
 
-    def create_resource
+    def create_controller
       template_file = File.join(
         'app/controllers',
         class_path,

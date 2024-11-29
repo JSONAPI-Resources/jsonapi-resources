@@ -11,3 +11,31 @@ Examples:
 
     This will create:
         app/controllers/posts_controller.rb
+
+    rails generate jsonapi:scaffold PoolParty
+
+    This will create:
+        app/models/pool_party.rb
+        app/resources/application_resource.rb
+        app/resources/pool_party_resource.rb
+        app/controller/pool_parties_controller.rb
+        app/config/routes/pool_parties.rb
+
+    This will modify:
+        app/controller/application_controller.rb
+        config/routes.rb
+
+    rails generate jsonapi:scaffold Api::V1::PoolParty
+
+    This will create:
+        app/models/api/v1/application_record.rb
+        app/models/api/v1/pool_party.rb
+        app/resources/api/v1/application_resource.rb
+        app/resources/api/v1/pool_party_resource.rb
+        app/controller/api/v1/application_controller.rb
+        app/controller/api/v1/pool_parties_controller.rb
+        app/config/routes/api/v1/pool_parties.rb
+
+    This will modify:
+        app/controller/application_controller.rb
+        config/routes.rb
