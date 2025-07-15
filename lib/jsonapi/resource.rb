@@ -735,7 +735,8 @@ module JSONAPI
         joins = []
 
         associations.inject do |prev, current|
-          joins << "LEFT JOIN #{current.table_name} AS #{current.name}_sorting ON #{current.name}_sorting.id = #{prev.table_name}.#{current.foreign_key}"
+          relationship_primary_key = current.options.fetch(:primary_key, "id")
+          joins << "LEFT JOIN #{current.table_name} AS #{current.name}_sorting ON #{current.name}_sorting.#{relationship_primary_key} = #{prev.table_name}.#{current.foreign_key}"
           current
         end
         joins.join("\n")
