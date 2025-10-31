@@ -17,6 +17,30 @@ require 'database_cleaner'
 
 if ENV['COVERAGE']
   SimpleCov.start do
+    add_filter '/test/'
+    add_filter '/config/'
+    add_filter '/vendor/'
+
+    add_group 'Controllers', 'lib/jsonapi/acts_as_resource_controller'
+    add_group 'Resources', 'lib/jsonapi/resource'
+    add_group 'Serializers', 'lib/jsonapi/serializer'
+    add_group 'Processors', 'lib/jsonapi/processor'
+    add_group 'ActiveRelation', 'lib/jsonapi/active_relation'
+    add_group 'Routing', 'lib/jsonapi/routing'
+
+    track_files 'lib/**/*.rb'
+
+    # Optional: Set minimum coverage threshold
+    # minimum_coverage 90
+
+    # Enable branch coverage (requires Ruby 2.5+)
+    enable_coverage :branch if respond_to?(:enable_coverage)
+
+    # Formatting options
+    formatter SimpleCov::Formatter::MultiFormatter.new([
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::SimpleFormatter  # Console output
+    ])
   end
 end
 
