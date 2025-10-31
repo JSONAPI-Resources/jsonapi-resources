@@ -47,28 +47,9 @@ end
 ENV['DATABASE_URL'] ||= "sqlite3:test_db"
 
 require 'active_record/railtie'
-require 'rails/test_help'
-require 'minitest/mock'
-require 'jsonapi-resources'
-require 'pry'
 
-require File.expand_path('../helpers/value_matchers', __FILE__)
-require File.expand_path('../helpers/assertions', __FILE__)
-require File.expand_path('../helpers/functional_helpers', __FILE__)
-require File.expand_path('../helpers/configuration_helpers', __FILE__)
-
+# Rails 7.1+ requires the application to be defined before requiring rails/test_help
 Rails.env = 'test'
-
-I18n.load_path += Dir[File.expand_path("../../locales/*.yml", __FILE__)]
-I18n.enforce_available_locales = false
-
-JSONAPI.configure do |config|
-  config.json_key_format = :camelized_key
-end
-
-ActiveSupport::Deprecation.silenced = true
-
-puts "Testing With RAILS VERSION #{Rails.version}"
 
 class TestApp < Rails::Application
   config.eager_load = false
@@ -90,6 +71,39 @@ class TestApp < Rails::Application
     config.active_record.sqlite3.represent_boolean_as_integer = true
   end
 end
+
+# Rails 7.1+ requires the application to be initialized before requiring rails/test_help
+# Earlier versions require the opposite order
+if Rails::VERSION::MAJOR >= 8 || (Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR >= 1)
+  TestApp.initialize!
+end
+
+require 'rails/test_help'
+
+# Initialize app for Rails < 7.1 (for Rails 7.1+ it was already initialized above)
+unless Rails::VERSION::MAJOR >= 8 || (Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR >= 1)
+  TestApp.initialize!
+end
+
+require 'minitest/mock'
+require 'jsonapi-resources'
+require 'pry'
+
+require File.expand_path('../helpers/value_matchers', __FILE__)
+require File.expand_path('../helpers/assertions', __FILE__)
+require File.expand_path('../helpers/functional_helpers', __FILE__)
+require File.expand_path('../helpers/configuration_helpers', __FILE__)
+
+I18n.load_path += Dir[File.expand_path("../../locales/*.yml", __FILE__)]
+I18n.enforce_available_locales = false
+
+JSONAPI.configure do |config|
+  config.json_key_format = :camelized_key
+end
+
+ActiveSupport::Deprecation.silenced = true
+
+puts "Testing With RAILS VERSION #{Rails.version}"
 
 DatabaseCleaner.allow_remote_database_url = true
 DatabaseCleaner.strategy = :transaction
@@ -214,9 +228,14 @@ def show_queries
   end
 end
 
-TestApp.initialize!
+# TestApp.initialize! already called earlier for Rails 7.1+ compatibility
 
 require File.expand_path('../fixtures/active_record', __FILE__)
+
+# Disable foreign key constraints for SQLite in test environment (Rails 7.1+)
+# This allows force: true to drop and recreate tables without constraint errors
+# Must be called after active_record.rb which sets up the schema
+ActiveRecord::Base.connection.execute("PRAGMA foreign_keys = OFF") if ActiveRecord::Base.connection.adapter_name == 'SQLite'
 
 module Pets
   module V1
