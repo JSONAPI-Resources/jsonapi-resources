@@ -578,7 +578,8 @@ class RequestTest < ActionDispatch::IntegrationTest
 
     assert_equal 400, status
     assert_equal 'Bad Request', json_response['errors'][0]['title']
-    assert_match 'unexpected token at', json_response['errors'][0]['detail']
+    # Rails 8.1+ has more detailed JSON error messages
+    assert_match(/unexpected token at|expected .* got:|parse error/i, json_response['errors'][0]['detail'])
   end
 
   def test_put_valid_json_but_array
