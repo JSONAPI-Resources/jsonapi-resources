@@ -58,8 +58,15 @@ module ActionDispatch
                 jsonapi_relationships
               end
             else
-              # Rails 5
-              jsonapi_resource_scope(SingletonResource.new(@resource_type, api_only?, @scope[:shallow], options), @resource_type) do
+              # Rails 5+
+              # Rails 8.1 changed SingletonResource.new to accept only 3 arguments (removed options)
+              resource_arg = if Rails::VERSION::MAJOR >= 8 && Rails::VERSION::MINOR >= 1
+                SingletonResource.new(@resource_type, api_only?, @scope[:shallow])
+              else
+                SingletonResource.new(@resource_type, api_only?, @scope[:shallow], options)
+              end
+
+              jsonapi_resource_scope(resource_arg, @resource_type) do
                 if block_given?
                   yield
                 else
@@ -132,8 +139,15 @@ module ActionDispatch
                 jsonapi_relationships
               end
             else
-              # Rails 5
-              jsonapi_resource_scope(Resource.new(@resource_type, api_only?, @scope[:shallow], options), @resource_type) do
+              # Rails 5+
+              # Rails 8.1 changed Resource.new to accept only 3 arguments (removed options)
+              resource_arg = if Rails::VERSION::MAJOR >= 8 && Rails::VERSION::MINOR >= 1
+                Resource.new(@resource_type, api_only?, @scope[:shallow])
+              else
+                Resource.new(@resource_type, api_only?, @scope[:shallow], options)
+              end
+
+              jsonapi_resource_scope(resource_arg, @resource_type) do
                 if block_given?
                   yield
                 else
