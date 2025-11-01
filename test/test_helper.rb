@@ -101,7 +101,14 @@ JSONAPI.configure do |config|
   config.json_key_format = :camelized_key
 end
 
-ActiveSupport::Deprecation.silenced = true
+# Rails 7.2+ removed ActiveSupport::Deprecation.silenced= in favor of Rails.application.deprecators
+# For Rails < 7.2, use the old API
+if ActiveSupport::Deprecation.respond_to?(:silenced=)
+  ActiveSupport::Deprecation.silenced = true
+else
+  # Rails 7.2+ - silence all deprecators
+  Rails.application.deprecators.silenced = true if Rails.application
+end
 
 puts "Testing With RAILS VERSION #{Rails.version}"
 
@@ -503,12 +510,22 @@ class Minitest::Test
     true
   end
 
-  self.fixture_path = "#{Rails.root}/fixtures"
+  # Rails 7.2+ changed fixture_path= to fixture_paths=
+  if respond_to?(:fixture_paths=)
+    self.fixture_paths = ["#{Rails.root}/fixtures"]
+  else
+    self.fixture_path = "#{Rails.root}/fixtures"
+  end
   fixtures :all
 end
 
 class ActiveSupport::TestCase
-  self.fixture_path = "#{Rails.root}/fixtures"
+  # Rails 7.2+ changed fixture_path= to fixture_paths=
+  if respond_to?(:fixture_paths=)
+    self.fixture_paths = ["#{Rails.root}/fixtures"]
+  else
+    self.fixture_path = "#{Rails.root}/fixtures"
+  end
   fixtures :all
   setup do
     @routes = TestApp.routes
@@ -516,7 +533,12 @@ class ActiveSupport::TestCase
 end
 
 class ActionDispatch::IntegrationTest
-  self.fixture_path = "#{Rails.root}/fixtures"
+  # Rails 7.2+ changed fixture_path= to fixture_paths=
+  if respond_to?(:fixture_paths=)
+    self.fixture_paths = ["#{Rails.root}/fixtures"]
+  else
+    self.fixture_path = "#{Rails.root}/fixtures"
+  end
   fixtures :all
 
   def assert_jsonapi_response(expected_status, msg = nil)
