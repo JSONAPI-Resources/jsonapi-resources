@@ -61,7 +61,8 @@ class TestApp < Rails::Application
   config.action_controller.action_on_unpermitted_parameters = :raise
 
   ActiveRecord::Schema.verbose = false
-  config.active_record.schema_format = :none
+  # Rails 8.0+ removed :none as a valid schema_format option
+  config.active_record.schema_format = Rails::VERSION::MAJOR >= 8 ? :ruby : :none
   config.active_support.test_order = :random
 
   config.active_support.halt_callback_chains_on_return_false = false
