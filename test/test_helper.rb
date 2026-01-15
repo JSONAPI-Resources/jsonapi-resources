@@ -23,7 +23,6 @@ end
 ENV['DATABASE_URL'] ||= "sqlite3:test_db"
 
 require 'active_record/railtie'
-require 'rails/test_help'
 require 'minitest/mock'
 require 'jsonapi-resources'
 require 'pry'
@@ -42,7 +41,11 @@ JSONAPI.configure do |config|
   config.json_key_format = :camelized_key
 end
 
-ActiveSupport::Deprecation.silenced = true
+if ActiveSupport::Deprecation.respond_to?(:silenced=)
+  ActiveSupport::Deprecation.silenced = true
+else
+  JSONAPI.deprecator.silenced = true
+end
 
 puts "Testing With RAILS VERSION #{Rails.version}"
 
@@ -56,7 +59,7 @@ class TestApp < Rails::Application
   config.action_controller.action_on_unpermitted_parameters = :raise
 
   ActiveRecord::Schema.verbose = false
-  config.active_record.schema_format = :none
+  config.active_record.schema_format = Rails::VERSION::MAJOR >= 8 ? :ruby : :none
   config.active_support.test_order = :random
 
   config.active_support.halt_callback_chains_on_return_false = false
@@ -66,9 +69,6 @@ class TestApp < Rails::Application
     config.active_record.sqlite3.represent_boolean_as_integer = true
   end
 end
-
-DatabaseCleaner.allow_remote_database_url = true
-DatabaseCleaner.strategy = :transaction
 
 module MyEngine
   class Engine < ::Rails::Engine
@@ -191,6 +191,13 @@ def show_queries
 end
 
 TestApp.initialize!
+require 'rails/test_help'
+
+# Disable foreign key constraints for SQLite tests
+ActiveRecord::Base.connection.execute('PRAGMA foreign_keys = OFF') if ActiveRecord::Base.connection.adapter_name == 'SQLite'
+
+DatabaseCleaner.allow_remote_database_url = true
+DatabaseCleaner.strategy = :transaction
 
 require File.expand_path('../fixtures/active_record', __FILE__)
 
@@ -460,12 +467,12 @@ class Minitest::Test
     true
   end
 
-  self.fixture_path = "#{Rails.root}/fixtures"
+  self.fixture_paths = ["#{Rails.root}/fixtures"]
   fixtures :all
 end
 
 class ActiveSupport::TestCase
-  self.fixture_path = "#{Rails.root}/fixtures"
+  self.fixture_paths = ["#{Rails.root}/fixtures"]
   fixtures :all
   setup do
     @routes = TestApp.routes
@@ -473,7 +480,7 @@ class ActiveSupport::TestCase
 end
 
 class ActionDispatch::IntegrationTest
-  self.fixture_path = "#{Rails.root}/fixtures"
+  self.fixture_paths = ["#{Rails.root}/fixtures"]
   fixtures :all
 
   def assert_jsonapi_response(expected_status, msg = nil)

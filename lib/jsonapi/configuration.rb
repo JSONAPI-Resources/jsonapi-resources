@@ -241,18 +241,18 @@ module JSONAPI
     end
 
     def allow_include=(allow_include)
-      ActiveSupport::Deprecation.warn('`allow_include` has been replaced by `default_allow_include_to_one` and `default_allow_include_to_many` options.')
+      JSONAPI.deprecator.warn('`allow_include` has been replaced by `default_allow_include_to_one` and `default_allow_include_to_many` options.')
       @default_allow_include_to_one = allow_include
       @default_allow_include_to_many = allow_include
     end
 
     def whitelist_all_exceptions=(allow_all_exceptions)
-      ActiveSupport::Deprecation.warn('`whitelist_all_exceptions` has been replaced by `allow_all_exceptions`')
+      JSONAPI.deprecator.warn('`whitelist_all_exceptions` has been replaced by `allow_all_exceptions`')
       @allow_all_exceptions = allow_all_exceptions
     end
 
     def exception_class_whitelist=(exception_class_allowlist)
-      ActiveSupport::Deprecation.warn('`exception_class_whitelist` has been replaced by `exception_class_allowlist`')
+      JSONAPI.deprecator.warn('`exception_class_whitelist` has been replaced by `exception_class_allowlist`')
       @exception_class_allowlist = exception_class_allowlist
     end
 
@@ -315,11 +315,13 @@ module JSONAPI
 
   class << self
     attr_accessor :configuration
+
+    def configuration
+      @configuration ||= Configuration.new
+    end
   end
 
-  @configuration ||= Configuration.new
-
   def self.configure
-    yield(@configuration)
+    yield(configuration)
   end
 end
