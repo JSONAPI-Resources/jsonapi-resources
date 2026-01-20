@@ -647,8 +647,8 @@ class Breed
 end
 
 class Book < ActiveRecord::Base
-  has_many :book_comments
-  has_many :approved_book_comments, -> { where(approved: true) }, class_name: "BookComment"
+  has_many :book_comments, -> { order(:id) }
+  has_many :approved_book_comments, -> { where(approved: true).order(:id) }, class_name: "BookComment"
 
   has_and_belongs_to_many :authors, join_table: :book_authors, class_name: "Person"
 
