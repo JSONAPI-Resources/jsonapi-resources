@@ -658,6 +658,8 @@ class Book < ActiveRecord::Base
 end
 
 class BookComment < ActiveRecord::Base
+  default_scope { order(:id) }
+
   belongs_to :author, class_name: 'Person', foreign_key: 'author_id'
   belongs_to :book
 
