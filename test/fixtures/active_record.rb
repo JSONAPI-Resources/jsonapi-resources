@@ -2014,6 +2014,11 @@ module Api
         records.where(BookComment.arel_table[:body].matches("%#{value[0]}%"))
       }
 
+      # Add default sort to ensure stable ordering across cache/non-cache scenarios
+      def self.default_sort
+        [{field: 'id', direction: :asc}]
+      end
+
       class << self
         def book_comments
           BookComment.arel_table
