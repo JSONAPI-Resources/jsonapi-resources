@@ -31,9 +31,15 @@ jobs:
           - '3.0'
           - 3.1
           - 3.2
+          - 3.3
+          - 3.4
         rails:
-          - 7.0.4
-          - 6.1.7
+          - 8.1.2
+          - 8.0.4
+          - 7.2.3
+          - 7.1.6
+          - 7.0.10
+          - 6.1.7.10
           - 6.0.6
           - 5.2.8.1
           - 5.1.7
@@ -41,26 +47,78 @@ jobs:
           - postgresql://postgres:password@localhost:5432/test
           - sqlite3:test_db
         exclude:
+          # Ruby 3.4 exclusions (Rails 7.2+)
+          - ruby: 3.4
+            rails: 7.1.6
+          - ruby: 3.4
+            rails: 7.0.10
+          - ruby: 3.4
+            rails: 6.1.7.10
+          - ruby: 3.4
+            rails: 6.0.6
+          - ruby: 3.4
+            rails: 5.2.8.1
+          - ruby: 3.4
+            rails: 5.1.7
+          # Ruby 3.3 exclusions (Rails 6.1+)
+          - ruby: 3.3
+            rails: 6.0.6
+          - ruby: 3.3
+            rails: 5.2.8.1
+          - ruby: 3.3
+            rails: 5.1.7
+          # Ruby 3.2 exclusions (Rails 7.0+)
           - ruby: 3.2
             rails: 6.0.6
           - ruby: 3.2
             rails: 5.2.8.1
           - ruby: 3.2
             rails: 5.1.7
+          # Ruby 3.1 exclusions (Rails 6.1+)
+          - ruby: 3.1
+            rails: 8.1.2
+          - ruby: 3.1
+            rails: 8.0.4
           - ruby: 3.1
             rails: 6.0.6
           - ruby: 3.1
             rails: 5.2.8.1
           - ruby: 3.1
             rails: 5.1.7
+          # Ruby 3.0 exclusions (Rails 6.1+)
+          - ruby: '3.0'
+            rails: 8.1.2
+          - ruby: '3.0'
+            rails: 8.0.4
+          - ruby: '3.0'
+            rails: 7.2.3
           - ruby: '3.0'
             rails: 6.0.6
           - ruby: '3.0'
             rails: 5.2.8.1
           - ruby: '3.0'
             rails: 5.1.7
+          # Ruby 2.7 exclusions (Rails 5.1-7.0)
+          - ruby: 2.7
+            rails: 8.1.2
+          - ruby: 2.7
+            rails: 8.0.4
+          - ruby: 2.7
+            rails: 7.2.3
+          - ruby: 2.7
+            rails: 7.1.6
+          # Ruby 2.6 exclusions (Rails 5.1-6.1)
           - ruby: 2.6
-            rails: 7.0.4
+            rails: 8.1.2
+          - ruby: 2.6
+            rails: 8.0.4
+          - ruby: 2.6
+            rails: 7.2.3
+          - ruby: 2.6
+            rails: 7.1.6
+          - ruby: 2.6
+            rails: 7.0.10
+          # PostgreSQL not supported on Rails 5.1.7
           - database_url: postgresql://postgres:password@localhost:5432/test
             rails: 5.1.7
     env:
