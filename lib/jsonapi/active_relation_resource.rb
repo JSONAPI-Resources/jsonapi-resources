@@ -847,7 +847,16 @@ module JSONAPI
       end
 
       def quote(field)
-        "\"#{field.to_s}\""
+        if oracle?
+          "\"#{field.to_s.upcase}\""
+        else
+          "\"#{field.to_s}\""
+        end
+      end
+
+      def oracle?
+        defined?(ActiveRecord::Base.connection) &&
+          ActiveRecord::Base.connection.adapter_name =~ /oracle/i
       end
 
       def apply_filters(records, filters, options = {})

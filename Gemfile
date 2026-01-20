@@ -11,10 +11,10 @@ version = ENV['RAILS_VERSION'] || 'default'
 platforms :ruby do
   gem 'pg'
 
-  if version.start_with?('4.2', '5.0')
-    gem 'sqlite3', '~> 1.3.13'
+  if version.start_with?('8.1')
+    gem 'sqlite3', '>= 2.1'
   else
-    gem 'sqlite3', '~> 1.4'
+    gem 'sqlite3', '~> 1.3.13'
   end
 end
 
@@ -24,6 +24,7 @@ when 'master'
   gem 'arel', { git: 'https://github.com/rails/arel.git' }
 when 'default'
   gem 'railties', '>= 6.0'
+  gem 'csv'
 else
   gem 'railties', "~> #{version}"
 end
