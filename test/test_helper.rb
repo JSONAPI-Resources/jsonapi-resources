@@ -1,20 +1,11 @@
 require 'logger'
 require 'simplecov'
 require 'database_cleaner'
+require 'minitest'
+require 'minitest/autorun'
 
 # To run tests with coverage:
 # COVERAGE=true bundle exec rake test
-
-# To test on a specific rails version use this:
-# export RAILS_VERSION=5.2.4.4; bundle update; bundle exec rake test
-# export RAILS_VERSION=6.0.3.4; bundle update; bundle exec rake test
-# export RAILS_VERSION=6.1.1; bundle update; bundle exec rake test
-
-# We are no longer having Travis test Rails 4.2.11., but you can try it with:
-# export RAILS_VERSION=4.2.11; bundle update rails; bundle exec rake test
-
-# To Switch rails versions and run a particular test order:
-# export RAILS_VERSION=6.1.1; bundle update; bundle exec rake TESTOPTS="--seed=39333" test
 
 if ENV['COVERAGE']
   SimpleCov.start do
@@ -30,14 +21,11 @@ if ENV['COVERAGE']
     add_group 'Routing', 'lib/jsonapi/routing'
 
     track_files 'lib/**/*.rb'
-
-    # Enable branch coverage (requires Ruby 2.5+)
     enable_coverage :branch if respond_to?(:enable_coverage)
 
-    # Formatting options
     formatter SimpleCov::Formatter::MultiFormatter.new([
       SimpleCov::Formatter::HTMLFormatter,
-      SimpleCov::Formatter::SimpleFormatter  # Console output
+      SimpleCov::Formatter::SimpleFormatter
     ])
   end
 end
@@ -46,35 +34,28 @@ ENV['DATABASE_URL'] ||= "sqlite3:test_db"
 
 require 'active_record/railtie'
 
-# Rails 7.1+ requires the application to be defined and initialized before requiring rails/test_help
-if Rails::VERSION::MAJOR >= 8 || (Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR >= 1)
-  Rails.env = 'test'
+# Rails 8+ initialization
+Rails.env = 'test'
 
-  class TestApp < Rails::Application
-    config.eager_load = false
-    config.root = File.dirname(__FILE__)
-    config.session_store :cookie_store, key: 'session'
-    config.secret_key_base = 'secret'
+class TestApp < Rails::Application
+  config.eager_load = false
+  config.root = File.dirname(__FILE__)
+  config.session_store :cookie_store, key: 'session'
+  config.secret_key_base = 'secret'
 
-    #Raise errors on unsupported parameters
-    config.action_controller.action_on_unpermitted_parameters = :raise
+  config.action_controller.action_on_unpermitted_parameters = :raise
 
-    ActiveRecord::Schema.verbose = false
-    # Rails 8.0+ removed :none as a valid schema_format option
-    config.active_record.schema_format = Rails::VERSION::MAJOR >= 8 ? :ruby : :none
-    config.active_support.test_order = :random
+  ActiveRecord::Schema.verbose = false
+  config.active_record.schema_format = :ruby
+  config.active_support.test_order = :random
 
-    config.active_support.halt_callback_chains_on_return_false = false
-    config.active_record.time_zone_aware_types = [:time, :datetime]
-    config.active_record.belongs_to_required_by_default = false
-  end
-
-  # Initialize before requiring rails/test_help for Rails 7.1+
-  TestApp.initialize!
+  config.active_record.time_zone_aware_types = [:time, :datetime]
+  config.active_record.belongs_to_required_by_default = false
 end
 
+TestApp.initialize!
+
 require 'rails/test_help'
-require 'minitest/mock'
 require 'jsonapi-resources'
 require 'pry'
 
@@ -92,39 +73,12 @@ JSONAPI.configure do |config|
   config.json_key_format = :camelized_key
 end
 
-# Rails 7.2+ removed ActiveSupport::Deprecation.silenced= in favor of Rails.application.deprecators
-if ActiveSupport::Deprecation.respond_to?(:silenced=)
-  ActiveSupport::Deprecation.silenced = true
-elsif defined?(Rails.application) && Rails.application.respond_to?(:deprecators)
+# Silence deprecation warnings
+if defined?(Rails.application) && Rails.application.respond_to?(:deprecators)
   Rails.application.deprecators.silenced = true
 end
 
 puts "Testing With RAILS VERSION #{Rails.version}"
-
-# For Rails < 7.1, define TestApp here (after rails/test_help)
-# For Rails 7.1+, TestApp was already defined and initialized before rails/test_help
-unless Rails::VERSION::MAJOR >= 8 || (Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR >= 1)
-  class TestApp < Rails::Application
-    config.eager_load = false
-    config.root = File.dirname(__FILE__)
-    config.session_store :cookie_store, key: 'session'
-    config.secret_key_base = 'secret'
-
-    #Raise errors on unpermitted parameters
-    config.action_controller.action_on_unpermitted_parameters = :raise
-
-    ActiveRecord::Schema.verbose = false
-    config.active_record.schema_format = :none
-    config.active_support.test_order = :random
-
-    config.active_support.halt_callback_chains_on_return_false = false
-    config.active_record.time_zone_aware_types = [:time, :datetime]
-    config.active_record.belongs_to_required_by_default = false
-    if Rails::VERSION::MAJOR == 5 && Rails::VERSION::MINOR == 2
-      config.active_record.sqlite3.represent_boolean_as_integer = true
-    end
-  end
-end
 
 DatabaseCleaner.allow_remote_database_url = true
 DatabaseCleaner.strategy = :transaction

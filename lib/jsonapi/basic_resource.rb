@@ -1,37 +1,18 @@
 # frozen_string_literal: true
 
-require 'jsonapi/callbacks'
 require 'jsonapi/configuration'
 
 module JSONAPI
   class BasicResource
-    include Callbacks
-
     @abstract = true
     @immutable = true
     @root = true
 
     attr_reader :context
 
-    define_jsonapi_resources_callbacks :create,
-                                       :update,
-                                       :remove,
-                                       :save,
-                                       :create_to_many_link,
-                                       :replace_to_many_links,
-                                       :create_to_one_link,
-                                       :replace_to_one_link,
-                                       :replace_polymorphic_to_one_link,
-                                       :remove_to_many_link,
-                                       :remove_to_one_link,
-                                       :replace_fields
-
     def initialize(model, context)
       @model = model
       @context = context
-      @reload_needed = false
-      @changing = false
-      @save_needed = false
     end
 
     def _model
@@ -54,382 +35,26 @@ module JSONAPI
       [id, self.class.hash_cache_field(cache_field_value)]
     end
 
-    def is_new?
-      id.nil?
-    end
-
-    def change(callback)
-      completed = false
-
-      if @changing
-        run_callbacks callback do
-          completed = (yield == :completed)
-        end
-      else
-        run_callbacks is_new? ? :create : :update do
-          @changing = true
-          run_callbacks callback do
-            completed = (yield == :completed)
-          end
-
-          completed = (save == :completed) if @save_needed || is_new?
-        end
-      end
-
-      return completed ? :completed : :accepted
-    end
-
-    def remove
-      run_callbacks :remove do
-        _remove
-      end
-    end
-
-    def create_to_many_links(relationship_type, relationship_key_values, options = {})
-      change :create_to_many_link do
-        _create_to_many_links(relationship_type, relationship_key_values, options)
-      end
-    end
-
-    def replace_to_many_links(relationship_type, relationship_key_values, options = {})
-      change :replace_to_many_links do
-        _replace_to_many_links(relationship_type, relationship_key_values, options)
-      end
-    end
-
-    def replace_to_one_link(relationship_type, relationship_key_value, options = {})
-      change :replace_to_one_link do
-        _replace_to_one_link(relationship_type, relationship_key_value, options)
-      end
-    end
-
-    def replace_polymorphic_to_one_link(relationship_type, relationship_key_value, relationship_key_type, options = {})
-      change :replace_polymorphic_to_one_link do
-        _replace_polymorphic_to_one_link(relationship_type, relationship_key_value, relationship_key_type, options)
-      end
-    end
-
-    def remove_to_many_link(relationship_type, key, options = {})
-      change :remove_to_many_link do
-        _remove_to_many_link(relationship_type, key, options)
-      end
-    end
-
-    def remove_to_one_link(relationship_type, options = {})
-      change :remove_to_one_link do
-        _remove_to_one_link(relationship_type, options)
-      end
-    end
-
-    def replace_fields(field_data)
-      change :replace_fields do
-        _replace_fields(field_data)
-      end
-    end
-
     # Override this on a resource instance to override the fetchable keys
     def fetchable_fields
       self.class.fields
     end
 
-    def model_error_messages
-      _model.errors.messages
-    end
-
-    # Add metadata to validation error objects.
-    #
-    # Suppose `model_error_messages` returned the following error messages
-    # hash:
-    #
-    #   {password: ["too_short", "format"]}
-    #
-    # Then to add data to the validation error `validation_error_metadata`
-    # could return:
-    #
-    #   {
-    #     password: {
-    #       "too_short": {"minimum_length" => 6},
-    #       "format": {"requirement" => "must contain letters and numbers"}
-    #     }
-    #   }
-    #
-    # The specified metadata is then be merged into the validation error
-    # object.
-    def validation_error_metadata
-      {}
-    end
-
     # Override this to return resource level meta data
-    # must return a hash, and if the hash is empty the meta section will not be serialized with the resource
-    # meta keys will be not be formatted with the key formatter for the serializer by default. They can however use the
-    # serializer's format_key and format_value methods if desired
-    # the _options hash will contain the serializer and the serialization_options
     def meta(_options)
       {}
     end
 
     # Override this to return custom links
-    # must return a hash, which will be merged with the default { self: 'self-url' } links hash
-    # links keys will be not be formatted with the key formatter for the serializer by default.
-    # They can however use the serializer's format_key and format_value methods if desired
-    # the _options hash will contain the serializer and the serialization_options
     def custom_links(_options)
       {}
-    end
-
-    private
-
-    def save
-      run_callbacks :save do
-        _save
-      end
-    end
-
-    # Override this on a resource to return a different result code. Any
-    # value other than :completed will result in operations returning
-    # `:accepted`
-    #
-    # For example to return `:accepted` if your model does not immediately
-    # save resources to the database you could override `_save` as follows:
-    #
-    # ```
-    # def _save
-    #   super
-    #   return :accepted
-    # end
-    # ```
-    def _save(validation_context = nil)
-      unless @model.valid?(validation_context)
-        fail JSONAPI::Exceptions::ValidationErrors.new(self)
-      end
-
-      if defined? @model.save
-        saved = @model.save(validate: false)
-
-        unless saved
-          if @model.errors.present?
-            fail JSONAPI::Exceptions::ValidationErrors.new(self)
-          else
-            fail JSONAPI::Exceptions::SaveFailed.new
-          end
-        end
-      else
-        saved = true
-      end
-      @model.reload if @reload_needed
-      @reload_needed = false
-
-      @save_needed = !saved
-
-      :completed
-    end
-
-    def _remove
-      unless @model.destroy
-        fail JSONAPI::Exceptions::ValidationErrors.new(self)
-      end
-      :completed
-
-    rescue ActiveRecord::DeleteRestrictionError => e
-      fail JSONAPI::Exceptions::RecordLocked.new(e.message)
-    end
-
-    def reflect_relationship?(relationship, options)
-      return false if !relationship.reflect ||
-        (!JSONAPI.configuration.use_relationship_reflection || options[:reflected_source])
-
-      inverse_relationship = relationship.resource_klass._relationships[relationship.inverse_relationship]
-      if inverse_relationship.nil?
-        warn "Inverse relationship could not be found for #{self.class.name}.#{relationship.name}. Relationship reflection disabled."
-        return false
-      end
-      true
-    end
-
-    def _create_to_many_links(relationship_type, relationship_key_values, options)
-      relationship = self.class._relationships[relationship_type]
-      relation_name = relationship.relation_name(context: @context)
-
-      if options[:reflected_source]
-        @model.public_send(relation_name) << options[:reflected_source]._model
-        return :completed
-      end
-
-      # load requested related resources
-      # make sure they all exist (also based on context) and add them to relationship
-
-      related_resources = relationship.resource_klass.find_by_keys(relationship_key_values, context: @context)
-
-      if related_resources.count != relationship_key_values.count
-        # todo: obscure id so not to leak info
-        fail JSONAPI::Exceptions::RecordNotFound.new('unspecified')
-      end
-
-      reflect = reflect_relationship?(relationship, options)
-
-      related_resources.each do |related_resource|
-        if reflect
-          if related_resource.class._relationships[relationship.inverse_relationship].is_a?(JSONAPI::Relationship::ToMany)
-            related_resource.create_to_many_links(relationship.inverse_relationship, [id], reflected_source: self)
-          else
-            related_resource.replace_to_one_link(relationship.inverse_relationship, id, reflected_source: self)
-          end
-          @reload_needed = true
-        else
-          unless @model.public_send(relation_name).include?(related_resource._model)
-            @model.public_send(relation_name) << related_resource._model
-          end
-        end
-      end
-
-      :completed
-    end
-
-    def _replace_to_many_links(relationship_type, relationship_key_values, options)
-      relationship = self.class._relationship(relationship_type)
-
-      reflect = reflect_relationship?(relationship, options)
-
-      if reflect
-        existing = find_related_ids(relationship, options)
-
-        to_delete = existing - (relationship_key_values & existing)
-        to_delete.each do |key|
-          _remove_to_many_link(relationship_type, key, reflected_source: self)
-        end
-
-        to_add = relationship_key_values - (relationship_key_values & existing)
-        _create_to_many_links(relationship_type, to_add, {})
-
-        @reload_needed = true
-      elsif relationship.polymorphic?
-        relationship_key_values.each do |relationship_key_value|
-          relationship_resource_klass = self.class.resource_klass_for(relationship_key_value[:type])
-          ids = relationship_key_value[:ids]
-
-          related_records = relationship_resource_klass
-            .records(options)
-            .where({relationship_resource_klass._primary_key => ids})
-
-          missed_ids = ids - related_records.pluck(relationship_resource_klass._primary_key)
-
-          if missed_ids.present?
-            fail JSONAPI::Exceptions::RecordNotFound.new(missed_ids)
-          end
-
-          relation_name = relationship.relation_name(context: @context)
-          @model.send("#{relation_name}") << related_records
-        end
-
-        @reload_needed = true
-      else
-        send("#{relationship.foreign_key}=", relationship_key_values)
-        @save_needed = true
-      end
-
-      :completed
-    end
-
-    def _replace_to_one_link(relationship_type, relationship_key_value, _options)
-      relationship = self.class._relationships[relationship_type]
-
-      send("#{relationship.foreign_key}=", relationship_key_value)
-      @save_needed = true
-
-      :completed
-    end
-
-    def _replace_polymorphic_to_one_link(relationship_type, key_value, key_type, _options)
-      relationship = self.class._relationships[relationship_type.to_sym]
-
-      send("#{relationship.foreign_key}=", {type: key_type, id: key_value})
-      @save_needed = true
-
-      :completed
-    end
-
-    def _remove_to_many_link(relationship_type, key, options)
-      relationship = self.class._relationships[relationship_type]
-
-      reflect = reflect_relationship?(relationship, options)
-
-      if reflect
-
-        related_resource = relationship.resource_klass.find_by_key(key, context: @context)
-
-        if related_resource.nil?
-          fail JSONAPI::Exceptions::RecordNotFound.new(key)
-        else
-          if related_resource.class._relationships[relationship.inverse_relationship].is_a?(JSONAPI::Relationship::ToMany)
-            related_resource.remove_to_many_link(relationship.inverse_relationship, id, reflected_source: self)
-          else
-            related_resource.remove_to_one_link(relationship.inverse_relationship, reflected_source: self)
-          end
-        end
-
-        @reload_needed = true
-      else
-        @model.public_send(relationship.relation_name(context: @context)).delete(key)
-      end
-
-      :completed
-
-    rescue ActiveRecord::DeleteRestrictionError => e
-      fail JSONAPI::Exceptions::RecordLocked.new(e.message)
-    rescue ActiveRecord::RecordNotFound
-      fail JSONAPI::Exceptions::RecordNotFound.new(key)
-    end
-
-    def _remove_to_one_link(relationship_type, _options)
-      relationship = self.class._relationships[relationship_type]
-
-      send("#{relationship.foreign_key}=", nil)
-      @save_needed = true
-
-      :completed
-    end
-
-    def _replace_fields(field_data)
-      field_data[:attributes].each do |attribute, value|
-        begin
-          send "#{attribute}=", value
-          @save_needed = true
-        rescue ArgumentError
-          # :nocov: Will be thrown if an enum value isn't allowed for an enum. Currently not tested as enums are a rails 4.1 and higher feature
-          raise JSONAPI::Exceptions::InvalidFieldValue.new(attribute, value)
-          # :nocov:
-        end
-      end
-
-      field_data[:to_one].each do |relationship_type, value|
-        if value.nil?
-          remove_to_one_link(relationship_type)
-        else
-          case value
-          when Hash
-            replace_polymorphic_to_one_link(relationship_type.to_s, value.fetch(:id), value.fetch(:type))
-          else
-            replace_to_one_link(relationship_type, value)
-          end
-        end
-      end if field_data[:to_one]
-
-      field_data[:to_many].each do |relationship_type, values|
-        replace_to_many_links(relationship_type, values)
-      end if field_data[:to_many]
-
-      :completed
-    end
-
-    def find_related_ids(relationship, options = {})
-      send(relationship.foreign_key)
     end
 
     class << self
       def inherited(subclass)
         super
         subclass.abstract(false)
-        subclass.immutable(false)
+        subclass.immutable(true)
         subclass.caching(_caching)
         subclass.cache_field(_cache_field) if @_cache_field
         subclass.singleton(singleton?, (_singleton_options.dup || {}))
@@ -441,7 +66,7 @@ module JSONAPI
 
         subclass._model_hints = (_model_hints || {}).dup
 
-        unless _model_name.empty? || _immutable
+        unless _model_name.empty?
           subclass.model_name(_model_name, add_model_hint: (_model_hints && !_model_hints[_model_name].nil?) == true)
         end
 
@@ -514,14 +139,6 @@ module JSONAPI
       attr_accessor :_attributes, :_relationships, :_type, :_model_hints, :_routed, :_warned_missing_route
       attr_writer :_allowed_filters, :_paginator, :_allowed_sort
 
-      def create(context)
-        new(create_model, context)
-      end
-
-      def create_model
-        _model_class.new
-      end
-
       def routing_options(options)
         @_routing_resource_options = options
       end
@@ -545,11 +162,6 @@ module JSONAPI
         attr = attribute_name.to_sym
 
         check_reserved_attribute_name(attr)
-
-        if (attr == :id) && (options[:format].nil?)
-          JSONAPI.warn_deprecated('Id without format is no longer supported. Please remove ids from attributes, or specify a format.')
-        end
-
         check_duplicate_attribute_name(attr) if options[:format].nil?
 
         @_attributes ||= {}
@@ -557,10 +169,6 @@ module JSONAPI
         define_method attr do
           @model.public_send(options[:delegate] ? options[:delegate].to_sym : attr)
         end unless method_defined?(attr)
-
-        define_method "#{attr}=" do |value|
-          @model.public_send("#{options[:delegate] ? options[:delegate].to_sym : attr}=", value)
-        end unless method_defined?("#{attr}=")
 
         if options.fetch(:sortable, true) && !_has_sort?(attr)
           sort attr
@@ -571,9 +179,6 @@ module JSONAPI
         field_name = if attribute == :_cache_field
                        _cache_field
                      else
-                       # Note: this will allow the returning of model attributes without a corresponding
-                       # resource attribute, for example a belongs_to id such as `author_id` or bypassing
-                       # the delegate.
                        attr = @_attributes[attribute]
                        attr && attr[:delegate] ? attr[:delegate].to_sym : attribute
                      end
@@ -597,9 +202,7 @@ module JSONAPI
                   when :many
                     Relationship::ToMany
                   else
-                    #:nocov:#
                     fail ArgumentError.new('to: must be either :one or :many')
-                    #:nocov:#
                 end
         _add_relationship(klass, *attrs, options.except(:to))
       end
@@ -608,25 +211,10 @@ module JSONAPI
         _add_relationship(Relationship::ToOne, *attrs)
       end
 
-      def belongs_to(*attrs)
-        JSONAPI.warn_deprecated "In #{name} you exposed a `has_one` relationship "\
-                                " using the `belongs_to` class method. We think `has_one`" \
-                                " is more appropriate. If you know what you're doing," \
-                                " and don't want to see this warning again, override the" \
-                                " `belongs_to` class method on your resource."
-        _add_relationship(Relationship::ToOne, *attrs)
-      end
-
       def has_many(*attrs)
         _add_relationship(Relationship::ToMany, *attrs)
       end
 
-      # @model_class is inherited from superclass, and this causes some issues:
-      # ```
-      # CarResource._model_class #=> Vehicle # it should be Car
-      # ```
-      # so in order to invoke the right class from subclasses,
-      # we should call this method to override it.
       def model_name(model, options = {})
         @model_class = nil
         @_model_name = model.to_sym
@@ -678,16 +266,6 @@ module JSONAPI
 
       def cache_field(field)
         @_cache_field = field.to_sym
-      end
-
-      # Override in your resource to filter the updatable keys
-      def updatable_fields(_context = nil)
-        _updatable_relationships | _updatable_attributes - [:id]
-      end
-
-      # Override in your resource to filter the creatable keys
-      def creatable_fields(_context = nil)
-        _updatable_relationships | _updatable_attributes
       end
 
       # Override in your resource to filter the sortable keys
@@ -767,9 +345,6 @@ module JSONAPI
         @_resource_key_type || JSONAPI.configuration.resource_key_type
       end
 
-      # override to all resolution of masked ids to actual ids. Because singleton routes do not specify the id this
-      # will be needed to allow lookup of singleton resources. Alternately singleton resources can override
-      # `verify_key`
       def singleton_key(context)
         if @_singleton_options && @_singleton_options[:singleton_key]
           strategy = @_singleton_options[:singleton_key]
@@ -813,25 +388,20 @@ module JSONAPI
         raise JSONAPI::Exceptions::InvalidFieldValue.new(:id, key)
       end
 
-      # override to allow for key processing and checking
       def verify_keys(keys, context = nil)
         return keys.collect do |key|
           verify_key(key, context)
         end
       end
 
-      # Either add a custom :verify lambda or override verify_custom_filter to allow for custom filters
       def verify_custom_filter(filter, value, _context = nil)
         [filter, value]
       end
 
-      # Either add a custom :verify lambda or override verify_relationship_filter to allow for custom
-      # relationship logic, such as uuids, multiple keys or permission checks on keys
       def verify_relationship_filter(filter, raw, _context = nil)
         [filter, raw]
       end
 
-      # quasi private class methods
       def _attribute_options(attr)
         @_cached_attribute_options[attr] ||= default_attribute_options.merge(@_attributes[attr])
       end
@@ -842,14 +412,6 @@ module JSONAPI
 
       def _has_attribute?(attr)
         @_attributes.keys.include?(attr.to_sym)
-      end
-
-      def _updatable_attributes
-        _attributes.map { |key, options| key unless options[:readonly] }.compact
-      end
-
-      def _updatable_relationships
-        @_relationships.map { |key, relationship| key unless relationship.readonly? }.compact
       end
 
       def _relationship(type)
@@ -969,7 +531,7 @@ module JSONAPI
       end
 
       def mutable?
-        !@immutable
+        false
       end
 
       def parse_exclude_links(exclude)
@@ -1017,7 +579,6 @@ module JSONAPI
         nil
       end
 
-      # Generate a hashcode from the value to be used as part of the cache lookup
       def hash_cache_field(value)
         value.hash
       end
@@ -1084,27 +645,11 @@ module JSONAPI
         end
       end
 
-      # ResourceBuilder methods
       def define_relationship_methods(relationship_name, relationship_klass, options)
-        relationship = register_relationship(
+        register_relationship(
             relationship_name,
             relationship_klass.new(relationship_name, options)
         )
-
-        define_foreign_key_setter(relationship)
-      end
-
-      def define_foreign_key_setter(relationship)
-        if relationship.polymorphic?
-          define_on_resource "#{relationship.foreign_key}=" do |v|
-            _model.method("#{relationship.foreign_key}=").call(v[:id])
-            _model.public_send("#{relationship.polymorphic_type}=", v[:type])
-          end
-        else
-          define_on_resource "#{relationship.foreign_key}=" do |value|
-            _model.method("#{relationship.foreign_key}=").call(value)
-          end
-        end
       end
 
       def define_on_resource(method_name, &block)
@@ -1134,8 +679,6 @@ module JSONAPI
       end
 
       def check_reserved_attribute_name(name)
-        # Allow :id since it can be used to specify the format. Since it is a method on the base Resource
-        # an attribute method won't be created for it.
         if [:type, :_cache_field, :cache_field].include?(name.to_sym)
           warn "[NAME COLLISION] `#{name}` is a reserved key in #{_resource_name_from_type(_type)}."
         end

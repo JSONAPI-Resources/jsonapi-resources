@@ -2,23 +2,6 @@
 
 module JSONAPI
   class Processor
-    include Callbacks
-    define_jsonapi_resources_callbacks :find,
-                                       :show,
-                                       :show_relationship,
-                                       :show_related_resource,
-                                       :show_related_resources,
-                                       :create_resource,
-                                       :remove_resource,
-                                       :replace_fields,
-                                       :replace_to_one_relationship,
-                                       :replace_polymorphic_to_one_relationship,
-                                       :create_to_many_relationships,
-                                       :replace_to_many_relationships,
-                                       :remove_to_many_relationships,
-                                       :remove_to_one_relationship,
-                                       :operation
-
     attr_reader :resource_klass, :operation_type, :params, :context, :result, :result_options
 
     def initialize(resource_klass, operation_type, params)
@@ -31,12 +14,7 @@ module JSONAPI
     end
 
     def process
-      run_callbacks :operation do
-        run_callbacks operation_type do
-          @result = send(operation_type)
-        end
-      end
-
+      @result = send(operation_type)
     rescue JSONAPI::Exceptions::Error => e
       @result = JSONAPI::ErrorsOperationResult.new(e.errors[0].code, e.errors)
     end
@@ -223,136 +201,6 @@ module JSONAPI
                                                       relationship_type,
                                                       resource_set,
                                                       opts)
-    end
-
-    def create_resource
-      include_directives = params[:include_directives]
-      fields = params[:fields]
-      serializer = params[:serializer]
-
-      data = params[:data]
-      resource = resource_klass.create(context)
-      result = resource.replace_fields(data)
-
-      options = {
-        context: context,
-        fields: fields,
-        filters: { resource_klass._primary_key => resource.id },
-        include_directives: include_directives
-      }
-
-      resource_set = find_resource_set(include_directives, options)
-
-      resource_set.populate!(serializer, context, options)
-
-      JSONAPI::ResourceSetOperationResult.new((result == :completed ? :created : :accepted), resource_set, result_options)
-    end
-
-    def remove_resource
-      resource_id = params[:resource_id]
-
-      resource = resource_klass.find_by_key(resource_id, context: context)
-      result = resource.remove
-
-      JSONAPI::OperationResult.new(result == :completed ? :no_content : :accepted, result_options)
-    end
-
-    def replace_fields
-      resource_id = params[:resource_id]
-      include_directives = params[:include_directives]
-      fields = params[:fields]
-      serializer = params[:serializer]
-
-      data = params[:data]
-
-      resource = resource_klass.find_by_key(resource_id, context: context)
-
-      result = resource.replace_fields(data)
-
-      options = {
-        context: context,
-        fields: fields,
-        filters: { resource_klass._primary_key => resource.id },
-        include_directives: include_directives
-      }
-
-      resource_set = find_resource_set(include_directives, options)
-
-      resource_set.populate!(serializer, context, options)
-
-      JSONAPI::ResourceSetOperationResult.new((result == :completed ? :ok : :accepted), resource_set, result_options)
-    end
-
-    def replace_to_one_relationship
-      resource_id = params[:resource_id]
-      relationship_type = params[:relationship_type].to_sym
-      key_value = params[:key_value]
-
-      resource = resource_klass.find_by_key(resource_id, context: context)
-      result = resource.replace_to_one_link(relationship_type, key_value)
-
-      JSONAPI::OperationResult.new(result == :completed ? :no_content : :accepted, result_options)
-    end
-
-    def replace_polymorphic_to_one_relationship
-      resource_id = params[:resource_id]
-      relationship_type = params[:relationship_type].to_sym
-      key_value = params[:key_value]
-      key_type = params[:key_type]
-
-      resource = resource_klass.find_by_key(resource_id, context: context)
-      result = resource.replace_polymorphic_to_one_link(relationship_type, key_value, key_type)
-
-      JSONAPI::OperationResult.new(result == :completed ? :no_content : :accepted, result_options)
-    end
-
-    def create_to_many_relationships
-      resource_id = params[:resource_id]
-      relationship_type = params[:relationship_type].to_sym
-      data = params[:data]
-
-      resource = resource_klass.find_by_key(resource_id, context: context)
-      result = resource.create_to_many_links(relationship_type, data)
-
-      JSONAPI::OperationResult.new(result == :completed ? :no_content : :accepted, result_options)
-    end
-
-    def replace_to_many_relationships
-      resource_id = params[:resource_id]
-      relationship_type = params[:relationship_type].to_sym
-      data = params.fetch(:data)
-
-      resource = resource_klass.find_by_key(resource_id, context: context)
-      result = resource.replace_to_many_links(relationship_type, data)
-
-      JSONAPI::OperationResult.new(result == :completed ? :no_content : :accepted, result_options)
-    end
-
-    def remove_to_many_relationships
-      resource_id = params[:resource_id]
-      relationship_type = params[:relationship_type].to_sym
-      associated_keys = params[:associated_keys]
-
-      resource = resource_klass.find_by_key(resource_id, context: context)
-
-      complete = true
-      associated_keys.each do |key|
-        result = resource.remove_to_many_link(relationship_type, key)
-        if complete && result != :completed
-          complete = false
-        end
-      end
-      JSONAPI::OperationResult.new(complete ? :no_content : :accepted, result_options)
-    end
-
-    def remove_to_one_relationship
-      resource_id = params[:resource_id]
-      relationship_type = params[:relationship_type].to_sym
-
-      resource = resource_klass.find_by_key(resource_id, context: context)
-      result = resource.remove_to_one_link(relationship_type)
-
-      JSONAPI::OperationResult.new(result == :completed ? :no_content : :accepted, result_options)
     end
 
     def result_options

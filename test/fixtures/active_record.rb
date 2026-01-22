@@ -1407,38 +1407,6 @@ class PostResource < JSONAPI::Resource
     [{field: 'title', direction: :desc}, {field: 'id', direction: :desc}]
   end
 
-  before_save do
-    msg = "Before save"
-  end
-
-  after_save do
-    msg = "After save"
-  end
-
-  before_update do
-    msg = "Before update"
-  end
-
-  after_update do
-    msg = "After update"
-  end
-
-  before_replace_fields do
-    msg = "Before replace_fields"
-  end
-
-  after_replace_fields do
-    msg = "After replace_fields"
-  end
-
-  around_update :around_update_check
-
-  def around_update_check
-    # do nothing
-    yield
-    # do nothing
-  end
-
   def subject
     @model.title
   end
@@ -1680,7 +1648,7 @@ class PlanetResource < JSONAPI::Resource
   attribute :description
 
   has_many :moons
-  belongs_to :planet_type
+  has_one :planet_type
 
   has_many :tags, acts_as_set: true
 end
@@ -1769,10 +1737,12 @@ class PictureResource < JSONAPI::Resource
 end
 
 class ImageableResource < JSONAPI::Resource
+  abstract
   polymorphic
 end
 
 class FileableResource < JSONAPI::Resource
+  abstract
   polymorphic
 end
 
@@ -2536,12 +2506,6 @@ end
 
 # CustomProcessors
 class Api::V4::BookProcessor < JSONAPI::Processor
-  after_find do
-    unless @results.is_a?(JSONAPI::ErrorsOperationResult)
-      @result.meta[:total_records] = @result.record_count
-      @result.links['spec'] = 'https://test_corp.com'
-    end
-  end
 end
 
 class PostProcessor < JSONAPI::Processor
@@ -2551,13 +2515,6 @@ class PostProcessor < JSONAPI::Processor
     end
     # puts("In custom Operations Processor without Namespace")
     super
-  end
-
-  after_find do
-    unless @results.is_a?(JSONAPI::ErrorsOperationResult)
-      @result.meta[:total_records] = @result.record_count
-      @result.links['spec'] = 'https://test_corp.com'
-    end
   end
 end
 

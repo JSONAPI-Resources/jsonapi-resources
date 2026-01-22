@@ -45,6 +45,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_check_include_allowed
     reset_includes
     JSONAPI::Request.new.check_include(ExpenseEntryResource, "isoCurrency".partition('.'))
+    assert true
   ensure
     reset_includes
   end
@@ -52,6 +53,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_check_nested_include_allowed
     reset_includes
     JSONAPI::Request.new.check_include(ExpenseEntryResource, "employee.expenseEntries".partition('.'))
+    assert true
   ensure
     reset_includes
   end
