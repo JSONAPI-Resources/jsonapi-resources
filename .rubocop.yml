@@ -12,3 +12,7 @@ AllCops:
 
 plugins:
   - rubocop-minitest
+
+Style/GlobalVars:
+  Exclude:
+    - test/**/*
