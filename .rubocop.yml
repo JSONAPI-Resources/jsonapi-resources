@@ -1,0 +1,14 @@
+inherit_mode:
+  merge:
+    - Exclude
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.4
+  Exclude:
+    - .git/**/*
+    - tmp/**/*
+    - vendor/**/*
+
+plugins:
+  - rubocop-minitest

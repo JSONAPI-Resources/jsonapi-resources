@@ -19,13 +19,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.required_ruby_version = '>= 3.4'
 
-  spec.add_development_dependency 'bundler'
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'minitest'
-  spec.add_development_dependency 'minitest-spec-rails'
-  spec.add_development_dependency 'simplecov'
-  spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'database_cleaner'
   spec.add_dependency 'activerecord', '>= 8.0'
   spec.add_dependency 'railties', '>= 8.0'
   spec.add_dependency 'concurrent-ruby'

@@ -2,7 +2,16 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'bundler'
+gem 'database_cleaner'
+gem 'minitest-spec-rails'
+gem 'minitest'
 gem 'pg'
+gem 'pry'
+gem 'rake'
+gem 'rubocop'
+gem 'rubocop-minitest'
+gem 'simplecov'
 gem 'sqlite3', '>= 2.1'
 
 version = ENV['RAILS_VERSION'] || 'default'
