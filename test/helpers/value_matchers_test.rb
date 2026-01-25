@@ -14,13 +14,13 @@ class ValueMatchersTest < ActionController::TestCase
   end
 
   def test_matches_value_array
-    assert(matches_value?(['a', 'b', 'c'], ['b', 'c', 'a']))
-    assert(matches_value?(['a', 'b', 'c'], ['a', 'b', 'c']))
-    refute(matches_value?(['a', 'b', 'c'], ['a', 'a']))
-    refute(matches_value?(['a', 'b', 'c'], ['a', 'b', 'd']))
+    assert(matches_value?(%w[a b c], %w[b c a]))
+    assert(matches_value?(%w[a b c], %w[a b c]))
+    refute(matches_value?(%w[a b c], %w[a a]))
+    refute(matches_value?(%w[a b c], %w[a b d]))
 
-    assert(matches_value?(['a', 'b', :any], ['a', 'b', 'c']))
-    assert(matches_value?(['a', 'b', :not_nil], ['a', 'b', 'c']))
+    assert(matches_value?(['a', 'b', :any], %w[a b c]))
+    assert(matches_value?(['a', 'b', :not_nil], %w[a b c]))
     refute(matches_value?(['a', 'b', :not_nil], ['a', 'b', nil]))
   end
 

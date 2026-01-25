@@ -22,8 +22,8 @@ class IncludeDirectivesTest < ActiveSupport::TestCase
 
   def test_one_level_multiple_includes
     directives = JSONAPI::IncludeDirectives.new(PersonResource,
-                                                ['posts', 'comments',
-                                                 'expense_entries']).instance_variable_get(:@include_directives_hash)
+                                                %w[posts comments
+                                                 expense_entries]).instance_variable_get(:@include_directives_hash)
 
     assert_hash_equals(
       {
