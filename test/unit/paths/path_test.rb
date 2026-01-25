@@ -8,7 +8,7 @@ class PathTest < ActiveSupport::TestCase
     path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource, path_string: 'comments')
 
     assert path.segments.is_a?(Array)
-    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
+    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
     assert_equal Api::V1::PostResource._relationship(:comments), path.segments[0].relationship
   end
 
@@ -16,7 +16,7 @@ class PathTest < ActiveSupport::TestCase
     path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource, path_string: 'title')
 
     assert path.segments.is_a?(Array)
-    assert path.segments[0].is_a?(JSONAPI::PathSegment::Field), "should be a PathSegment::Field"
+    assert path.segments[0].is_a?(JSONAPI::PathSegment::Field), 'should be a PathSegment::Field'
     assert_equal 'title', path.segments[0].field_name
   end
 
@@ -24,8 +24,8 @@ class PathTest < ActiveSupport::TestCase
     path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource, path_string: 'comments.author')
 
     assert path.segments.is_a?(Array)
-    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
-    assert path.segments[1].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
+    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
+    assert path.segments[1].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
     assert_equal Api::V1::PostResource._relationship(:comments), path.segments[0].relationship
     assert_equal Api::V1::CommentResource._relationship(:author), path.segments[1].relationship
   end
@@ -34,9 +34,9 @@ class PathTest < ActiveSupport::TestCase
     path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource, path_string: 'comments.author.name')
 
     assert path.segments.is_a?(Array)
-    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
-    assert path.segments[1].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
-    assert path.segments[2].is_a?(JSONAPI::PathSegment::Field), "should be a PathSegment::Field"
+    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
+    assert path.segments[1].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
+    assert path.segments[2].is_a?(JSONAPI::PathSegment::Field), 'should be a PathSegment::Field'
 
     assert_equal Api::V1::PostResource._relationship(:comments), path.segments[0].relationship
     assert_equal Api::V1::CommentResource._relationship(:author), path.segments[1].relationship
@@ -59,8 +59,8 @@ class PathTest < ActiveSupport::TestCase
 
     assert path.segments.is_a?(Array)
     assert_equal 2, path.segments.length
-    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
-    assert path.segments[1].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
+    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
+    assert path.segments[1].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
 
     assert_equal Api::V1::PostResource._relationship(:comments), path.segments[0].relationship
     assert_equal Api::V1::CommentResource._relationship(:author), path.segments[1].relationship
@@ -72,8 +72,8 @@ class PathTest < ActiveSupport::TestCase
 
     assert path.segments.is_a?(Array)
     assert_equal 3, path.segments.length
-    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
-    assert path.segments[1].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
+    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
+    assert path.segments[1].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
 
     assert_equal Api::V1::PostResource._relationship(:comments), path.segments[0].relationship
     assert_equal Api::V1::CommentResource._relationship(:author), path.segments[1].relationship
@@ -83,19 +83,19 @@ class PathTest < ActiveSupport::TestCase
     path = JSONAPI::Path.new(resource_klass: PictureResource, path_string: :imageable)
 
     assert path.segments.is_a?(Array)
-    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
+    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
     assert_equal PictureResource._relationship(:imageable), path.segments[0].relationship
-    refute path.segments[0].path_specified_resource_klass?, "should note that the resource klass was not specified"
+    refute path.segments[0].path_specified_resource_klass?, 'should note that the resource klass was not specified'
   end
 
   def test_polymorphic_path_with_resource_type
     path = JSONAPI::Path.new(resource_klass: PictureResource, path_string: 'imageable#documents')
 
     assert path.segments.is_a?(Array)
-    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), "should be a PathSegment::Relationship"
+    assert path.segments[0].is_a?(JSONAPI::PathSegment::Relationship), 'should be a PathSegment::Relationship'
     assert_equal PictureResource._relationship(:imageable), path.segments[0].relationship
-    assert_equal DocumentResource, path.segments[0].resource_klass, "should return the specified resource klass"
-    assert path.segments[0].path_specified_resource_klass?, "should note that the resource klass was specified"
+    assert_equal DocumentResource, path.segments[0].resource_klass, 'should return the specified resource klass'
+    assert path.segments[0].path_specified_resource_klass?, 'should note that the resource klass was specified'
   end
 
   def test_polymorphic_path_with_wrong_resource_type

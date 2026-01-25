@@ -91,7 +91,7 @@ end
 
 # draw routes
 Rails.application.routes.draw do
-  jsonapi_resources :your_models, only: [:index, :create]
+  jsonapi_resources :your_models, only: %i[index create]
 end
 
 # prepare tests

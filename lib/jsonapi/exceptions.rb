@@ -15,7 +15,7 @@ module JSONAPI
 
       def errors
         # :nocov:
-        raise NotImplementedError, "Subclass of Error must implement errors method"
+        raise NotImplementedError, 'Subclass of Error must implement errors method'
         # :nocov:
       end
     end

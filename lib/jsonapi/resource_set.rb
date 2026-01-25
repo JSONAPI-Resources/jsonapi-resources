@@ -38,7 +38,7 @@ module JSONAPI
       @resource_klasses.each_key do |resource_klass|
         missed_resource_ids[resource_klass] ||= []
 
-        serializer_config_key = serializer.config_key(resource_klass).gsub("/", "_")
+        serializer_config_key = serializer.config_key(resource_klass).gsub('/', '_')
         context_json = resource_klass.attribute_caching_context(context).to_json
         context_b64 = JSONAPI.configuration.resource_cache_digest_function.call(context_json)
         context_key = "ATTR-CTX-#{context_b64.gsub("/", "_")}"
@@ -115,7 +115,7 @@ module JSONAPI
           relationship_data = @resource_klasses[resource_klass][resource.id][:relationships]
 
           if resource_klass.caching?
-            serializer_config_key = serializer.config_key(resource_klass).gsub("/", "_")
+            serializer_config_key = serializer.config_key(resource_klass).gsub('/', '_')
             context_json = resource_klass.attribute_caching_context(context).to_json
             context_b64 = JSONAPI.configuration.resource_cache_digest_function.call(context_json)
             context_key = "ATTR-CTX-#{context_b64.gsub("/", "_")}"

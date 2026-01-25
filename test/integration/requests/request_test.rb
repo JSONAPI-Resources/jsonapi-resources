@@ -28,7 +28,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_get_not_found
-    get "/people/2000"
+    get '/people/2000'
     assert_jsonapi_response 404
   end
 
@@ -322,7 +322,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     Api::V2::BookResource.paginator :offset
     Api::V2::BookCommentResource.paginator :offset
     assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments?page[limit]=10&include=author,book'
-    assert_equal "1", json_response['data'].first['relationships']['book']['data']['id']
+    assert_equal '1', json_response['data'].first['relationships']['book']['data']['id']
     assert_equal 10, json_response['data'].size
     assert_equal 'This is comment 18 on book 1.', json_response['data'][9]['attributes']['body']
   end
@@ -575,42 +575,42 @@ class RequestTest < ActionDispatch::IntegrationTest
     assert_jsonapi_response 200
     assert_hash_equals json_response,
                        {
-                         "data" => {
-                           "id" => "1005",
-                           "type" => "people",
-                           "links" => {
-                             "self" => "http://www.example.com/api/v9/people/1005"
+                         'data' => {
+                           'id' => '1005',
+                           'type' => 'people',
+                           'links' => {
+                             'self' => 'http://www.example.com/api/v9/people/1005'
                            },
-                           "relationships" => {
-                             "preferences" => {
-                               "links" => {
-                                 "self" => "http://www.example.com/api/v9/people/1005/relationships/preferences",
-                                 "related" => "http://www.example.com/api/v9/people/1005/preferences"
+                           'relationships' => {
+                             'preferences' => {
+                               'links' => {
+                                 'self' => 'http://www.example.com/api/v9/people/1005/relationships/preferences',
+                                 'related' => 'http://www.example.com/api/v9/people/1005/preferences'
                                },
-                               "data" => {
-                                 "type" => "preferences",
-                                 "id" => "55"
+                               'data' => {
+                                 'type' => 'preferences',
+                                 'id' => '55'
                                }
                              }
                            }
                          },
-                         "included" => [
+                         'included' => [
                            {
-                             "id" => "55",
-                             "type" => "preferences",
-                             "attributes" => {
-                               "nickname" => "Wilma"
+                             'id' => '55',
+                             'type' => 'preferences',
+                             'attributes' => {
+                               'nickname' => 'Wilma'
                              },
                              'relationships' => {
                                'person' => {
-                                 "links" => {
-                                   "self" => "http://www.example.com/api/v9/preferences/relationships/person",
-                                   "related" => "http://www.example.com/api/v9/preferences/person"
+                                 'links' => {
+                                   'self' => 'http://www.example.com/api/v9/preferences/relationships/person',
+                                   'related' => 'http://www.example.com/api/v9/preferences/person'
                                  }
                                }
                              },
-                             "links" => {
-                               "self" => "http://www.example.com/api/v9/preferences"
+                             'links' => {
+                               'self' => 'http://www.example.com/api/v9/preferences'
                              }
                            }
                          ]
@@ -634,42 +634,42 @@ class RequestTest < ActionDispatch::IntegrationTest
     assert_jsonapi_response 200
     assert_hash_equals json_response,
                        {
-                         "data" => {
-                           "id" => "1005",
-                           "type" => "people",
-                           "links" => {
-                             "self" => "http://www.example.com/api/v9/people/1005"
+                         'data' => {
+                           'id' => '1005',
+                           'type' => 'people',
+                           'links' => {
+                             'self' => 'http://www.example.com/api/v9/people/1005'
                            },
-                           "relationships" => {
-                             "preferences" => {
-                               "links" => {
-                                 "self" => "http://www.example.com/api/v9/people/1005/relationships/preferences",
-                                 "related" => "http://www.example.com/api/v9/people/1005/preferences"
+                           'relationships' => {
+                             'preferences' => {
+                               'links' => {
+                                 'self' => 'http://www.example.com/api/v9/people/1005/relationships/preferences',
+                                 'related' => 'http://www.example.com/api/v9/people/1005/preferences'
                                },
-                               "data" => {
-                                 "type" => "preferences",
-                                 "id" => "55"
+                               'data' => {
+                                 'type' => 'preferences',
+                                 'id' => '55'
                                }
                              }
                            }
                          },
-                         "included" => [
+                         'included' => [
                            {
-                             "id" => "55",
-                             "type" => "preferences",
-                             "attributes" => {
-                               "nickname" => "Wilma"
+                             'id' => '55',
+                             'type' => 'preferences',
+                             'attributes' => {
+                               'nickname' => 'Wilma'
                              },
                              'relationships' => {
                                'person' => {
-                                 "links" => {
-                                   "self" => "http://www.example.com/api/v9/preferences/relationships/person",
-                                   "related" => "http://www.example.com/api/v9/preferences/person"
+                                 'links' => {
+                                   'self' => 'http://www.example.com/api/v9/preferences/relationships/person',
+                                   'related' => 'http://www.example.com/api/v9/preferences/person'
                                  }
                                }
                              },
-                             "links" => {
-                               "self" => "http://www.example.com/api/v9/preferences"
+                             'links' => {
+                               'self' => 'http://www.example.com/api/v9/preferences'
                              }
                            }
                          ]
@@ -682,42 +682,42 @@ class RequestTest < ActionDispatch::IntegrationTest
     assert_jsonapi_response 200
     assert_hash_equals json_response,
                        {
-                         "data" => {
-                           "id" => "1001",
-                           "type" => "people",
-                           "links" => {
-                             "self" => "http://www.example.com/api/v9/people/1001"
+                         'data' => {
+                           'id' => '1001',
+                           'type' => 'people',
+                           'links' => {
+                             'self' => 'http://www.example.com/api/v9/people/1001'
                            },
-                           "relationships" => {
-                             "preferences" => {
-                               "links" => {
-                                 "self" => "http://www.example.com/api/v9/people/1001/relationships/preferences",
-                                 "related" => "http://www.example.com/api/v9/people/1001/preferences"
+                           'relationships' => {
+                             'preferences' => {
+                               'links' => {
+                                 'self' => 'http://www.example.com/api/v9/people/1001/relationships/preferences',
+                                 'related' => 'http://www.example.com/api/v9/people/1001/preferences'
                                },
-                               "data" => {
-                                 "type" => "preferences",
-                                 "id" => "1"
+                               'data' => {
+                                 'type' => 'preferences',
+                                 'id' => '1'
                                }
                              }
                            }
                          },
-                         "included" => [
+                         'included' => [
                            {
-                             "id" => "1",
-                             "type" => "preferences",
-                             "attributes" => {
-                               "nickname" => "Joe Schmoe"
+                             'id' => '1',
+                             'type' => 'preferences',
+                             'attributes' => {
+                               'nickname' => 'Joe Schmoe'
                              },
                              'relationships' => {
                                'person' => {
-                                 "links" => {
-                                   "self" => "http://www.example.com/api/v9/preferences/relationships/person",
-                                   "related" => "http://www.example.com/api/v9/preferences/person"
+                                 'links' => {
+                                   'self' => 'http://www.example.com/api/v9/preferences/relationships/person',
+                                   'related' => 'http://www.example.com/api/v9/preferences/person'
                                  }
                                }
                              },
-                             "links" => {
-                               "self" => "http://www.example.com/api/v9/preferences"
+                             'links' => {
+                               'self' => 'http://www.example.com/api/v9/preferences'
                              }
                            }
                          ]
@@ -743,26 +743,26 @@ class RequestTest < ActionDispatch::IntegrationTest
     $original_test_user = $test_user
     $test_user = Person.find(1005)
 
-    get "/api/v9/preferences"
+    get '/api/v9/preferences'
     assert_jsonapi_response 200
     assert_hash_equals json_response,
                        {
-                         "data" => {
-                           "id" => "55",
-                           "type" => "preferences",
-                           "attributes" => {
-                             "nickname" => "Wilma"
+                         'data' => {
+                           'id' => '55',
+                           'type' => 'preferences',
+                           'attributes' => {
+                             'nickname' => 'Wilma'
                            },
                            'relationships' => {
                              'person' => {
-                               "links" => {
-                                 "self" => "http://www.example.com/api/v9/preferences/relationships/person",
-                                 "related" => "http://www.example.com/api/v9/preferences/person"
+                               'links' => {
+                                 'self' => 'http://www.example.com/api/v9/preferences/relationships/person',
+                                 'related' => 'http://www.example.com/api/v9/preferences/person'
                                }
                              }
                            },
-                           "links" => {
-                             "self" => "http://www.example.com/api/v9/preferences"
+                           'links' => {
+                             'self' => 'http://www.example.com/api/v9/preferences'
                            }
                          }
                        }
@@ -771,26 +771,26 @@ class RequestTest < ActionDispatch::IntegrationTest
 
     $test_user = Person.find(1001)
 
-    get "/api/v9/preferences"
+    get '/api/v9/preferences'
     assert_jsonapi_response 200
     assert_hash_equals json_response,
                        {
-                         "data" => {
-                           "id" => "1",
-                           "type" => "preferences",
-                           "attributes" => {
-                             "nickname" => "Joe Schmoe"
+                         'data' => {
+                           'id' => '1',
+                           'type' => 'preferences',
+                           'attributes' => {
+                             'nickname' => 'Joe Schmoe'
                            },
                            'relationships' => {
                              'person' => {
-                               "links" => {
-                                 "self" => "http://www.example.com/api/v9/preferences/relationships/person",
-                                 "related" => "http://www.example.com/api/v9/preferences/person"
+                               'links' => {
+                                 'self' => 'http://www.example.com/api/v9/preferences/relationships/person',
+                                 'related' => 'http://www.example.com/api/v9/preferences/person'
                                }
                              }
                            },
-                           "links" => {
-                             "self" => "http://www.example.com/api/v9/preferences"
+                           'links' => {
+                             'self' => 'http://www.example.com/api/v9/preferences'
                            }
                          }
                        }
@@ -805,7 +805,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_include_optional_linkage_data_with_join
-    get "/api/v3/moons", headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+    get '/api/v3/moons', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
     assert_jsonapi_response 200
     refute_nil json_response['data'][0]['relationships']['planet']
   end

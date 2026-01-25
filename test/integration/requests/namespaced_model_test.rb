@@ -9,6 +9,6 @@ class NamedspacedModelTest < ActionDispatch::IntegrationTest
 
   def test_get_flat_posts
     assert_cacheable_jsonapi_get '/flat_posts'
-    assert_equal "flat_posts", json_response["data"].first["type"]
+    assert_equal 'flat_posts', json_response['data'].first['type']
   end
 end

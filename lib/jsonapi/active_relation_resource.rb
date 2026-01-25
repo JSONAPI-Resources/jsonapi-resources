@@ -582,7 +582,7 @@ module JSONAPI
         # Add resource specific fields
         if resource_types.nil? || resource_types.length == 0
           # :nocov:
-          warn "No resource types found for polymorphic relationship."
+          warn 'No resource types found for polymorphic relationship.'
           # :nocov:
         else
           resource_types.try(:each) do |type|
@@ -800,7 +800,7 @@ module JSONAPI
 
       def construct_order_options(sort_params)
         if _polymorphic
-          warn "Sorting is not supported on polymorphic relationships"
+          warn 'Sorting is not supported on polymorphic relationships'
         else
           super(sort_params)
         end

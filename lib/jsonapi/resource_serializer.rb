@@ -73,7 +73,7 @@ module JSONAPI
         end
       end
 
-      fail "Too many primary objects for show" if (primary_objects.count > 1)
+      fail 'Too many primary objects for show' if (primary_objects.count > 1)
 
       primary_hash = { 'data' => primary_objects[0] }
 
@@ -136,7 +136,7 @@ module JSONAPI
 
     def config_key(resource_klass)
       @_config_keys.fetch resource_klass do
-        desc = self.config_description(resource_klass).map(&:inspect).join(",")
+        desc = self.config_description(resource_klass).map(&:inspect).join(',')
         key = JSONAPI.configuration.resource_cache_digest_function.call(desc)
         @_config_keys[resource_klass] = "SRLZ-#{key}"
       end
@@ -362,7 +362,7 @@ module JSONAPI
 
       {
         'type' => format_key(rid.resource_klass._type),
-        'id' => @id_formatter.format(rid.id),
+        'id' => @id_formatter.format(rid.id)
       }
     end
 

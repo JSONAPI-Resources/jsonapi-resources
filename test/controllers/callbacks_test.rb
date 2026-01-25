@@ -32,9 +32,9 @@ class CallbacksTest < ActionController::TestCase
     @controller.index
 
     # Verify callback ran
-    assert @controller.callback_run, "Callback should have been run after process_request"
+    assert @controller.callback_run, 'Callback should have been run after process_request'
 
     # Verify callback received the controller instance
-    assert_equal @controller, @controller.callback_object, "Callback should be passed the controller instance"
+    assert_equal @controller, @controller.callback_object, 'Callback should be passed the controller instance'
   end
 end

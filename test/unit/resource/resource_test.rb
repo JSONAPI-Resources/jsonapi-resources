@@ -65,18 +65,18 @@ end
 
 module MyModule
   class MyNamespacedResource < JSONAPI::Resource
-    model_name "Person"
+    model_name 'Person'
     has_many :related
-    has_one :default_profile, class_name: "Nested::Profile"
+    has_one :default_profile, class_name: 'Nested::Profile'
   end
 
   class RelatedResource < JSONAPI::Resource
-    model_name "Comment"
+    model_name 'Comment'
   end
 
   module Nested
     class ProfileResource < JSONAPI::Resource
-      model_name "Nested::Profile"
+      model_name 'Nested::Profile'
     end
   end
 end
@@ -101,11 +101,11 @@ class ResourceTest < ActiveSupport::TestCase
   end
 
   def test_model_name
-    assert_equal("Post", PostResource._model_name)
+    assert_equal('Post', PostResource._model_name)
   end
 
   def test_model_name_of_subclassed_non_abstract_resource
-    assert_equal("Firm", FirmResource._model_name)
+    assert_equal('Firm', FirmResource._model_name)
   end
 
   def test_model
@@ -437,12 +437,12 @@ class ResourceTest < ActiveSupport::TestCase
         end
       CODE
     end
-    assert_equal "", err
+    assert_equal '', err
   end
 
   def test_links_resource_warning
     _out, err = capture_io do
-      eval "class LinksResource < JSONAPI::Resource; end"
+      eval 'class LinksResource < JSONAPI::Resource; end'
     end
     assert_match /LinksResource` is a reserved resource name/, err
   end
@@ -459,7 +459,7 @@ class ResourceTest < ActiveSupport::TestCase
   end
 
   def test_reserved_relationship_warnings
-    %w(id type).each do |key|
+    %w[id type].each do |key|
       _out, err = capture_io do
         eval <<-CODE
           class BadlyNamedAttributesResource < JSONAPI::Resource
@@ -469,7 +469,7 @@ class ResourceTest < ActiveSupport::TestCase
       end
       assert_match /`#{key}` is a reserved relationship name in ./, err
     end
-    %w(types ids).each do |key|
+    %w[types ids].each do |key|
       _out, err = capture_io do
         eval <<-CODE
           class BadlyNamedAttributesResource < JSONAPI::Resource
@@ -502,7 +502,7 @@ class ResourceTest < ActiveSupport::TestCase
         NoModelAbstractResource._model_class
       CODE
     end
-    assert_match "", err
+    assert_match '', err
   end
 
   def test_resource_for_model_use_hint
@@ -527,47 +527,47 @@ class ResourceTest < ActiveSupport::TestCase
     Api::V5::PostResource.exclude_links :none
     assert_equal [], Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
-    refute Api::V5::PostResource.exclude_link?("self")
+    refute Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links :default
     assert_equal [:self], Api::V5::PostResource._exclude_links
     assert Api::V5::PostResource.exclude_link?(:self)
-    assert Api::V5::PostResource.exclude_link?("self")
+    assert Api::V5::PostResource.exclude_link?('self')
 
-    Api::V5::PostResource.exclude_links "none"
+    Api::V5::PostResource.exclude_links 'none'
     assert_equal [], Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
-    refute Api::V5::PostResource.exclude_link?("self")
+    refute Api::V5::PostResource.exclude_link?('self')
 
-    Api::V5::PostResource.exclude_links "default"
+    Api::V5::PostResource.exclude_links 'default'
     assert_equal [:self], Api::V5::PostResource._exclude_links
     assert Api::V5::PostResource.exclude_link?(:self)
-    assert Api::V5::PostResource.exclude_link?("self")
+    assert Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links :none
     assert_equal [], Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
-    refute Api::V5::PostResource.exclude_link?("self")
+    refute Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links [:self]
     assert_equal [:self], Api::V5::PostResource._exclude_links
     assert Api::V5::PostResource.exclude_link?(:self)
-    assert Api::V5::PostResource.exclude_link?("self")
+    assert Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links :none
     assert_equal [], Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
-    refute Api::V5::PostResource.exclude_link?("self")
+    refute Api::V5::PostResource.exclude_link?('self')
 
-    Api::V5::PostResource.exclude_links ["self"]
+    Api::V5::PostResource.exclude_links ['self']
     assert_equal [:self], Api::V5::PostResource._exclude_links
     assert Api::V5::PostResource.exclude_link?(:self)
-    assert Api::V5::PostResource.exclude_link?("self")
+    assert Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links []
     assert_equal [], Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
-    refute Api::V5::PostResource.exclude_link?("self")
+    refute Api::V5::PostResource.exclude_link?('self')
 
     assert_raises do
       Api::V5::PostResource.exclude_links :self

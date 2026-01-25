@@ -46,7 +46,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
 
   def test_check_include_allowed
     reset_includes
-    JSONAPI::Request.new.check_include(ExpenseEntryResource, "isoCurrency".partition('.'))
+    JSONAPI::Request.new.check_include(ExpenseEntryResource, 'isoCurrency'.partition('.'))
     assert true
   ensure
     reset_includes
@@ -54,7 +54,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
 
   def test_check_nested_include_allowed
     reset_includes
-    JSONAPI::Request.new.check_include(ExpenseEntryResource, "employee.expenseEntries".partition('.'))
+    JSONAPI::Request.new.check_include(ExpenseEntryResource, 'employee.expenseEntries'.partition('.'))
     assert true
   ensure
     reset_includes
@@ -64,7 +64,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     reset_includes
 
     assert_raises JSONAPI::Exceptions::InvalidInclude do
-      assert JSONAPI::Request.new.check_include(ExpenseEntryResource, "foo".partition('.'))
+      assert JSONAPI::Request.new.check_include(ExpenseEntryResource, 'foo'.partition('.'))
     end
   ensure
     reset_includes
@@ -74,7 +74,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     reset_includes
 
     assert_raises JSONAPI::Exceptions::InvalidInclude do
-      JSONAPI::Request.new.check_include(ExpenseEntryResource, "employee.expense-entries".partition('.'))
+      JSONAPI::Request.new.check_include(ExpenseEntryResource, 'employee.expense-entries'.partition('.'))
     end
   ensure
     reset_includes
@@ -83,11 +83,11 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_check_include_has_one_not_allowed_default
     reset_includes
 
-    JSONAPI::Request.new.check_include(ExpenseEntryResource, "isoCurrency".partition('.'))
+    JSONAPI::Request.new.check_include(ExpenseEntryResource, 'isoCurrency'.partition('.'))
     JSONAPI.configuration.default_allow_include_to_one = false
 
     assert_raises JSONAPI::Exceptions::InvalidInclude do
-      JSONAPI::Request.new.check_include(ExpenseEntryResource, "isoCurrency".partition('.'))
+      JSONAPI::Request.new.check_include(ExpenseEntryResource, 'isoCurrency'.partition('.'))
     end
   ensure
     reset_includes
@@ -96,11 +96,11 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_check_include_has_one_not_allowed_resource
     reset_includes
 
-    JSONAPI::Request.new.check_include(ExpenseEntryResource, "isoCurrency".partition('.'))
+    JSONAPI::Request.new.check_include(ExpenseEntryResource, 'isoCurrency'.partition('.'))
     ExpenseEntryResource._relationship(:iso_currency).allow_include = false
 
     assert_raises JSONAPI::Exceptions::InvalidInclude do
-      JSONAPI::Request.new.check_include(ExpenseEntryResource, "isoCurrency".partition('.'))
+      JSONAPI::Request.new.check_include(ExpenseEntryResource, 'isoCurrency'.partition('.'))
     end
   ensure
     reset_includes
@@ -109,11 +109,11 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_check_include_has_many_not_allowed_default
     reset_includes
 
-    JSONAPI::Request.new.check_include(EmployeeResource, "expenseEntries".partition('.'))
+    JSONAPI::Request.new.check_include(EmployeeResource, 'expenseEntries'.partition('.'))
     JSONAPI.configuration.default_allow_include_to_many = false
 
     assert_raises JSONAPI::Exceptions::InvalidInclude do
-      JSONAPI::Request.new.check_include(EmployeeResource, "expenseEntries".partition('.'))
+      JSONAPI::Request.new.check_include(EmployeeResource, 'expenseEntries'.partition('.'))
     end
   ensure
     reset_includes
@@ -122,11 +122,11 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_check_include_has_many_not_allowed_resource
     reset_includes
 
-    JSONAPI::Request.new.check_include(EmployeeResource, "expenseEntries".partition('.'))
+    JSONAPI::Request.new.check_include(EmployeeResource, 'expenseEntries'.partition('.'))
     EmployeeResource._relationship(:expense_entries).allow_include = false
 
     assert_raises JSONAPI::Exceptions::InvalidInclude do
-      JSONAPI::Request.new.check_include(EmployeeResource, "expenseEntries".partition('.'))
+      JSONAPI::Request.new.check_include(EmployeeResource, 'expenseEntries'.partition('.'))
     end
   ensure
     reset_includes
@@ -297,29 +297,29 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     filters = @request.parse_filters(CatResource, 'noeach') # String does not implement #each
     assert_equal(filters, {})
     assert_equal(@request.errors.count, 1)
-    assert_equal(@request.errors.first.title, "Invalid filters syntax")
+    assert_equal(@request.errors.first.title, 'Invalid filters syntax')
   end
 
   def test_parse_sort_with_valid_sorts
     setup_request
-    sort_criteria = @request.parse_sort_criteria(CatResource, "-name")
+    sort_criteria = @request.parse_sort_criteria(CatResource, '-name')
     assert_equal(@request.errors, [])
-    assert_equal(sort_criteria, [{ :field => "name", :direction => :desc }])
+    assert_equal(sort_criteria, [{ :field => 'name', :direction => :desc }])
   end
 
   def test_parse_sort_with_resource_validated_sorts
     setup_request
     e = assert_raises JSONAPI::Exceptions::InvalidSortCriteria do
-      @request.parse_sort_criteria(TreeResource, "sort66,name")
+      @request.parse_sort_criteria(TreeResource, 'sort66,name')
     end
     assert_equal 'name is not a valid sort criteria for trees', e.errors[0].detail
   end
 
   def test_parse_sort_with_relationships
     setup_request
-    sort_criteria = @request.parse_sort_criteria(CatResource, "-mother.name")
+    sort_criteria = @request.parse_sort_criteria(CatResource, '-mother.name')
     assert_equal(@request.errors, [])
-    assert_equal(sort_criteria, [{ :field => "mother.name", :direction => :desc }])
+    assert_equal(sort_criteria, [{ :field => 'mother.name', :direction => :desc }])
   end
 
   private

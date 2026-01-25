@@ -9,9 +9,9 @@ class JoinTreeTest < ActiveSupport::TestCase
     when 'SQLite'
       if Rails::VERSION::MAJOR >= 8 && Rails::VERSION::MINOR >= 1
         # Rails 8.1+ SQLite uses TRUE instead of 1
-        "TRUE"
+        'TRUE'
       elsif Rails::VERSION::MAJOR >= 6 || (Rails::VERSION::MAJOR >= 5 && ActiveRecord::VERSION::MINOR >= 2)
-        "1"
+        '1'
       else
         "'t'"
       end
@@ -51,10 +51,10 @@ class JoinTreeTest < ActiveSupport::TestCase
                  records.to_sql
 
     source_join_options = join_manager.source_join_details[:join_options]
-    assert_array_equals [:relationship, :relationship_details, :related_resource_klass], source_join_options.keys
+    assert_array_equals %i[relationship relationship_details related_resource_klass], source_join_options.keys
 
     relationship_join_options = join_manager.join_details_by_relationship(PostResource._relationship(:tags))[:join_options]
-    assert_array_equals [:relationship, :relationship_details, :related_resource_klass], relationship_join_options.keys
+    assert_array_equals %i[relationship relationship_details related_resource_klass], relationship_join_options.keys
   end
 
   def test_add_single_sort_join
@@ -183,7 +183,7 @@ class JoinTreeTest < ActiveSupport::TestCase
   end
 
   def test_add_joins_with_sub_relationship
-    relationships = %w(author author.comments tags)
+    relationships = %w[author author.comments tags]
 
     join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: Api::V10::PostResource, relationships: relationships,
                                                             source_relationship: Api::V10::PostResource._relationship(:comments))
@@ -203,7 +203,7 @@ class JoinTreeTest < ActiveSupport::TestCase
       'author.comments.name' => ['Foo']
     }
 
-    relationships = %w(author author.comments tags)
+    relationships = %w[author author.comments tags]
 
     join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource,
                                                             filters: filters,
@@ -266,7 +266,7 @@ class JoinTreeTest < ActiveSupport::TestCase
       'imageable#documents.name' => ['foo']
     }
 
-    relationships = %w(imageable file_properties)
+    relationships = %w[imageable file_properties]
     join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PictureResource,
                                                             filters: filters,
                                                             relationships: relationships)

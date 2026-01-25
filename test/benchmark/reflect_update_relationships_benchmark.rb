@@ -13,7 +13,7 @@ class ReflectUpdateRelationshipsBenchmark < IntegrationBenchmark
         'data' => [{ type: 'tags', id: 11 }, { type: 'tags', id: 3 }, { type: 'tags', id: 12 }, { type: 'tags', id: 13 }, { type: 'tags', id: 14 }]
       }.to_json,
                                         headers: {
-                                          "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
+                                          'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE,
                                           'Accept' => JSONAPI::MEDIA_TYPE
                                         }
     assert_response :no_content
@@ -25,7 +25,7 @@ class ReflectUpdateRelationshipsBenchmark < IntegrationBenchmark
         'data' => [{ type: 'tags', id: 2 }, { type: 'tags', id: 3 }, { type: 'tags', id: 4 }]
       }.to_json,
                                         headers: {
-                                          "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
+                                          'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE,
                                           'Accept' => JSONAPI::MEDIA_TYPE
                                         }
     assert_response :no_content

@@ -89,12 +89,12 @@ ActiveRecord::Schema.define do
   create_table :posts_tags, force: true do |t|
     t.references :post, :tag, index: true
   end
-  add_index :posts_tags, [:post_id, :tag_id], unique: true
+  add_index :posts_tags, %i[post_id tag_id], unique: true
 
   create_table :special_post_tags, force: true do |t|
     t.references :post, :tag, index: true
   end
-  add_index :special_post_tags, [:post_id, :tag_id], unique: true
+  add_index :special_post_tags, %i[post_id tag_id], unique: true
 
   create_table :comments_tags, force: true do |t|
     t.references :comment, :tag, index: true
@@ -126,7 +126,7 @@ ActiveRecord::Schema.define do
   create_table :planets_tags, force: true do |t|
     t.references :planet, :tag, index: true
   end
-  add_index :planets_tags, [:planet_id, :tag_id], unique: true
+  add_index :planets_tags, %i[planet_id tag_id], unique: true
 
   create_table :planet_types, force: true do |t|
     t.string :name
@@ -216,7 +216,7 @@ ActiveRecord::Schema.define do
   create_table :purchase_orders_order_flags, force: true do |t|
     t.references :purchase_order, :order_flag, index: true
   end
-  add_index :purchase_orders_order_flags, [:purchase_order_id, :order_flag_id], unique: true, name: "po_flags_idx"
+  add_index :purchase_orders_order_flags, %i[purchase_order_id order_flag_id], unique: true, name: 'po_flags_idx'
 
   create_table :line_items, force: true do |t|
     t.integer  :purchase_order_id
@@ -435,35 +435,35 @@ end
 
 ### MODELS
 class Session < ActiveRecord::Base
-  self.primary_key = "id"
+  self.primary_key = 'id'
   has_many :responses
 end
 
 class Response < ActiveRecord::Base
   belongs_to :session
-  has_one :paragraph, :class_name => "ResponseText::Paragraph"
+  has_one :paragraph, :class_name => 'ResponseText::Paragraph'
 
   def response_type
     case self.type
-    when "Response::SingleTextbox"
-      "single_textbox"
+    when 'Response::SingleTextbox'
+      'single_textbox'
     else
-      "question"
+      'question'
     end
   end
 
   def response_type=type
     self.type = case type
-                when "single_textbox"
-                  "Response::SingleTextbox"
+                when 'single_textbox'
+                  'Response::SingleTextbox'
                 else
-                  "Response"
+                  'Response'
                 end
   end
 end
 
 class Response::SingleTextbox < Response
-  has_one :paragraph, :class_name => "ResponseText::Paragraph", :foreign_key => :response_id
+  has_one :paragraph, :class_name => 'ResponseText::Paragraph', :foreign_key => :response_id
 end
 
 class ResponseText < ActiveRecord::Base
@@ -521,8 +521,8 @@ class Post < ActiveRecord::Base
     when "can't destroy me", "can't destroy me either"
       errors.add(:base, "can't destroy me")
       throw(:abort)
-    when "locked title"
-      errors.add(:title, "is locked")
+    when 'locked title'
+      errors.add(:title, 'is locked')
       throw(:abort)
     end
   end
@@ -651,9 +651,9 @@ end
 
 class Book < ActiveRecord::Base
   has_many :book_comments, -> { order(:id) }
-  has_many :approved_book_comments, -> { where(approved: true).order(:id) }, class_name: "BookComment"
+  has_many :approved_book_comments, -> { where(approved: true).order(:id) }, class_name: 'BookComment'
 
-  has_and_belongs_to_many :authors, join_table: :book_authors, class_name: "Person"
+  has_and_belongs_to_many :authors, join_table: :book_authors, class_name: 'Person'
 
   scope :not_banned, -> {
     where(banned: false)
@@ -786,8 +786,8 @@ class Thing < ActiveRecord::Base
 end
 
 class RelatedThing < ActiveRecord::Base
-  belongs_to :from, class_name: "Thing", foreign_key: :from_id
-  belongs_to :to, class_name: "Thing", foreign_key: :to_id
+  belongs_to :from, class_name: 'Thing', foreign_key: :from_id
+  belongs_to :to, class_name: 'Thing', foreign_key: :to_id
 end
 
 class Question < ActiveRecord::Base
@@ -875,7 +875,7 @@ end
 class SessionsController < ActionController::Base
   include JSONAPI::ActsAsResourceController
 
-  before_action :create_responses_relationships, :only => [:create, :update]
+  before_action :create_responses_relationships, :only => %i[create update]
 
   private
 
@@ -911,7 +911,7 @@ class PostsController < BaseController
 
   # called by test_on_server_error
   def self.set_callback_message(error)
-    @callback_message = "Sent from method"
+    @callback_message = 'Sent from method'
   end
 
   def resource_serializer_klass
@@ -1255,7 +1255,7 @@ class SessionResource < JSONAPI::Resource
 
       (datum[:relationships] || {}).each_pair { |k, v|
         case k
-        when "paragraph"
+        when 'paragraph'
           response.paragraph = ResponseText::Paragraph.create(((v[:data][:attributes].respond_to?(:permit)) ? v[:data][:attributes].permit(:text) : v[:data][:attributes]))
         end
       }
@@ -1348,12 +1348,12 @@ class VehicleResource < JSONAPI::Resource
 end
 
 class CarResource < VehicleResource
-  model_name "Car"
+  model_name 'Car'
   attributes :drive_layout
 end
 
 class BoatResource < VehicleResource
-  model_name "Boat"
+  model_name 'Boat'
   attributes :length_at_water_line
 end
 
@@ -1371,7 +1371,7 @@ class CompanyResource < JSONAPI::Resource
 end
 
 class FirmResource < CompanyResource
-  model_name "Firm"
+  model_name 'Firm'
 end
 
 class TagResource < JSONAPI::Resource
@@ -1453,7 +1453,7 @@ class PostResource < JSONAPI::Resource
   filter 'comments.tags.name'
 
   def self.updatable_fields(context)
-    super(context) - [:author, :subject]
+    super(context) - %i[author subject]
   end
 
   def self.creatable_fields(context)
@@ -1686,7 +1686,7 @@ class CraterResource < JSONAPI::Resource
   has_one :moon
 
   filter :description, apply: ->(records, value, options) {
-    fail "context not set" unless options[:context][:current_user] != nil && options[:context][:current_user] == $test_user
+    fail 'context not set' unless options[:context][:current_user] != nil && options[:context][:current_user] == $test_user
 
     records.where(concat_table_field(options.dig(:_relation_helper_options, :join_manager).source_join_details[:alias], :description) => value)
   }
@@ -1706,7 +1706,7 @@ class PreferencesResource < JSONAPI::Resource
     key
   }
 
-  has_one :author, :foreign_key_on => :related, class_name: "Person"
+  has_one :author, :foreign_key_on => :related, class_name: 'Person'
 end
 
 class FactResource < JSONAPI::Resource
@@ -1853,7 +1853,7 @@ module Api
         self_link ||= ''
         {
           'self' => self_link + '?secret=true',
-          'raw' => self_link + "/raw"
+          'raw' => self_link + '/raw'
         }
       end
     end
@@ -1905,12 +1905,12 @@ module Api
     end
 
     class BookResource < JSONAPI::Resource
-      attribute "title"
+      attribute 'title'
       attributes :isbn, :banned
 
-      has_many "authors", class_name: 'Authors'
+      has_many 'authors', class_name: 'Authors'
 
-      has_many "book_comments", relation_name: ->(options = {}) {
+      has_many 'book_comments', relation_name: ->(options = {}) {
         context = options[:context]
         current_user = context ? context[:current_user] : nil
 
@@ -1921,7 +1921,7 @@ module Api
         end
       }, reflect: true
 
-      has_many "aliased_comments", class_name: 'BookComments', relation_name: :approved_book_comments
+      has_many 'aliased_comments', class_name: 'BookComments', relation_name: :approved_book_comments
 
       filter :book_comments,
              apply: ->(records, value, options) {
@@ -2074,10 +2074,10 @@ module Api
       attribute :title
       attribute :body
 
-      has_one :author, class_name: 'Person', exclude_links: [:self, "related"]
-      has_one :section, exclude_links: [:self, :related]
+      has_one :author, class_name: 'Person', exclude_links: [:self, 'related']
+      has_one :section, exclude_links: %i[self related]
       has_many :tags, acts_as_set: true, inverse_relationship: :posts, exclude_links: :default
-      has_many :comments, acts_as_set: false, inverse_relationship: :post, exclude_links: ["self", :related]
+      has_many :comments, acts_as_set: false, inverse_relationship: :post, exclude_links: ['self', :related]
     end
 
     class AuthorResource < JSONAPI::Resource
@@ -2276,7 +2276,7 @@ module Api
 
       # Raise exception for failure in controller
       def name
-        fail "Something Exceptional Happened"
+        fail 'Something Exceptional Happened'
       end
     end
   end
@@ -2463,14 +2463,14 @@ end
 
 module Legacy
   class FlatPost < ActiveRecord::Base
-    self.table_name = "posts"
+    self.table_name = 'posts'
   end
 end
 
 class FlatPostResource < JSONAPI::Resource
-  model_name "Legacy::FlatPost", add_model_hint: false
+  model_name 'Legacy::FlatPost', add_model_hint: false
 
-  model_hint model: "Legacy::FlatPost", resource: FlatPostResource
+  model_hint model: 'Legacy::FlatPost', resource: FlatPostResource
 
   attribute :title
 end
@@ -2584,7 +2584,7 @@ end
 
 class QuestionResource < JSONAPI::Resource
   has_one :answer
-  has_one :respondent, polymorphic: true, class_name: "Respondent", foreign_key_on: :related
+  has_one :respondent, polymorphic: true, class_name: 'Respondent', foreign_key_on: :related
 
   attributes :text
 end

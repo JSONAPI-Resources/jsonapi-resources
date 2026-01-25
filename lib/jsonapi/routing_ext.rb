@@ -34,7 +34,7 @@ module ActionDispatch
           options[:path] = format_route(@resource_type)
 
           # Read-only: exclude all write actions
-          options[:except] = [:new, :edit, :create, :update, :destroy]
+          options[:except] = %i[new edit create update destroy]
 
           resource @resource_type, options do
             # Rails 8.1+ code path
@@ -84,7 +84,7 @@ module ActionDispatch
           end
 
           # Read-only: exclude all write actions
-          options[:except] = [:new, :edit, :create, :update, :destroy]
+          options[:except] = %i[new edit create update destroy]
 
           resources @resource_type, options do
             # Rails 8.1+ code path

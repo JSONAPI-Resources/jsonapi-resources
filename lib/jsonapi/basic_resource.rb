@@ -355,7 +355,7 @@ module JSONAPI
           when Symbol, String
             key = send(strategy, context)
           else
-            raise "singleton_key must be a proc or function name"
+            raise 'singleton_key must be a proc or function name'
           end
         end
         key
@@ -543,14 +543,14 @@ module JSONAPI
 
       def parse_exclude_links(exclude)
         case exclude
-        when :default, "default"
+        when :default, 'default'
           [:self]
-        when :none, "none"
+        when :none, 'none'
           []
         when Array
           exclude.collect { |link| link.to_sym }
         else
-          fail "Invalid exclude_links"
+          fail 'Invalid exclude_links'
         end
       end
 
@@ -680,20 +680,20 @@ module JSONAPI
       private
 
       def check_reserved_resource_name(type, name)
-        if [:ids, :types, :hrefs, :links].include?(type)
+        if %i[ids types hrefs links].include?(type)
           warn "[NAME COLLISION] `#{name}` is a reserved resource name."
           return
         end
       end
 
       def check_reserved_attribute_name(name)
-        if [:type, :_cache_field, :cache_field].include?(name.to_sym)
+        if %i[type _cache_field cache_field].include?(name.to_sym)
           warn "[NAME COLLISION] `#{name}` is a reserved key in #{_resource_name_from_type(_type)}."
         end
       end
 
       def check_reserved_relationship_name(name)
-        if [:id, :ids, :type, :types].include?(name.to_sym)
+        if %i[id ids type types].include?(name.to_sym)
           warn "[NAME COLLISION] `#{name}` is a reserved relationship name in #{_resource_name_from_type(_type)}."
         end
       end

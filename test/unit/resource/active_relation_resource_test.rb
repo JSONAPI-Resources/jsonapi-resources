@@ -37,7 +37,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
 
   def test_find_fragments_cache_field_attributes
     filters = {}
-    options = { attributes: [:headline, :author_id], cache: true }
+    options = { attributes: %i[headline author_id], cache: true }
     posts_identities = ArPostResource.find_fragments(filters, options)
 
     assert_equal 20, posts_identities.length

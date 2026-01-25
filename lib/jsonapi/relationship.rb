@@ -116,14 +116,14 @@ module JSONAPI
 
     def exclude_links(exclude)
       case exclude
-      when :default, "default"
-        @_exclude_links = [:self, :related]
-      when :none, "none"
+      when :default, 'default'
+        @_exclude_links = %i[self related]
+      when :none, 'none'
         @_exclude_links = []
       when Array
         @_exclude_links = exclude.collect { |link| link.to_sym }
       else
-        fail "Invalid exclude_links"
+        fail 'Invalid exclude_links'
       end
     end
 

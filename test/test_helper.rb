@@ -32,7 +32,7 @@ if ENV['COVERAGE']
   end
 end
 
-ENV['DATABASE_URL'] ||= "sqlite3:test_db"
+ENV['DATABASE_URL'] ||= 'sqlite3:test_db'
 
 require 'active_record/railtie'
 
@@ -51,7 +51,7 @@ class TestApp < Rails::Application
   config.active_record.schema_format = :ruby
   config.active_support.test_order = :random
 
-  config.active_record.time_zone_aware_types = [:time, :datetime]
+  config.active_record.time_zone_aware_types = %i[time datetime]
   config.active_record.belongs_to_required_by_default = false
 end
 
@@ -68,7 +68,7 @@ require File.expand_path('../helpers/configuration_helpers', __FILE__)
 
 Rails.env = 'test'
 
-I18n.load_path += Dir[File.expand_path("../../locales/*.yml", __FILE__)]
+I18n.load_path += Dir[File.expand_path('../../locales/*.yml', __FILE__)]
 I18n.enforce_available_locales = false
 
 JSONAPI.configure do |config|
@@ -165,7 +165,7 @@ module ActionController
         set_header 'rack.input', StringIO.new(data)
       end
 
-      fetch_header("PATH_INFO") do |k|
+      fetch_header('PATH_INFO') do |k|
         set_header k, generated_path
       end
       path_parameters[:controller] = controller_path
@@ -305,7 +305,7 @@ TestApp.routes.draw do
     namespace :v2 do
       jsonapi_resources :posts
 
-      jsonapi_resource :preferences, except: [:create, :destroy]
+      jsonapi_resource :preferences, except: %i[create destroy]
 
       jsonapi_resources :authors
       jsonapi_resources :books
@@ -326,7 +326,7 @@ TestApp.routes.draw do
 
       jsonapi_resources :posts, except: [:destroy] do
         jsonapi_link :author, except: [:destroy]
-        jsonapi_links :tags, only: [:show, :create]
+        jsonapi_links :tags, only: %i[show create]
       end
 
       jsonapi_resources :planets
@@ -426,8 +426,8 @@ TestApp.routes.draw do
   jsonapi_resources :indicators, only: [:index]
   jsonapi_resources :robots, only: [:index]
 
-  mount MyEngine::Engine => "/boomshaka", as: :my_engine
-  mount ApiV2Engine::Engine => "/api_v2", as: :api_v2_engine
+  mount MyEngine::Engine => '/boomshaka', as: :my_engine
+  mount ApiV2Engine::Engine => '/api_v2', as: :api_v2_engine
 end
 
 MyEngine::Engine.routes.draw do
@@ -513,7 +513,7 @@ class ActionDispatch::IntegrationTest
     assert_equal expected_status, status, msg
   end
 
-  def assert_jsonapi_get(url, msg = "GET response must be 200")
+  def assert_jsonapi_get(url, msg = 'GET response must be 200')
     get url, headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
     assert_jsonapi_response 200, msg
   end
@@ -529,26 +529,26 @@ class ActionDispatch::IntegrationTest
     cache = ActiveSupport::Cache::MemoryStore.new
 
     warmup = with_resource_caching(cache, cached_classes) do
-      assert_jsonapi_get url, "Cache warmup GET response must be 200"
+      assert_jsonapi_get url, 'Cache warmup GET response must be 200'
     end
 
     assert_equal(
       non_caching_response.pretty_inspect,
       json_response.pretty_inspect,
-      "Cache warmup response must match normal response"
+      'Cache warmup response must match normal response'
     )
 
     cached = with_resource_caching(cache, cached_classes) do
-      assert_jsonapi_get url, "Cached GET response must be 200"
+      assert_jsonapi_get url, 'Cached GET response must be 200'
     end
 
     assert_equal(
       non_caching_response.pretty_inspect,
       json_response.pretty_inspect,
-      "Cached response must match normal response"
+      'Cached response must match normal response'
     )
-    assert_equal 0, cached[:total][:misses], "Cached response must not cause any cache misses"
-    assert_equal warmup[:total][:misses], cached[:total][:hits], "Cached response must use cache"
+    assert_equal 0, cached[:total][:misses], 'Cached response must not cause any cache misses'
+    assert_equal warmup[:total][:misses], cached[:total][:hits], 'Cached response must use cache'
   end
 end
 
@@ -584,7 +584,7 @@ class ActionController::TestCase
       cache = ActiveSupport::Cache::MemoryStore.new
       cache_activity = {}
 
-      [:warmup, :lookup].each do |phase|
+      %i[warmup lookup].each do |phase|
         begin
           cache_queries = []
           cache_query_callback = lambda { |_, _, _, _, payload|
@@ -625,8 +625,8 @@ class ActionController::TestCase
       end
 
       if mode == :all
-        if [:index, :show, :show_related_resource, :show_related_resources].include?(action)
-          if ar_resource_klass && response.status == 200 && json_response["data"].try(:size).try(:>, 0)
+        if %i[index show show_related_resource show_related_resources].include?(action)
+          if ar_resource_klass && response.status == 200 && json_response['data'].try(:size).try(:>, 0)
             assert_operator(
               cache_activity[:warmup][:total][:misses],
               :>,
@@ -656,9 +656,9 @@ class ActionController::TestCase
     return nil if response.body.to_s.strip.empty?
 
     r = json_response.dup
-    (r["errors"] || []).each do |err|
-      err["meta"].delete("backtrace") if err.has_key?("meta")
-      err["meta"].delete("application_backtrace") if err.has_key?("meta")
+    (r['errors'] || []).each do |err|
+      err['meta'].delete('backtrace') if err.has_key?('meta')
+      err['meta'].delete('application_backtrace') if err.has_key?('meta')
     end
     return r
   end

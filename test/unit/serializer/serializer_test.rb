@@ -45,7 +45,7 @@ class SerializerTest < ActionDispatch::IntegrationTest
           type: 'posts',
           id: '1',
           links: {
-            self: 'http://example.com/posts/1',
+            self: 'http://example.com/posts/1'
           },
           attributes: {
             title: 'New post',
@@ -102,7 +102,7 @@ class SerializerTest < ActionDispatch::IntegrationTest
           type: 'posts',
           id: '1',
           links: {
-            self: 'http://example.com/posts/1',
+            self: 'http://example.com/posts/1'
           },
           attributes: {
             title: 'New post',
@@ -232,7 +232,7 @@ class SerializerTest < ActionDispatch::IntegrationTest
 
     serializer = JSONAPI::ResourceSerializer.new(
       PostResource,
-      fields: { posts: [:id, :title, :author] },
+      fields: { posts: %i[id title author] },
       url_helpers: TestApp.routes.url_helpers
     )
 

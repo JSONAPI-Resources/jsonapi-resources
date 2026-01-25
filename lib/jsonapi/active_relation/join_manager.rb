@@ -104,7 +104,7 @@ module JSONAPI
 
         if last_join.nil?
           # :nocov:
-          warn "get_join_arel_node: No join added"
+          warn 'get_join_arel_node: No join added'
           # :nocov:
         end
 
@@ -119,7 +119,7 @@ module JSONAPI
           node.left.right
         when Arel::Nodes::StringJoin
           # :nocov:
-          warn "alias_from_arel_node: Unsupported join type - use custom filtering and sorting"
+          warn 'alias_from_arel_node: Unsupported join type - use custom filtering and sorting'
           nil
           # :nocov:
         end
@@ -142,7 +142,7 @@ module JSONAPI
       end
 
       def add_join_details(join_key, details, check_for_duplicate_alias = true)
-        fail "details already set" if @join_details.has_key?(join_key)
+        fail 'details already set' if @join_details.has_key?(join_key)
 
         @join_details[join_key] = details
 
@@ -173,7 +173,7 @@ module JSONAPI
             join_options = {
               relationship: relationship,
               relationship_details: relationship_details,
-              related_resource_klass: related_resource_klass,
+              related_resource_klass: related_resource_klass
             }
 
             if relationship == :root

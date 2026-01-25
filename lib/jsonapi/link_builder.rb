@@ -16,7 +16,7 @@ module JSONAPI
       @primary_resource_klass = config[:primary_resource_klass]
       @route_formatter = config[:route_formatter]
       @engine = build_engine
-      @engine_mount_point = @engine ? @engine.routes.find_script_name({}) : ""
+      @engine_mount_point = @engine ? @engine.routes.find_script_name({}) : ''
 
       # url_helpers may be either a controller which has the route helper methods, or the application router's
       # url helpers module, `Rails.application.routes.url_helpers`. Because the method no longer behaves as a
@@ -117,12 +117,12 @@ module JSONAPI
       unless scopes.empty?
         "/#{scopes.map { |scope| format_route(scope.to_s.underscore) }.compact.join('/')}/"
       else
-        "/"
+        '/'
       end
     end
 
     def module_scopes_from_class(klass)
-      klass.name.to_s.split("::")[0...-1]
+      klass.name.to_s.split('::')[0...-1]
     end
 
     def resources_path(source_klass)

@@ -17,7 +17,7 @@ class ReflectCreateAndDeleteBenchmark < IntegrationBenchmark
         ]
       }.to_json,
                                              headers: {
-                                               "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
+                                               'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE,
                                                'Accept' => JSONAPI::MEDIA_TYPE
                                              }
     assert_response :no_content
@@ -33,7 +33,7 @@ class ReflectCreateAndDeleteBenchmark < IntegrationBenchmark
         ]
       }.to_json,
                                                headers: {
-                                                 "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
+                                                 'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE,
                                                  'Accept' => JSONAPI::MEDIA_TYPE
                                                }
     assert_response :no_content

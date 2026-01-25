@@ -25,17 +25,17 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
     # default configuration in the test 'setup'.
     JSONAPI.configuration.route_format = :underscored_route
 
-    @base_url        = "http://example.com"
+    @base_url        = 'http://example.com'
     @route_formatter = JSONAPI.configuration.route_formatter
-    @steve           = Person.create(name: "Steve Rogers", date_joined: "1941-03-01", id: 777)
+    @steve           = Person.create(name: 'Steve Rogers', date_joined: '1941-03-01', id: 777)
     @steves_prefs    = Preferences.create(advanced_mode: true, id: 444, person_id: 777)
-    @great_post      = Post.create(title: "Greatest Post", id: 555)
+    @great_post      = Post.create(title: 'Greatest Post', id: 555)
   end
 
   def test_engine_boolean
     assert JSONAPI::LinkBuilder.new(
       primary_resource_klass: MyEngine::Api::V1::PersonResource
-    ).engine?, "MyEngine should be considered an Engine"
+    ).engine?, 'MyEngine should be considered an Engine'
 
     assert JSONAPI::LinkBuilder.new(
       primary_resource_klass: ApiV2Engine::PersonResource
@@ -69,7 +69,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: primary_resource_klass,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder = JSONAPI::LinkBuilder.new(config)
@@ -86,7 +86,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: primary_resource_klass,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder = JSONAPI::LinkBuilder.new(config)
@@ -130,7 +130,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: primary_resource_klass,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder = JSONAPI::LinkBuilder.new(config)
@@ -172,7 +172,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: primary_resource_klass,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -219,7 +219,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: primary_resource_klass,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -267,7 +267,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: "#{@base_url}",
       route_formatter: @route_formatter,
       primary_resource_klass: primary_resource_klass,
-      url_helpers: ApiV2Engine::Engine.routes.url_helpers,
+      url_helpers: ApiV2Engine::Engine.routes.url_helpers
     }
 
     builder = JSONAPI::LinkBuilder.new(config)
@@ -284,7 +284,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: primary_resource_klass,
-      url_helpers: MyEngine::Engine.routes.url_helpers,
+      url_helpers: MyEngine::Engine.routes.url_helpers
     }
 
     builder = JSONAPI::LinkBuilder.new(config)
@@ -301,7 +301,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: primary_resource_klass,
-      url_helpers: MyEngine::Engine.routes.url_helpers,
+      url_helpers: MyEngine::Engine.routes.url_helpers
     }
 
     builder = JSONAPI::LinkBuilder.new(config)
@@ -316,7 +316,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: Api::V1::PersonResource,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder = JSONAPI::LinkBuilder.new(config)
@@ -330,7 +330,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: ApiV2Engine::PersonResource,
-      url_helpers: ApiV2Engine::Engine.routes.url_helpers,
+      url_helpers: ApiV2Engine::Engine.routes.url_helpers
     }
 
     builder = JSONAPI::LinkBuilder.new(config)
@@ -344,7 +344,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: MyEngine::Api::V1::PersonResource,
-      url_helpers: MyEngine::Engine.routes.url_helpers,
+      url_helpers: MyEngine::Engine.routes.url_helpers
     }
 
     builder = JSONAPI::LinkBuilder.new(config)
@@ -358,7 +358,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: Api::V1::PersonResource,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -375,7 +375,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: Api::V1::PersonResource,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -392,7 +392,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: Api::V1::PersonResource,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -409,7 +409,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: ApiV2Engine::PersonResource,
-      url_helpers: ApiV2Engine::Engine.routes.url_helpers,
+      url_helpers: ApiV2Engine::Engine.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -426,7 +426,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: MyEngine::Api::V1::PersonResource,
-      url_helpers: MyEngine::Engine.routes.url_helpers,
+      url_helpers: MyEngine::Engine.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -443,7 +443,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: Api::V1::PersonResource,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -460,7 +460,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: ApiV2Engine::PersonResource,
-      url_helpers: ApiV2Engine::Engine.routes.url_helpers,
+      url_helpers: ApiV2Engine::Engine.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -477,7 +477,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: MyEngine::Api::V1::PersonResource,
-      url_helpers: MyEngine::Engine.routes.url_helpers,
+      url_helpers: MyEngine::Engine.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -494,7 +494,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: Api::V1::PersonResource,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     builder       = JSONAPI::LinkBuilder.new(config)
@@ -512,7 +512,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: Api::V1::PersonResource,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     query         = { page: { offset: 0, limit: 12 } }
@@ -527,7 +527,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: AdminApi::V1::PersonResource,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     query         = { page: { offset: 0, limit: 12 } }
@@ -542,7 +542,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: DasherizedRouteFormatter,
       primary_resource_klass: DasherizedNamespace::V1::PersonResource,
-      url_helpers: TestApp.routes.url_helpers,
+      url_helpers: TestApp.routes.url_helpers
     }
 
     query         = { page: { offset: 0, limit: 12 } }
@@ -557,7 +557,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: ApiV2Engine::PersonResource,
-      url_helpers: ApiV2Engine::Engine.routes.url_helpers,
+      url_helpers: ApiV2Engine::Engine.routes.url_helpers
     }
 
     query         = { page: { offset: 0, limit: 12 } }
@@ -572,7 +572,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: MyEngine::Api::V1::PersonResource,
-      url_helpers: MyEngine::Engine.routes.url_helpers,
+      url_helpers: MyEngine::Engine.routes.url_helpers
     }
 
     query         = { page: { offset: 0, limit: 12 } }
@@ -587,7 +587,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: DasherizedRouteFormatter,
       primary_resource_klass: MyEngine::DasherizedNamespace::V1::PersonResource,
-      url_helpers: MyEngine::Engine.routes.url_helpers,
+      url_helpers: MyEngine::Engine.routes.url_helpers
     }
 
     query         = { page: { offset: 0, limit: 12 } }
@@ -602,7 +602,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       base_url: @base_url,
       route_formatter: @route_formatter,
       primary_resource_klass: MyEngine::AdminApi::V1::PersonResource,
-      url_helpers: MyEngine::Engine.routes.url_helpers,
+      url_helpers: MyEngine::Engine.routes.url_helpers
     }
 
     query         = { page: { offset: 0, limit: 12 } }
