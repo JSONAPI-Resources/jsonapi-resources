@@ -7,33 +7,21 @@ module Helpers
       if v1 == :any
         # any value is acceptable
       elsif v1 == :not_nil
-        if v2 == nil
-          return false
-        end
-      elsif v1.kind_of?(Hash)
-        unless matches_hash?(v1, v2, options)
-          return false
-        end
-      elsif v1.kind_of?(Array)
-        unless matches_array?(v1, v2, options)
-          return false
-        end
-      else
-        unless v2 == v1
-          return false
-        end
+        return false if v2.nil?
+      elsif v1.is_a?(Hash)
+        return false unless matches_hash?(v1, v2, options)
+      elsif v1.is_a?(Array)
+        return false unless matches_array?(v1, v2, options)
+      elsif v1 != v2
+        return false
       end
       true
     end
 
     def matches_array?(array1, array2, options = {})
-      return false unless array1.kind_of?(Array) && array2.kind_of?(Array)
+      return false unless array1.is_a?(Array) && array2.is_a?(Array)
 
-      if options[:exact]
-        unless array1.size == array2.size
-          return false
-        end
-      end
+      return false if options[:exact] && array1.size != array2.size
 
       # order of items shouldn't matter:
       #    ['a', 'b', 'c'], ['b', 'c', 'a'] -> true
@@ -49,30 +37,22 @@ module Helpers
             break
           end
         end
-        unless matched.key?(i.to_s)
-          return false
-        end
+        return false unless matched.key?(i.to_s)
       end
       true
     end
 
     # options => {exact: true} # hashes must match exactly (i.e. have same number of key-value pairs that are all equal)
     def matches_hash?(hash1, hash2, options = {})
-      return false unless hash1.kind_of?(Hash) && hash2.kind_of?(Hash)
+      return false unless hash1.is_a?(Hash) && hash2.is_a?(Hash)
 
-      if options[:exact]
-        unless hash1.size == hash2.size
-          return false
-        end
-      end
+      return false if options[:exact] && hash1.size != hash2.size
 
       hash1 = hash1.deep_symbolize_keys
       hash2 = hash2.deep_symbolize_keys
 
       hash1.each do |k1, v1|
-        unless hash2.key?(k1) && matches_value?(v1, hash2[k1], options)
-          return false
-        end
+        return false unless hash2.key?(k1) && matches_value?(v1, hash2[k1], options)
       end
       true
     end
