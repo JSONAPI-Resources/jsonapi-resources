@@ -54,7 +54,7 @@ class FelineResource < JSONAPI::Resource
 
   attribute :name
   attribute :breed
-  attribute :kind, :delegate => :breed
+  attribute :kind, delegate: :breed
 
   has_one :mother, class_name: 'Cat'
   has_one :father, class_name: 'Cat'
@@ -251,25 +251,25 @@ class ResourceTest < ActiveSupport::TestCase
   end
 
   def test_filter_on_to_many_relationship_id
-    posts = PostResource.find(:comments => 3)
+    posts = PostResource.find(comments: 3)
 
     assert_equal([2], posts.map(&:id))
   end
 
   def test_filter_on_aliased_to_many_relationship_id
     # Comment 2 is approved
-    books = Api::V2::BookResource.find(:aliased_comments => 2)
+    books = Api::V2::BookResource.find(aliased_comments: 2)
 
     assert_equal([0], books.map(&:id))
 
     # However, comment 3 is non-approved, so it won't be accessible through this relationship
-    books = Api::V2::BookResource.find(:aliased_comments => 3)
+    books = Api::V2::BookResource.find(aliased_comments: 3)
 
     assert_empty(books.map(&:id))
   end
 
   def test_filter_on_has_one_relationship_id
-    prefs = PreferencesResource.find(:author => 1001)
+    prefs = PreferencesResource.find(author: 1001)
 
     assert_equal([1], prefs.map(&:id))
   end

@@ -315,7 +315,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     sort_criteria = @request.parse_sort_criteria(CatResource, '-name')
 
     assert_empty(@request.errors)
-    assert_equal([{ :field => 'name', :direction => :desc }], sort_criteria)
+    assert_equal([{ field: 'name', direction: :desc }], sort_criteria)
   end
 
   def test_parse_sort_with_resource_validated_sorts
@@ -331,7 +331,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     sort_criteria = @request.parse_sort_criteria(CatResource, '-mother.name')
 
     assert_empty(@request.errors)
-    assert_equal([{ :field => 'mother.name', :direction => :desc }], sort_criteria)
+    assert_equal([{ field: 'mother.name', direction: :desc }], sort_criteria)
   end
 
   private

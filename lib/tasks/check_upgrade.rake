@@ -6,7 +6,7 @@ require 'jsonapi-resources'
 namespace :jsonapi do
   namespace :resources do
     desc 'Checks application for orphaned overrides'
-    task :check_upgrade => :environment do
+    task check_upgrade: :environment do
       Rails.application.eager_load!
 
       resource_klasses = ObjectSpace.each_object(Class).select { |klass| klass < JSONAPI::Resource }

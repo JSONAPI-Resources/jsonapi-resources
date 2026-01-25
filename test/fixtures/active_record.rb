@@ -12,8 +12,8 @@ end
 ### DATABASE
 ActiveRecord::Schema.define do
   create_table :sessions, id: false, force: true do |t|
-    t.string :id, :limit => 36, :primary_key => true, null: false
-    t.string :survey_id, :limit => 36, null: false
+    t.string :id, limit: 36, primary_key: true, null: false
+    t.string :survey_id, limit: 36, null: false
 
     t.timestamps
   end
@@ -441,7 +441,7 @@ end
 
 class Response < ActiveRecord::Base
   belongs_to :session
-  has_one :paragraph, :class_name => 'ResponseText::Paragraph'
+  has_one :paragraph, class_name: 'ResponseText::Paragraph'
 
   def response_type
     case self.type
@@ -463,7 +463,7 @@ class Response < ActiveRecord::Base
 end
 
 class Response::SingleTextbox < Response
-  has_one :paragraph, :class_name => 'ResponseText::Paragraph', :foreign_key => :response_id
+  has_one :paragraph, class_name: 'ResponseText::Paragraph', foreign_key: :response_id
 end
 
 class ResponseText < ActiveRecord::Base
@@ -616,7 +616,7 @@ class Crater < ActiveRecord::Base
 end
 
 class Preferences < ActiveRecord::Base
-  has_one :author, class_name: 'Person', :inverse_of => 'preferences'
+  has_one :author, class_name: 'Person', inverse_of: 'preferences'
 end
 
 class Fact < ActiveRecord::Base
@@ -875,7 +875,7 @@ end
 class SessionsController < ActionController::Base
   include JSONAPI::ActsAsResourceController
 
-  before_action :create_responses_relationships, :only => %i[create update]
+  before_action :create_responses_relationships, only: %i[create update]
 
   private
 
@@ -1706,7 +1706,7 @@ class PreferencesResource < JSONAPI::Resource
     key
   }
 
-  has_one :author, :foreign_key_on => :related, class_name: 'Person'
+  has_one :author, foreign_key_on: :related, class_name: 'Person'
 end
 
 class FactResource < JSONAPI::Resource
@@ -1730,7 +1730,7 @@ class PictureResource < JSONAPI::Resource
   has_one :author
 
   has_one :imageable, polymorphic: true
-  has_one :file_properties, inverse_relationship: :fileable, :foreign_key_on => :related, polymorphic: true
+  has_one :file_properties, inverse_relationship: :fileable, foreign_key_on: :related, polymorphic: true
 
   filter 'imageable.name', perform_joins: true, apply: ->(records, value, options) {
     join_manager = options.dig(:_relation_helper_options, :join_manager)
@@ -1760,7 +1760,7 @@ class DocumentResource < JSONAPI::Resource
   has_many :pictures, inverse_relationship: :imageable
   has_one :author, class_name: 'Person'
 
-  has_one :file_properties, inverse_relationship: :fileable, :foreign_key_on => :related
+  has_one :file_properties, inverse_relationship: :fileable, foreign_key_on: :related
 end
 
 class ProductResource < JSONAPI::Resource
@@ -1768,7 +1768,7 @@ class ProductResource < JSONAPI::Resource
   has_many :pictures, inverse_relationship: :imageable
   has_one :designer, class_name: 'Person'
 
-  has_one :file_properties, inverse_relationship: :fileable, :foreign_key_on => :related
+  has_one :file_properties, inverse_relationship: :fileable, foreign_key_on: :related
 
   def picture_id
     _model.picture.id
@@ -2337,7 +2337,7 @@ module Api
         key
       }
 
-      has_one :person, :foreign_key_on => :related
+      has_one :person, foreign_key_on: :related
 
       attribute :nickname
     end
@@ -2489,7 +2489,7 @@ class BlogPostResource < JSONAPI::Resource
   model_name 'BlogPost', add_model_hint: false
   model_hint model: 'BlogPost', resource: BlogPostResource
 
-  attribute :name, :delegate => :title
+  attribute :name, delegate: :title
   attribute :body
 
   filter :name
