@@ -27,8 +27,9 @@ end
 
 class RelationshipTest < ActiveSupport::TestCase
   def test_use_related_resource_records_for_joins_enabled_by_default
-    assert JSONAPI.configuration.use_related_resource_records_for_joins == true
+    assert JSONAPI.configuration.use_related_resource_records_for_joins
     relationship = JSONAPI::Relationship::ToOne.new(:author)
+
     assert relationship.use_related_resource_records_for_joins
   end
 
@@ -37,7 +38,8 @@ class RelationshipTest < ActiveSupport::TestCase
 
     JSONAPI.configuration.use_related_resource_records_for_joins = false
     relationship = JSONAPI::Relationship::ToOne.new(:author)
-    assert relationship.use_related_resource_records_for_joins == false
+
+    refute relationship.use_related_resource_records_for_joins
   ensure
     JSONAPI.configuration = original_config
   end
@@ -45,12 +47,14 @@ class RelationshipTest < ActiveSupport::TestCase
   def test_use_related_resource_records_for_joins_is_disabled_by_deafult_with_relation_name
     relationship = JSONAPI::Relationship::ToOne.new(:author,
                                                     relation_name: 'foo')
+
     refute relationship.use_related_resource_records_for_joins
   end
 
   def test_use_related_resource_records_for_joins_can_be_disabled
     relationship = JSONAPI::Relationship::ToOne.new(:author,
                                                     use_related_resource_records_for_joins: false)
+
     refute relationship.use_related_resource_records_for_joins
   end
 end
@@ -59,7 +63,8 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
   def test_polymorphic_type
     relationship = JSONAPI::Relationship::ToOne.new('imageable',
                                                     polymorphic: true)
-    assert_equal(relationship.polymorphic_type, 'imageable_type')
+
+    assert_equal('imageable_type', relationship.polymorphic_type)
   end
 
   def test_allow_include_not_set_defaults_to_config_to_one
@@ -67,11 +72,13 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
 
     JSONAPI.configuration.default_allow_include_to_one = true
     relationship = JSONAPI::Relationship::ToOne.new('foo')
-    assert(relationship.allow_include?)
+
+    assert_predicate(relationship, :allow_include?)
 
     JSONAPI.configuration.default_allow_include_to_one = false
     relationship = JSONAPI::Relationship::ToOne.new('foo')
-    refute(relationship.allow_include?)
+
+    refute_predicate(relationship, :allow_include?)
   ensure
     JSONAPI.configuration = original_config
   end
@@ -81,11 +88,13 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
 
     JSONAPI.configuration.default_allow_include_to_many = true
     relationship = JSONAPI::Relationship::ToMany.new('foobar')
-    assert(relationship.allow_include?)
+
+    assert_predicate(relationship, :allow_include?)
 
     JSONAPI.configuration.default_allow_include_to_one = false
     relationship = JSONAPI::Relationship::ToOne.new('foobar')
-    refute(relationship.allow_include?)
+
+    refute_predicate(relationship, :allow_include?)
   ensure
     JSONAPI.configuration = original_config
   end
@@ -96,12 +105,14 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
     JSONAPI.configuration.default_allow_include_to_one = true
     relationship1 = JSONAPI::Relationship::ToOne.new('foo1', allow_include: false)
     relationship2 = JSONAPI::Relationship::ToOne.new('foo2', allow_include: true)
-    refute(relationship1.allow_include?)
-    assert(relationship2.allow_include?)
+
+    refute_predicate(relationship1, :allow_include?)
+    assert_predicate(relationship2, :allow_include?)
 
     JSONAPI.configuration.default_allow_include_to_one = false
-    refute(relationship1.allow_include?)
-    assert(relationship2.allow_include?)
+
+    refute_predicate(relationship1, :allow_include?)
+    assert_predicate(relationship2, :allow_include?)
   ensure
     JSONAPI.configuration = original_config
   end
@@ -112,12 +123,14 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
     JSONAPI.configuration.default_allow_include_to_one = true
     relationship1 = JSONAPI::Relationship::ToMany.new('foobar1', allow_include: false)
     relationship2 = JSONAPI::Relationship::ToMany.new('foobar2', allow_include: true)
-    refute(relationship1.allow_include?)
-    assert(relationship2.allow_include?)
+
+    refute_predicate(relationship1, :allow_include?)
+    assert_predicate(relationship2, :allow_include?)
 
     JSONAPI.configuration.default_allow_include_to_one = false
-    refute(relationship1.allow_include?)
-    assert(relationship2.allow_include?)
+
+    refute_predicate(relationship1, :allow_include?)
+    assert_predicate(relationship2, :allow_include?)
   ensure
     JSONAPI.configuration = original_config
   end
@@ -140,11 +153,13 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
 
   def test_exclude_links_on_relationship
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: :none
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: :default
+
     assert_equal %i[self related], relationship._exclude_links
     assert relationship.exclude_link?(:self)
     assert relationship.exclude_link?('self')
@@ -152,37 +167,44 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
     assert relationship.exclude_link?('related')
 
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: 'none'
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: 'default'
+
     assert_equal %i[self related], relationship._exclude_links
     assert relationship.exclude_link?(:self)
     assert relationship.exclude_link?('self')
 
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: :none
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: [:self]
+
     assert_equal [:self], relationship._exclude_links
     assert relationship.exclude_link?(:self)
     assert relationship.exclude_link?('self')
 
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: :none
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: ['self', :related]
+
     assert_equal %i[self related], relationship._exclude_links
     assert relationship.exclude_link?(:self)
     assert relationship.exclude_link?('self')
 
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: []
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
@@ -194,12 +216,14 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
   def test_global_exclude_links_configuration_on_relationship
     JSONAPI.configuration.default_exclude_links = :none
     relationship = JSONAPI::Relationship::ToOne.new 'foo'
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
     JSONAPI.configuration.default_exclude_links = :default
     relationship = JSONAPI::Relationship::ToOne.new 'foo'
+
     assert_equal %i[self related], relationship._exclude_links
     assert relationship.exclude_link?(:self)
     assert relationship.exclude_link?('self')
@@ -208,43 +232,50 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
 
     JSONAPI.configuration.default_exclude_links = 'none'
     relationship = JSONAPI::Relationship::ToOne.new 'foo'
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
     JSONAPI.configuration.default_exclude_links = 'default'
     relationship = JSONAPI::Relationship::ToOne.new 'foo'
+
     assert_equal %i[self related], relationship._exclude_links
     assert relationship.exclude_link?(:self)
     assert relationship.exclude_link?('self')
 
     JSONAPI.configuration.default_exclude_links = :none
     relationship = JSONAPI::Relationship::ToOne.new 'foo'
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
     JSONAPI.configuration.default_exclude_links = [:self]
     relationship = JSONAPI::Relationship::ToOne.new 'foo'
+
     assert_equal [:self], relationship._exclude_links
     assert relationship.exclude_link?(:self)
     assert relationship.exclude_link?('self')
 
     JSONAPI.configuration.default_exclude_links = :none
     relationship = JSONAPI::Relationship::ToOne.new 'foo'
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
     JSONAPI.configuration.default_exclude_links = ['self', :related]
     relationship = JSONAPI::Relationship::ToOne.new 'foo'
+
     assert_equal %i[self related], relationship._exclude_links
     assert relationship.exclude_link?(:self)
     assert relationship.exclude_link?('self')
 
     JSONAPI.configuration.default_exclude_links = []
     relationship = JSONAPI::Relationship::ToOne.new 'foo'
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
 
@@ -256,7 +287,8 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
     # Test if the relationships will override the the global configuration
     JSONAPI.configuration.default_exclude_links = :default
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: :none
-    assert_equal [], relationship._exclude_links
+
+    assert_empty relationship._exclude_links
     refute relationship.exclude_link?(:self)
     refute relationship.exclude_link?('self')
     refute relationship.exclude_link?(:related)
@@ -264,6 +296,7 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
 
     JSONAPI.configuration.default_exclude_links = :default
     relationship = JSONAPI::Relationship::ToOne.new 'foo', exclude_links: [:self]
+
     assert_equal [:self], relationship._exclude_links
     refute relationship.exclude_link?(:related)
     refute relationship.exclude_link?('related')

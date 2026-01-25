@@ -25,6 +25,7 @@ class JoinTreeTest < ActiveSupport::TestCase
 
     records = PostResource.records({})
     records = join_manager.join(records, {})
+
     assert_equal 'SELECT "posts".* FROM "posts"', records.to_sql
 
     assert_hash_equals({ alias: 'posts', join_type: :root }, join_manager.source_join_details.except!(:join_options))
@@ -35,6 +36,7 @@ class JoinTreeTest < ActiveSupport::TestCase
     join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource, filters: filters)
     records = PostResource.records({})
     records = join_manager.join(records, {})
+
     assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"',
                  records.to_sql
     assert_hash_equals({ alias: 'posts', join_type: :root }, join_manager.source_join_details.except!(:join_options))
@@ -47,13 +49,16 @@ class JoinTreeTest < ActiveSupport::TestCase
     join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource, filters: filters)
     records = PostResource.records({})
     records = join_manager.join(records, {})
+
     assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"',
                  records.to_sql
 
     source_join_options = join_manager.source_join_details[:join_options]
+
     assert_array_equals %i[relationship relationship_details related_resource_klass], source_join_options.keys
 
     relationship_join_options = join_manager.join_details_by_relationship(PostResource._relationship(:tags))[:join_options]
+
     assert_array_equals %i[relationship relationship_details related_resource_klass], relationship_join_options.keys
   end
 
@@ -77,6 +82,7 @@ class JoinTreeTest < ActiveSupport::TestCase
                                                             filters: filters)
     records = PostResource.records({})
     records = join_manager.join(records, {})
+
     assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"',
                  records.to_sql
     assert_hash_equals({ alias: 'posts', join_type: :root }, join_manager.source_join_details.except!(:join_options))

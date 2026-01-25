@@ -15,11 +15,13 @@ class BookAuthorizationTest < ActionDispatch::IntegrationTest
 
     # Not a book admin
     $test_user = Person.find(1001)
+
     assert_cacheable_jsonapi_get '/api/v2/books?filter[title]=Book%206'
     assert_equal 12, json_response['data'].size
 
     # book_admin
     $test_user = Person.find(1005)
+
     assert_cacheable_jsonapi_get '/api/v2/books?filter[title]=Book%206'
     assert_equal 111, json_response['data'].size
   end
@@ -29,11 +31,13 @@ class BookAuthorizationTest < ActionDispatch::IntegrationTest
 
     # Not a book admin
     $test_user = Person.find(1001)
+
     assert_cacheable_jsonapi_get '/api/v2/authors/1002/books'
     assert_equal 1, json_response['data'].size
 
     # book_admin
     $test_user = Person.find(1005)
+
     assert_cacheable_jsonapi_get '/api/v2/authors/1002/books'
     assert_equal 2, json_response['data'].size
   end

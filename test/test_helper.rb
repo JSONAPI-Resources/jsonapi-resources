@@ -184,7 +184,8 @@ def assert_query_count(expected, msg = nil, &block)
   ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
 
   show_queries unless expected == @queries.size
-  assert expected == @queries.size, "Expected #{expected} queries, ran #{@queries.size} queries"
+
+  assert_equal expected, @queries.size, "Expected #{expected} queries, ran #{@queries.size} queries"
   @queries = nil
 end
 
@@ -510,11 +511,13 @@ class ActionDispatch::IntegrationTest
     if status != expected_status && status >= 400
       pp json_response rescue nil
     end
+
     assert_equal expected_status, status, msg
   end
 
   def assert_jsonapi_get(url, msg = 'GET response must be 200')
     get url, headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 200, msg
   end
 
@@ -606,6 +609,7 @@ class ActionController::TestCase
         if response.status != non_caching_status
           pp json_response rescue nil
         end
+
         assert_equal(
           non_caching_status,
           response.status,

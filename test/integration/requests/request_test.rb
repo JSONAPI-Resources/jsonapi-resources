@@ -29,6 +29,7 @@ class RequestTest < ActionDispatch::IntegrationTest
 
   def test_get_not_found
     get '/people/2000'
+
     assert_jsonapi_response 404
   end
 
@@ -84,6 +85,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_get_underscored_key
     original_config = JSONAPI.configuration.dup
     JSONAPI.configuration.json_key_format = :underscored_key
+
     assert_cacheable_jsonapi_get '/iso_currencies'
     assert_equal 3, json_response['data'].size
   ensure
@@ -94,6 +96,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     original_config = JSONAPI.configuration.dup
     JSONAPI.configuration.json_key_format = :underscored_key
     get '/iso_currencies?filter[country_name]=%22'
+
     assert_jsonapi_response 200
   ensure
     JSONAPI.configuration = original_config
@@ -102,6 +105,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_get_underscored_key_filtered
     original_config = JSONAPI.configuration.dup
     JSONAPI.configuration.json_key_format = :underscored_key
+
     assert_cacheable_jsonapi_get '/iso_currencies?filter[country_name]=Canada'
     assert_equal 1, json_response['data'].size
     assert_equal 'Canada', json_response['data'][0]['attributes']['country_name']
@@ -112,6 +116,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_get_camelized_key_filtered
     original_config = JSONAPI.configuration.dup
     JSONAPI.configuration.json_key_format = :camelized_key
+
     assert_cacheable_jsonapi_get '/iso_currencies?filter[countryName]=Canada'
     assert_equal 1, json_response['data'].size
     assert_equal 'Canada', json_response['data'][0]['attributes']['countryName']
@@ -122,6 +127,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_get_camelized_route_and_key_filtered
     original_config = JSONAPI.configuration.dup
     JSONAPI.configuration.json_key_format = :camelized_key
+
     assert_cacheable_jsonapi_get '/api/v4/isoCurrencies?filter[countryName]=Canada'
     assert_equal 1, json_response['data'].size
     assert_equal 'Canada', json_response['data'][0]['attributes']['countryName']
@@ -133,6 +139,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     original_config = JSONAPI.configuration.dup
     JSONAPI.configuration.json_key_format = :camelized_key
     JSONAPI.configuration.route_format = :camelized_route
+
     assert_cacheable_jsonapi_get '/api/v4/expenseEntries/1/relationships/isoCurrency'
     assert_hash_equals({ 'links' => {
                            'self' => 'http://www.example.com/api/v4/expenseEntries/1/relationships/isoCurrency',
@@ -151,6 +158,7 @@ class RequestTest < ActionDispatch::IntegrationTest
       {
         'Accept' => "application/json, #{JSONAPI::MEDIA_TYPE}, */*"
       }
+
     assert_equal 200, status
   end
 
@@ -166,12 +174,14 @@ class RequestTest < ActionDispatch::IntegrationTest
 
   def test_pagination_none
     Api::V2::BookResource.paginator :none
+
     assert_cacheable_jsonapi_get '/api/v2/books'
     assert_equal 901, json_response['data'].size
   end
 
   def test_pagination_offset_style
     Api::V2::BookResource.paginator :offset
+
     assert_cacheable_jsonapi_get '/api/v2/books'
     assert_equal JSONAPI.configuration.default_page_size, json_response['data'].size
     assert_equal 'Book 0', json_response['data'][0]['attributes']['title']
@@ -179,6 +189,7 @@ class RequestTest < ActionDispatch::IntegrationTest
 
   def test_pagination_offset_style_offset
     Api::V2::BookResource.paginator :offset
+
     assert_cacheable_jsonapi_get '/api/v2/books?page[offset]=50'
     assert_equal JSONAPI.configuration.default_page_size, json_response['data'].size
     assert_equal 'Book 50', json_response['data'][0]['attributes']['title']
@@ -186,6 +197,7 @@ class RequestTest < ActionDispatch::IntegrationTest
 
   def test_pagination_offset_style_offset_limit
     Api::V2::BookResource.paginator :offset
+
     assert_cacheable_jsonapi_get '/api/v2/books?page[offset]=50&page[limit]=20'
     assert_equal 20, json_response['data'].size
     assert_equal 'Book 50', json_response['data'][0]['attributes']['title']
@@ -196,11 +208,13 @@ class RequestTest < ActionDispatch::IntegrationTest
     get '/api/v2/books?page[irishsetter]=50&page[limit]=20', headers: {
       'Accept' => JSONAPI::MEDIA_TYPE
     }
+
     assert_jsonapi_response 400
   end
 
   def test_pagination_related_resources_link
     Api::V2::BookResource.paginator :offset
+
     assert_cacheable_jsonapi_get '/api/v2/books?page[limit]=2'
     assert_equal 2, json_response['data'].size
     assert_equal 'http://www.example.com/api/v2/books/1/book_comments',
@@ -210,6 +224,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_pagination_related_resources_data
     Api::V2::BookResource.paginator :offset
     Api::V2::BookCommentResource.paginator :offset
+
     assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments?page[limit]=10'
     assert_equal 10, json_response['data'].size
     assert_equal 'This is comment 18 on book 1.', json_response['data'][9]['attributes']['body']
@@ -218,6 +233,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_pagination_related_resources_links
     Api::V2::BookResource.paginator :offset
     Api::V2::BookCommentResource.paginator :offset
+
     assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments?page[limit]=10'
     assert_equal 'http://www.example.com/api/v2/books/1/book_comments?page%5Blimit%5D=10&page%5Boffset%5D=0',
                  json_response['links']['first']
@@ -231,6 +247,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     Api::V2::BookResource.paginator :offset
     Api::V2::BookCommentResource.paginator :offset
     JSONAPI.configuration.top_level_meta_include_record_count = true
+
     assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments?page[limit]=10'
     assert_equal 26, json_response['meta']['record_count']
     assert_equal 'http://www.example.com/api/v2/books/1/book_comments?page%5Blimit%5D=10&page%5Boffset%5D=0',
@@ -247,6 +264,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     Api::V2::BookResource.paginator :offset
     Api::V2::BookCommentResource.paginator :none
     JSONAPI.configuration.top_level_meta_include_page_count = true
+
     assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments'
     assert json_response['data']
     assert_nil json_response.dig('meta', 'record_count')
@@ -257,6 +275,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_filter_related_resources_relationship_filter
     Api::V2::BookCommentResource.paginator :offset
     JSONAPI.configuration.top_level_meta_include_record_count = true
+
     assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments?filter[book]=2'
     assert_equal 0, json_response['meta']['record_count']
     assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments?filter[book]=1&page[limit]=20'
@@ -269,6 +288,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_filter_related_resources
     Api::V2::BookCommentResource.paginator :offset
     JSONAPI.configuration.top_level_meta_include_record_count = true
+
     assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments?filter[body]=2'
     assert_equal 9, json_response['data'].length
     assert_equal 9, json_response['meta']['record_count']
@@ -283,12 +303,14 @@ class RequestTest < ActionDispatch::IntegrationTest
     get '/api/v2/books/1/book_comments', headers: {
       'Accept' => JSONAPI::MEDIA_TYPE
     }
+
     assert_equal 26, json_response['meta']['record_count']
     # based on default page size
     assert_equal 3, json_response['meta']['page_count']
     get '/api/v2/books/1/book_comments?page[size]=5', headers: {
       'Accept' => JSONAPI::MEDIA_TYPE
     }
+
     assert_equal 26, json_response['meta']['record_count']
     assert_equal 6, json_response['meta']['page_count']
   ensure
@@ -299,6 +321,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_pagination_related_resources_without_related
     Api::V2::BookResource.paginator :offset
     Api::V2::BookCommentResource.paginator :offset
+
     assert_cacheable_jsonapi_get '/api/v2/books/10/book_comments'
     assert_nil json_response['links']['next']
     assert_equal 'http://www.example.com/api/v2/books/10/book_comments?page%5Blimit%5D=10&page%5Boffset%5D=0',
@@ -321,6 +344,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_pagination_related_resources_data_includes
     Api::V2::BookResource.paginator :offset
     Api::V2::BookCommentResource.paginator :offset
+
     assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments?page[limit]=10&include=author,book'
     assert_equal '1', json_response['data'].first['relationships']['book']['data']['id']
     assert_equal 10, json_response['data'].size
@@ -330,6 +354,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_pagination_empty_results
     Api::V2::BookResource.paginator :offset
     Api::V2::BookCommentResource.paginator :offset
+
     assert_cacheable_jsonapi_get '/api/v2/books?filter[id]=2000&page[limit]=10'
     assert_equal 0, json_response['data'].size
     assert_nil json_response['links']['next']
@@ -406,8 +431,10 @@ class RequestTest < ActionDispatch::IntegrationTest
     original_config = JSONAPI.configuration.dup
     JSONAPI.configuration.route_format = :dasherized_route
     JSONAPI.configuration.json_key_format = :dasherized_key
+
     assert_cacheable_jsonapi_get '/api/v6/purchase-orders'
     po_1 = json_response['data'][0]
+
     assert_equal 'purchase-orders', json_response['data'][0]['type']
 
     assert_cacheable_jsonapi_get po_1['links']['self']
@@ -420,6 +447,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     original_config = JSONAPI.configuration.dup
     JSONAPI.configuration.route_format = :underscored_route
     JSONAPI.configuration.json_key_format = :dasherized_key
+
     assert_cacheable_jsonapi_get '/api/v7/purchase_orders'
     assert_equal 'purchase-orders', json_response['data'][0]['type']
 
@@ -435,6 +463,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     original_config = JSONAPI.configuration.dup
     JSONAPI.configuration.route_format = :underscored_route
     JSONAPI.configuration.json_key_format = :underscored_key
+
     assert_cacheable_jsonapi_get '/api/v7/purchase_orders'
     assert_equal 'purchase_orders', json_response['data'][0]['type']
 
@@ -456,6 +485,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     get '/api/v2/books/1/book_comments?include=author', headers: {
       'Accept' => JSONAPI::MEDIA_TYPE
     }
+
     assert_jsonapi_response 400
   ensure
     JSONAPI.configuration = original_config
@@ -467,6 +497,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     get '/api/v2/books/1/book_comments?include=author', headers: {
       'Accept' => JSONAPI::MEDIA_TYPE
     }
+
     assert_jsonapi_response 200
     assert_equal 1, json_response['included'].size
   ensure
@@ -478,6 +509,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     get '/api/v2/books?filter[author]=1', headers: {
       'Accept' => JSONAPI::MEDIA_TYPE
     }
+
     assert_jsonapi_response 400
   ensure
     JSONAPI.configuration.allow_filter = true
@@ -486,6 +518,7 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_sort_parameter_not_allowed
     JSONAPI.configuration.allow_sort = false
     get '/api/v2/books?sort=title', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 400
   ensure
     JSONAPI.configuration.allow_sort = true
@@ -493,20 +526,24 @@ class RequestTest < ActionDispatch::IntegrationTest
 
   def test_sort_parameter_quoted
     get '/api/v2/books?sort=%22title%22', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 200
   end
 
   def test_sort_parameter_openquoted
     get '/api/v2/books?sort=%22title', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 400
   end
 
   def test_sort_primary_attribute
     get '/api/v6/authors?sort=name', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 200
     assert_equal '1002', json_response['data'][0]['id']
 
     get '/api/v6/authors?sort=-name', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 200
     assert_equal '1005', json_response['data'][0]['id']
   end
@@ -516,28 +553,33 @@ class RequestTest < ActionDispatch::IntegrationTest
     pg = ENV['DATABASE_URL'].starts_with?('postgres')
 
     get '/api/v6/authors?sort=author_detail.author_stuff', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 200
     assert_equal pg ? '1001' : '1000', json_response['data'][0]['id']
 
     get '/api/v6/authors?sort=-author_detail.author_stuff', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 200
     assert_equal pg ? '1000' : '1002', json_response['data'][0]['id']
   end
 
   def test_include_parameter_quoted
     get '/api/v2/posts?include=%22author%22', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 200
   end
 
   def test_include_parameter_openquoted
     get '/api/v2/posts?include=%22author', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 400
   end
 
   def test_getting_different_resources_when_sti
     assert_cacheable_jsonapi_get '/vehicles'
     types = json_response['data'].map { |r| r['type'] }.to_set
-    assert types == Set['cars', 'boats']
+
+    assert_equal types, Set['cars', 'boats']
   end
 
   def test_getting_resource_with_correct_type_when_sti
@@ -548,10 +590,12 @@ class RequestTest < ActionDispatch::IntegrationTest
   def test_get_resource_with_belongs_to_relationship_and_changed_primary_key
     worker = Worker.find(1)
     access_card = worker.access_card
+
     assert_cacheable_jsonapi_get '/workers/1?include=access_card'
     assert_jsonapi_response 200
 
     data = json_response['data']
+
     refute_nil data
     assert_equal worker.id.to_s, data['id']
 
@@ -562,6 +606,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     assert_equal access_card.token, data['relationships']['access_card']['data']['id']
 
     included = json_response['included']
+
     refute_nil included
     assert_equal 'access_cards', included.first['type']
     assert_equal access_card.token, included.first['id']
@@ -631,6 +676,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     $test_user = Person.find(1005)
 
     get "/api/v9/people/#{$test_user.id}?include=preferences"
+
     assert_jsonapi_response 200
     assert_hash_equals json_response,
                        {
@@ -676,9 +722,11 @@ class RequestTest < ActionDispatch::IntegrationTest
                        }
 
     $test_user = Person.find(1001)
+
     assert_equal 2, JSONAPI.configuration.resource_cache.instance_variable_get(:@data).length
 
     get "/api/v9/people/#{$test_user.id}?include=preferences"
+
     assert_jsonapi_response 200
     assert_hash_equals json_response,
                        {
@@ -744,6 +792,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     $test_user = Person.find(1005)
 
     get '/api/v9/preferences'
+
     assert_jsonapi_response 200
     assert_hash_equals json_response,
                        {
@@ -772,6 +821,7 @@ class RequestTest < ActionDispatch::IntegrationTest
     $test_user = Person.find(1001)
 
     get '/api/v9/preferences'
+
     assert_jsonapi_response 200
     assert_hash_equals json_response,
                        {
@@ -806,6 +856,7 @@ class RequestTest < ActionDispatch::IntegrationTest
 
   def test_include_optional_linkage_data_with_join
     get '/api/v3/moons', headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
+
     assert_jsonapi_response 200
     refute_nil json_response['data'][0]['relationships']['planet']
   end

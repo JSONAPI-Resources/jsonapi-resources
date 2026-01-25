@@ -33,17 +33,17 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
   end
 
   def test_engine_boolean
-    assert JSONAPI::LinkBuilder.new(
+    assert_predicate JSONAPI::LinkBuilder.new(
       primary_resource_klass: MyEngine::Api::V1::PersonResource
-    ).engine?, 'MyEngine should be considered an Engine'
+    ), :engine?, 'MyEngine should be considered an Engine'
 
-    assert JSONAPI::LinkBuilder.new(
+    assert_predicate JSONAPI::LinkBuilder.new(
       primary_resource_klass: ApiV2Engine::PersonResource
-    ).engine?, "ApiV2 shouldn't be considered an Engine"
+    ), :engine?, "ApiV2 shouldn't be considered an Engine"
 
-    refute JSONAPI::LinkBuilder.new(
+    refute_predicate JSONAPI::LinkBuilder.new(
       primary_resource_klass: Api::V1::PersonResource
-    ).engine?, "Api shouldn't be considered an Engine"
+    ), :engine?, "Api shouldn't be considered an Engine"
   end
 
   def test_engine_name
@@ -98,8 +98,10 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     _out, err = capture_subprocess_io do
       link = builder.self_link(source)
+
       assert_nil link
     end
+
     assert_empty(err)
 
     # Test warn_on_missing_routes
@@ -108,16 +110,20 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     _out, err = capture_subprocess_io do
       link = builder.self_link(source)
+
       assert_nil link
     end
-    assert_equal(err, "self_link for Api::Secret::PostResource could not be generated\n")
+
+    assert_equal("self_link for Api::Secret::PostResource could not be generated\n", err)
 
     # should only warn once
     builder = JSONAPI::LinkBuilder.new(config)
     _out, err = capture_subprocess_io do
       link = builder.self_link(source)
+
       assert_nil link
     end
+
     assert_empty(err)
   ensure
     JSONAPI.configuration.warn_on_missing_routes = true
@@ -141,8 +147,10 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     _out, err = capture_subprocess_io do
       link = builder.primary_resources_url
+
       assert_nil link
     end
+
     assert_empty(err)
 
     # Test warn_on_missing_routes
@@ -150,16 +158,20 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
     primary_resource_klass._warned_missing_route = false
     _out, err = capture_subprocess_io do
       link = builder.primary_resources_url
+
       assert_nil link
     end
-    assert_equal(err, "primary_resources_url for Api::Secret::PostResource could not be generated\n")
+
+    assert_equal("primary_resources_url for Api::Secret::PostResource could not be generated\n", err)
 
     # should only warn once
     builder = JSONAPI::LinkBuilder.new(config)
     _out, err = capture_subprocess_io do
       link = builder.primary_resources_url
+
       assert_nil link
     end
+
     assert_empty(err)
   ensure
     JSONAPI.configuration.warn_on_missing_routes = true
@@ -187,8 +199,10 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     _out, err = capture_subprocess_io do
       link = builder.relationships_self_link(source, relationship)
+
       assert_nil link
     end
+
     assert_empty(err)
 
     # Test warn_on_missing_routes
@@ -197,16 +211,20 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     _out, err = capture_subprocess_io do
       link = builder.relationships_self_link(source, relationship)
+
       assert_nil link
     end
-    assert_equal(err, "self_link for Api::Secret::PostResource.author(BelongsToOne) could not be generated\n")
+
+    assert_equal("self_link for Api::Secret::PostResource.author(BelongsToOne) could not be generated\n", err)
 
     # should only warn once
     builder = JSONAPI::LinkBuilder.new(config)
     _out, err = capture_subprocess_io do
       link = builder.relationships_self_link(source, relationship)
+
       assert_nil link
     end
+
     assert_empty(err)
   ensure
     JSONAPI.configuration.warn_on_missing_routes = true
@@ -234,8 +252,10 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     _out, err = capture_subprocess_io do
       link = builder.relationships_related_link(source, relationship)
+
       assert_nil link
     end
+
     assert_empty(err)
 
     # Test warn_on_missing_routes
@@ -244,16 +264,20 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     _out, err = capture_subprocess_io do
       link = builder.relationships_related_link(source, relationship)
+
       assert_nil link
     end
-    assert_equal(err, "related_link for Api::Secret::PostResource.author(BelongsToOne) could not be generated\n")
+
+    assert_equal("related_link for Api::Secret::PostResource.author(BelongsToOne) could not be generated\n", err)
 
     # should only warn once
     builder = JSONAPI::LinkBuilder.new(config)
     _out, err = capture_subprocess_io do
       link = builder.relationships_related_link(source, relationship)
+
       assert_nil link
     end
+
     assert_empty(err)
   ensure
     JSONAPI.configuration.warn_on_missing_routes = true

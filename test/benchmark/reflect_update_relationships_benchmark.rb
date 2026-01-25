@@ -16,8 +16,10 @@ class ReflectUpdateRelationshipsBenchmark < IntegrationBenchmark
                                           'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE,
                                           'Accept' => JSONAPI::MEDIA_TYPE
                                         }
+
     assert_response :no_content
     post_object = Post.find(15)
+
     assert_equal 5, post_object.tags.collect { |tag| tag.id }.length
 
     put '/posts/15/relationships/tags', params:
@@ -28,8 +30,10 @@ class ReflectUpdateRelationshipsBenchmark < IntegrationBenchmark
                                           'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE,
                                           'Accept' => JSONAPI::MEDIA_TYPE
                                         }
+
     assert_response :no_content
     post_object = Post.find(15)
+
     assert_equal 3, post_object.tags.collect { |tag| tag.id }.length
   end
 

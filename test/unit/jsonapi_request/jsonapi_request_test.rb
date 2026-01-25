@@ -41,12 +41,14 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     )
 
     request.parse_include_directives(ExpenseEntryResource, params[:include])
-    assert request.errors.empty?
+
+    assert_empty request.errors
   end
 
   def test_check_include_allowed
     reset_includes
     JSONAPI::Request.new.check_include(ExpenseEntryResource, 'isoCurrency'.partition('.'))
+
     assert true
   ensure
     reset_includes
@@ -55,6 +57,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_check_nested_include_allowed
     reset_includes
     JSONAPI::Request.new.check_include(ExpenseEntryResource, 'employee.expenseEntries'.partition('.'))
+
     assert true
   ensure
     reset_includes
@@ -150,7 +153,8 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     )
 
     request.parse_include_directives(ExpenseEntryResource, params[:include])
-    assert request.errors.empty?
+
+    assert_empty request.errors
   end
 
   def test_parse_dasherized_with_underscored_include
@@ -171,7 +175,8 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     )
 
     request.parse_include_directives(ExpenseEntryResource, params[:include])
-    refute request.errors.empty?
+
+    refute_empty request.errors
     assert_equal 'iso_currency is not a valid includable relationship of expense-entries', request.errors[0].detail
   end
 
@@ -193,7 +198,8 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     )
 
     request.parse_fields(ExpenseEntryResource, params[:fields])
-    assert request.errors.empty?
+
+    assert_empty request.errors
   end
 
   def test_parse_dasherized_with_dasherized_fields
@@ -216,7 +222,8 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     )
 
     request.parse_fields(ExpenseEntryResource, params[:fields])
-    assert request.errors.empty?
+
+    assert_empty request.errors
   end
 
   def test_parse_dasherized_with_underscored_fields
@@ -241,7 +248,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     e = assert_raises JSONAPI::Exceptions::InvalidField do
       request.parse_fields(ExpenseEntryResource, params[:fields])
     end
-    refute e.errors.empty?
+    refute_empty e.errors
     assert_equal 'iso_currency is not a valid field for expense-entries.', e.errors[0].detail
   end
 
@@ -266,15 +273,16 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     e = assert_raises JSONAPI::Exceptions::InvalidResource do
       request.parse_fields(ExpenseEntryResource, params[:fields])
     end
-    refute e.errors.empty?
+    refute_empty e.errors
     assert_equal 'expense_entries is not a valid resource.', e.errors[0].detail
   end
 
   def test_parse_filters_with_valid_filters
     setup_request
     filters = @request.parse_filters(CatResource, { name: 'Whiskers' })
-    assert_equal(filters[:name], 'Whiskers')
-    assert_equal(@request.errors, [])
+
+    assert_equal('Whiskers', filters[:name])
+    assert_empty(@request.errors)
   end
 
   def test_parse_filters_with_non_valid_filter
@@ -288,23 +296,26 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_parse_filters_with_no_filters
     setup_request
     filters = @request.parse_filters(CatResource, nil)
-    assert_equal(filters, {})
-    assert_equal(@request.errors, [])
+
+    assert_empty(filters)
+    assert_empty(@request.errors)
   end
 
   def test_parse_filters_with_invalid_filters_param
     setup_request
     filters = @request.parse_filters(CatResource, 'noeach') # String does not implement #each
-    assert_equal(filters, {})
-    assert_equal(@request.errors.count, 1)
-    assert_equal(@request.errors.first.title, 'Invalid filters syntax')
+
+    assert_empty(filters)
+    assert_equal(1, @request.errors.count)
+    assert_equal('Invalid filters syntax', @request.errors.first.title)
   end
 
   def test_parse_sort_with_valid_sorts
     setup_request
     sort_criteria = @request.parse_sort_criteria(CatResource, '-name')
-    assert_equal(@request.errors, [])
-    assert_equal(sort_criteria, [{ :field => 'name', :direction => :desc }])
+
+    assert_empty(@request.errors)
+    assert_equal([{ :field => 'name', :direction => :desc }], sort_criteria)
   end
 
   def test_parse_sort_with_resource_validated_sorts
@@ -318,8 +329,9 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_parse_sort_with_relationships
     setup_request
     sort_criteria = @request.parse_sort_criteria(CatResource, '-mother.name')
-    assert_equal(@request.errors, [])
-    assert_equal(sort_criteria, [{ :field => 'mother.name', :direction => :desc }])
+
+    assert_empty(@request.errors)
+    assert_equal([{ :field => 'mother.name', :direction => :desc }], sort_criteria)
   end
 
   private

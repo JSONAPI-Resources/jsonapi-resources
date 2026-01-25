@@ -108,7 +108,7 @@ class RoutesTest < ActionDispatch::IntegrationTest
   end
 
   def test_list_items_route_helper_name
-    assert_equal(list_items_path, '/list_items')
+    assert_equal('/list_items', list_items_path)
   end
 
   # primary_key

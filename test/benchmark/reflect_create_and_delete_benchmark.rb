@@ -20,8 +20,10 @@ class ReflectCreateAndDeleteBenchmark < IntegrationBenchmark
                                                'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE,
                                                'Accept' => JSONAPI::MEDIA_TYPE
                                              }
+
     assert_response :no_content
     post_object = Post.find(15)
+
     assert_equal 3, post_object.comments.collect { |comment| comment.id }.length
 
     delete '/posts/15/relationships/comments', params:
@@ -36,8 +38,10 @@ class ReflectCreateAndDeleteBenchmark < IntegrationBenchmark
                                                  'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE,
                                                  'Accept' => JSONAPI::MEDIA_TYPE
                                                }
+
     assert_response :no_content
     post_object = Post.find(15)
+
     assert_equal 0, post_object.comments.collect { |comment| comment.id }.length
   end
 

@@ -65,7 +65,7 @@ class DefaultProcessorTest < ActionDispatch::IntegrationTest
   end
 
   def test_id_tree_without_includes_should_be_a_resource_tree
-    assert $id_tree_no_includes.is_a?(JSONAPI::PrimaryResourceTree)
+    assert_kind_of JSONAPI::PrimaryResourceTree, $id_tree_no_includes
   end
 
   def test_id_tree_without_includes_should_have_resources
@@ -82,12 +82,12 @@ class DefaultProcessorTest < ActionDispatch::IntegrationTest
   end
 
   def test_id_tree_has_one_includes_should_be_a_resource_tree
-    assert $id_tree_has_one_includes.is_a?(JSONAPI::PrimaryResourceTree)
+    assert_kind_of JSONAPI::PrimaryResourceTree, $id_tree_has_one_includes
   end
 
   def test_id_tree_has_one_includes_should_have_included_resources
-    assert $id_tree_has_one_includes.related_resource_trees.is_a?(Hash)
-    assert $id_tree_has_one_includes.related_resource_trees[:author].is_a?(JSONAPI::RelatedResourceTree)
+    assert_kind_of Hash, $id_tree_has_one_includes.related_resource_trees
+    assert_kind_of JSONAPI::RelatedResourceTree, $id_tree_has_one_includes.related_resource_trees[:author]
     assert_equal 2, $id_tree_has_one_includes.related_resource_trees[:author].fragments.size
   end
 
@@ -105,10 +105,10 @@ class DefaultProcessorTest < ActionDispatch::IntegrationTest
   end
 
   def test_populated_resource_set_has_one_includes_have_resources
-    assert $populated_resource_set_has_one_includes.resource_klasses[PostResource][10].is_a?(Hash)
-    assert $populated_resource_set_has_one_includes.resource_klasses[PostResource][12].is_a?(Hash)
-    assert $populated_resource_set_has_one_includes.resource_klasses[PersonResource][1003].is_a?(Hash)
-    assert $populated_resource_set_has_one_includes.resource_klasses[PersonResource][1004].is_a?(Hash)
+    assert_kind_of Hash, $populated_resource_set_has_one_includes.resource_klasses[PostResource][10]
+    assert_kind_of Hash, $populated_resource_set_has_one_includes.resource_klasses[PostResource][12]
+    assert_kind_of Hash, $populated_resource_set_has_one_includes.resource_klasses[PersonResource][1003]
+    assert_kind_of Hash, $populated_resource_set_has_one_includes.resource_klasses[PersonResource][1004]
   end
 
   def test_populated_resource_set_has_one_includes_relationships_are_resolved

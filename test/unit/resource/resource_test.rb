@@ -113,7 +113,7 @@ class ResourceTest < ActiveSupport::TestCase
   end
 
   def test_module_path
-    assert_equal(MyModule::MyNamespacedResource.module_path, 'my_module/')
+    assert_equal('my_module/', MyModule::MyNamespacedResource.module_path)
   end
 
   def test_resource_for_root_resource
@@ -171,12 +171,13 @@ class ResourceTest < ActiveSupport::TestCase
   end
 
   def test_derived_not_abstract
-    assert PersonResource < BaseResource
+    assert_operator PersonResource, :<, BaseResource
     refute PersonResource._abstract
   end
 
   def test_inherited_calls_superclass
     subclasses = BaseResource.subclasses
+
     assert_includes(subclasses, PersonResource)
     assert_includes(subclasses, SpecialBaseResource)
     assert_equal(2, subclasses.size)
@@ -201,14 +202,16 @@ class ResourceTest < ActiveSupport::TestCase
 
   def test_class_attributes
     attrs = FelineResource._attributes
+
     assert_kind_of(Hash, attrs)
-    assert_equal(attrs.keys.size, 4)
+    assert_equal(4, attrs.keys.size)
   end
 
   def test_class_relationships
     relationships = FelineResource._relationships
+
     assert_kind_of(Hash, relationships)
-    assert_equal(relationships.size, 2)
+    assert_equal(2, relationships.size)
   end
 
   def test_duplicate_relationship_name
@@ -231,14 +234,15 @@ class ResourceTest < ActiveSupport::TestCase
     author = Person.find(1001)
     posts = ArticleResource.find({}, context: author).map(&:_model)
 
-    assert(posts.include?(Post.find(1)))
-    refute(posts.include?(Post.find(3)))
+    assert_includes(posts, Post.find(1))
+    refute_includes(posts, Post.find(3))
   end
 
   def test_find_by_key_with_customized_base_records
     author = Person.find(1001)
 
     post = ArticleResource.find_by_key(1, context: author)._model
+
     assert_equal(post, Post.find(1))
 
     assert_raises JSONAPI::Exceptions::RecordNotFound do
@@ -248,21 +252,25 @@ class ResourceTest < ActiveSupport::TestCase
 
   def test_filter_on_to_many_relationship_id
     posts = PostResource.find(:comments => 3)
+
     assert_equal([2], posts.map(&:id))
   end
 
   def test_filter_on_aliased_to_many_relationship_id
     # Comment 2 is approved
     books = Api::V2::BookResource.find(:aliased_comments => 2)
+
     assert_equal([0], books.map(&:id))
 
     # However, comment 3 is non-approved, so it won't be accessible through this relationship
     books = Api::V2::BookResource.find(:aliased_comments => 3)
-    assert_equal([], books.map(&:id))
+
+    assert_empty(books.map(&:id))
   end
 
   def test_filter_on_has_one_relationship_id
     prefs = PreferencesResource.find(:author => 1001)
+
     assert_equal([1], prefs.map(&:id))
   end
 
@@ -270,16 +278,19 @@ class ResourceTest < ActiveSupport::TestCase
     post_resource = PostResource.new(Post.find(1), nil)
 
     comments = PostResource.find_included_fragments([post_resource], :comments, {})
+
     assert_equal(2, comments.size)
 
     filtered_comments = PostResource.find_included_fragments([post_resource], :comments,
                                                              { filters: { body: 'i liked it' } })
+
     assert_equal(1, filtered_comments.size)
   end
 
   def test_to_many_relationship_sorts
     post_resource = PostResource.new(Post.find(1), nil)
     comment_ids = post_resource.class.find_included_fragments([post_resource], :comments, {}).keys.collect { |c| c.id }
+
     assert_equal [1, 2], comment_ids
 
     # define apply_filters method on post resource to sort descending
@@ -437,6 +448,7 @@ class ResourceTest < ActiveSupport::TestCase
         end
       CODE
     end
+
     assert_equal '', err
   end
 
@@ -444,6 +456,7 @@ class ResourceTest < ActiveSupport::TestCase
     _out, err = capture_io do
       eval 'class LinksResource < JSONAPI::Resource; end'
     end
+
     assert_match /LinksResource` is a reserved resource name/, err
   end
 
@@ -455,6 +468,7 @@ class ResourceTest < ActiveSupport::TestCase
         end
       CODE
     end
+
     assert_match /`type` is a reserved key in ./, err
   end
 
@@ -467,6 +481,7 @@ class ResourceTest < ActiveSupport::TestCase
           end
         CODE
       end
+
       assert_match /`#{key}` is a reserved relationship name in ./, err
     end
     %w[types ids].each do |key|
@@ -477,6 +492,7 @@ class ResourceTest < ActiveSupport::TestCase
           end
         CODE
       end
+
       assert_match /`#{key}` is a reserved relationship name in ./, err
     end
   end
@@ -489,6 +505,7 @@ class ResourceTest < ActiveSupport::TestCase
         NoModelResource._model_class
       CODE
     end
+
     assert_match "[MODEL NOT FOUND] Model could not be found for ResourceTest::NoModelResource. If this is a base Resource declare it as abstract.\n",
                  err
   end
@@ -502,6 +519,7 @@ class ResourceTest < ActiveSupport::TestCase
         NoModelAbstractResource._model_class
       CODE
     end
+
     assert_match '', err
   end
 
@@ -509,12 +527,14 @@ class ResourceTest < ActiveSupport::TestCase
     special_person = Person.create!(name: 'Special', date_joined: Date.today, special: true)
     special_resource = SpecialPersonResource.new(special_person, nil)
     resource_model = SpecialPersonResource.records({}).first # simulate a find
+
     assert_equal(SpecialPersonResource, SpecialPersonResource.resource_klass_for_model(resource_model))
   end
 
   def test_resources_for_transforms_records_into_resources
     resources = PostResource.resources_for([Post.first], {})
-    assert_equal(PostResource, resources.first.class)
+
+    assert_instance_of(PostResource, resources.first)
   end
 
   def test_sortable_field?
@@ -525,47 +545,56 @@ class ResourceTest < ActiveSupport::TestCase
 
   def test_exclude_links_on_resource
     Api::V5::PostResource.exclude_links :none
-    assert_equal [], Api::V5::PostResource._exclude_links
+
+    assert_empty Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
     refute Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links :default
+
     assert_equal [:self], Api::V5::PostResource._exclude_links
     assert Api::V5::PostResource.exclude_link?(:self)
     assert Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links 'none'
-    assert_equal [], Api::V5::PostResource._exclude_links
+
+    assert_empty Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
     refute Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links 'default'
+
     assert_equal [:self], Api::V5::PostResource._exclude_links
     assert Api::V5::PostResource.exclude_link?(:self)
     assert Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links :none
-    assert_equal [], Api::V5::PostResource._exclude_links
+
+    assert_empty Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
     refute Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links [:self]
+
     assert_equal [:self], Api::V5::PostResource._exclude_links
     assert Api::V5::PostResource.exclude_link?(:self)
     assert Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links :none
-    assert_equal [], Api::V5::PostResource._exclude_links
+
+    assert_empty Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
     refute Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links ['self']
+
     assert_equal [:self], Api::V5::PostResource._exclude_links
     assert Api::V5::PostResource.exclude_link?(:self)
     assert Api::V5::PostResource.exclude_link?('self')
 
     Api::V5::PostResource.exclude_links []
-    assert_equal [], Api::V5::PostResource._exclude_links
+
+    assert_empty Api::V5::PostResource._exclude_links
     refute Api::V5::PostResource.exclude_link?(:self)
     refute Api::V5::PostResource.exclude_link?('self')
 
@@ -578,26 +607,31 @@ class ResourceTest < ActiveSupport::TestCase
 
   def test_singleton_options
     TestSingletonResource.singleton true
-    assert TestSingletonResource.singleton?
-    assert TestSingletonResource._singleton_options.blank?
+
+    assert_predicate TestSingletonResource, :singleton?
+    assert_predicate TestSingletonResource._singleton_options, :blank?
 
     TestSingletonResource.singleton false
-    refute TestSingletonResource.singleton?
-    assert TestSingletonResource._singleton_options.blank?
+
+    refute_predicate TestSingletonResource, :singleton?
+    assert_predicate TestSingletonResource._singleton_options, :blank?
 
     TestSingletonResource.singleton true, a: :b
-    assert TestSingletonResource.singleton?
-    refute TestSingletonResource._singleton_options.blank?
+
+    assert_predicate TestSingletonResource, :singleton?
+    refute_predicate TestSingletonResource._singleton_options, :blank?
     assert_equal :b, TestSingletonResource._singleton_options[:a]
 
     TestSingletonResource.singleton false, c: :d
-    refute TestSingletonResource.singleton?
-    refute TestSingletonResource._singleton_options.blank?
+
+    refute_predicate TestSingletonResource, :singleton?
+    refute_predicate TestSingletonResource._singleton_options, :blank?
     assert_equal :d, TestSingletonResource._singleton_options[:c]
 
     TestSingletonResource.singleton e: :f
-    assert TestSingletonResource.singleton?
-    refute TestSingletonResource._singleton_options.blank?
+
+    assert_predicate TestSingletonResource, :singleton?
+    refute_predicate TestSingletonResource._singleton_options, :blank?
     assert_equal :f, TestSingletonResource._singleton_options[:e]
   end
 end
