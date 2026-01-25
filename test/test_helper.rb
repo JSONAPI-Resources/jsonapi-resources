@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'logger'
 require 'simplecov'
 require 'database_cleaner'

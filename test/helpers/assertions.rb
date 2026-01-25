@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Helpers
   module Assertions
     def assert_hash_equals(exp, act, msg = nil)

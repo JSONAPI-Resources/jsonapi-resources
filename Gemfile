@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 gemspec
 
 gem 'bundler'
 gem 'database_cleaner'
-gem 'minitest-spec-rails'
 gem 'minitest'
+gem 'minitest-spec-rails'
 gem 'pg'
 gem 'pry'
 gem 'rake'
