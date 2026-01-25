@@ -468,7 +468,7 @@ module JSONAPI
                              status: :locked,
                              title: I18n.translate('jsonapi-resources.exceptions.record_locked.title',
                                                    default: 'Locked resource'),
-                             detail: "#{message}")]
+                             detail: message.to_s)]
       end
     end
 

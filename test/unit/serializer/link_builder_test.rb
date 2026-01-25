@@ -288,7 +288,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
     primary_resource_klass._warned_missing_route = false
 
     config = {
-      base_url: "#{@base_url}",
+      base_url: @base_url.to_s,
       route_formatter: @route_formatter,
       primary_resource_klass: primary_resource_klass,
       url_helpers: ApiV2Engine::Engine.routes.url_helpers

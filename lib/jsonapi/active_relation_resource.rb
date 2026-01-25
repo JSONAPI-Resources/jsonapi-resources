@@ -268,7 +268,7 @@ module JSONAPI
 
         related_alias = join_manager.join_details_by_relationship(relationship)[:alias]
 
-        records = records.select(Arel.sql("#{concat_table_field(related_alias, related_klass._primary_key)}"))
+        records = records.select(Arel.sql(concat_table_field(related_alias, related_klass._primary_key).to_s))
 
         count_records(records)
       end
@@ -609,7 +609,7 @@ module JSONAPI
 
             model_offset = relation_index
             model_fields.each do |_k, v|
-              pluck_fields << Arel.sql("#{concat_table_field(table_alias, v[:name])}")
+              pluck_fields << Arel.sql(concat_table_field(table_alias, v[:name]).to_s)
               relation_index += 1
             end
 
@@ -772,7 +772,7 @@ module JSONAPI
         else
           join_manager = options.dig(:_relation_helper_options, :join_manager)
           sort_field = join_manager ? get_aliased_field(field, join_manager) : field
-          options[:_relation_helper_options][:sort_fields].push("#{sort_field}")
+          options[:_relation_helper_options][:sort_fields].push(sort_field.to_s)
           records = records.order(Arel.sql("#{sort_field} #{direction}"))
         end
         records
