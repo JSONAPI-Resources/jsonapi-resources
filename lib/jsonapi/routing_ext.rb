@@ -107,8 +107,8 @@ module ActionDispatch
 
           # Read-only: only show relationship
           match "relationships/#{formatted_relationship_name}", controller: options[:controller],
-                action: 'show_relationship', relationship: link_type.to_s, via: [:get],
-                as: "relationships/#{link_type}"
+                                                                action: 'show_relationship', relationship: link_type.to_s, via: [:get],
+                                                                as: "relationships/#{link_type}"
         end
 
         def jsonapi_links(*links)
@@ -121,8 +121,8 @@ module ActionDispatch
 
           # Read-only: only show relationship
           match "relationships/#{formatted_relationship_name}", controller: options[:controller],
-                action: 'show_relationship', relationship: link_type.to_s, via: [:get],
-                as: "relationships/#{link_type}"
+                                                                action: 'show_relationship', relationship: link_type.to_s, via: [:get],
+                                                                as: "relationships/#{link_type}"
         end
 
         def jsonapi_related_resource(*relationship)
@@ -144,9 +144,9 @@ module ActionDispatch
           end
 
           match formatted_relationship_name, controller: options[:controller],
-                relationship: relationship.name, source: resource_type_with_module_prefix(source._type),
-                action: 'show_related_resource', via: [:get],
-                as: "related/#{relationship_name}"
+                                             relationship: relationship.name, source: resource_type_with_module_prefix(source._type),
+                                             action: 'show_related_resource', via: [:get],
+                                             as: "related/#{relationship_name}"
         end
 
         def jsonapi_related_resources(*relationship)

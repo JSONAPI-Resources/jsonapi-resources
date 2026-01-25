@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require File.expand_path('../../../test_helper', __FILE__)
 
 class CatResource < JSONAPI::Resource
@@ -89,7 +90,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
       JSONAPI::Request.new.check_include(ExpenseEntryResource, "isoCurrency".partition('.'))
     end
   ensure
-      reset_includes
+    reset_includes
   end
 
   def test_check_include_has_one_not_allowed_resource
@@ -179,7 +180,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
       {
         controller: 'expense_entries',
         action: 'index',
-        fields: {expense_entries: 'iso_currency'}
+        fields: { expense_entries: 'iso_currency' }
       }
     )
 
@@ -271,7 +272,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
 
   def test_parse_filters_with_valid_filters
     setup_request
-    filters = @request.parse_filters(CatResource, {name: 'Whiskers'})
+    filters = @request.parse_filters(CatResource, { name: 'Whiskers' })
     assert_equal(filters[:name], 'Whiskers')
     assert_equal(@request.errors, [])
   end
@@ -279,7 +280,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
   def test_parse_filters_with_non_valid_filter
     setup_request
     e = assert_raises JSONAPI::Exceptions::FilterNotAllowed do
-        @request.parse_filters(CatResource, {breed: 'Whiskers'}) # breed is not a set filter
+      @request.parse_filters(CatResource, { breed: 'Whiskers' }) # breed is not a set filter
     end
     assert_equal 'breed is not allowed.', e.errors[0].detail
   end
@@ -303,7 +304,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     setup_request
     sort_criteria = @request.parse_sort_criteria(CatResource, "-name")
     assert_equal(@request.errors, [])
-    assert_equal(sort_criteria, [{:field=>"name", :direction=>:desc}])
+    assert_equal(sort_criteria, [{ :field => "name", :direction => :desc }])
   end
 
   def test_parse_sort_with_resource_validated_sorts
@@ -318,7 +319,7 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     setup_request
     sort_criteria = @request.parse_sort_criteria(CatResource, "-mother.name")
     assert_equal(@request.errors, [])
-    assert_equal(sort_criteria, [{:field=>"mother.name", :direction=>:desc}])
+    assert_equal(sort_criteria, [{ :field => "mother.name", :direction => :desc }])
   end
 
   private

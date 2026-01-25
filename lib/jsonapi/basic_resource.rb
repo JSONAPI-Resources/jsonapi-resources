@@ -116,6 +116,7 @@ module JSONAPI
         if resource.nil?
           fail NameError, "JSONAPI: Could not find resource '#{type}'. (Class #{resource_name} not found)"
         end
+
         resource
       end
 
@@ -183,7 +184,7 @@ module JSONAPI
                        attr && attr[:delegate] ? attr[:delegate].to_sym : attribute
                      end
 
-        { name: field_name, type: _model_class.attribute_types[field_name.to_s]}
+        { name: field_name, type: _model_class.attribute_types[field_name.to_s] }
       end
 
       def cast_to_attribute_type(value, type)
@@ -197,12 +198,12 @@ module JSONAPI
       def relationship(*attrs)
         options = attrs.extract_options!
         klass = case options[:to]
-                  when :one
-                    Relationship::ToOne
-                  when :many
-                    Relationship::ToMany
-                  else
-                    fail ArgumentError.new('to: must be either :one or :many')
+                when :one
+                  Relationship::ToOne
+                when :many
+                  Relationship::ToMany
+                else
+                  fail ArgumentError.new('to: must be either :one or :many')
                 end
         _add_relationship(klass, *attrs, options.except(:to))
       end
@@ -349,12 +350,12 @@ module JSONAPI
         if @_singleton_options && @_singleton_options[:singleton_key]
           strategy = @_singleton_options[:singleton_key]
           case strategy
-            when Proc
-              key = strategy.call(context)
-            when Symbol, String
-              key = send(strategy, context)
-            else
-              raise "singleton_key must be a proc or function name"
+          when Proc
+            key = strategy.call(context)
+          when Symbol, String
+            key = send(strategy, context)
+          else
+            raise "singleton_key must be a proc or function name"
           end
         end
         key
@@ -366,6 +367,7 @@ module JSONAPI
         case key_type
         when :integer
           return if key.nil?
+
           Integer(key)
         when :string
           return if key.nil?
@@ -376,6 +378,7 @@ module JSONAPI
           end
         when :uuid
           return if key.nil?
+
           if key.to_s.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
             key
           else
@@ -416,17 +419,20 @@ module JSONAPI
 
       def _relationship(type)
         return nil unless type
+
         type = type.to_sym
         @_relationships[type]
       end
 
       def _model_name
         if _abstract
-           ''
+          ''
         else
           return @_model_name.to_s if defined?(@_model_name)
+
           class_name = self.name
           return '' if class_name.nil?
+
           @_model_name = class_name.demodulize.sub(/Resource$/, '')
           @_model_name.to_s
         end
@@ -445,7 +451,7 @@ module JSONAPI
       end
 
       def _default_primary_key
-        @_default_primary_key ||=_model_class.respond_to?(:primary_key) ? _model_class.primary_key : :id
+        @_default_primary_key ||= _model_class.respond_to?(:primary_key) ? _model_class.primary_key : :id
       end
 
       def _cache_field
@@ -488,8 +494,9 @@ module JSONAPI
         @poly_hash ||= {}.tap do |hash|
           ObjectSpace.each_object do |klass|
             next unless Module === klass
+
             if klass < ActiveRecord::Base
-              klass.reflect_on_all_associations(:has_many).select{|r| r.options[:as] }.each do |reflection|
+              klass.reflect_on_all_associations(:has_many).select { |r| r.options[:as] }.each do |reflection|
                 (hash[reflection.options[:as]] ||= []) << klass.name.underscore
               end
             end
@@ -536,14 +543,14 @@ module JSONAPI
 
       def parse_exclude_links(exclude)
         case exclude
-          when :default, "default"
-            [:self]
-          when :none, "none"
-            []
-          when Array
-            exclude.collect {|link| link.to_sym}
-          else
-            fail "Invalid exclude_links"
+        when :default, "default"
+          [:self]
+        when :none, "none"
+          []
+        when Array
+          exclude.collect { |link| link.to_sym }
+        else
+          fail "Invalid exclude_links"
         end
       end
 
@@ -616,7 +623,7 @@ module JSONAPI
       end
 
       def default_sort
-        [{field: 'id', direction: :asc}]
+        [{ field: 'id', direction: :asc }]
       end
 
       def construct_order_options(sort_params)
@@ -647,13 +654,14 @@ module JSONAPI
 
       def define_relationship_methods(relationship_name, relationship_klass, options)
         register_relationship(
-            relationship_name,
-            relationship_klass.new(relationship_name, options)
+          relationship_name,
+          relationship_klass.new(relationship_name, options)
         )
       end
 
       def define_on_resource(method_name, &block)
         return if method_defined?(method_name)
+
         define_method(method_name, block)
       end
 

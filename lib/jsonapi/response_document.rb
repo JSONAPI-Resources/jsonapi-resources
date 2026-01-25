@@ -114,14 +114,15 @@ module JSONAPI
 
       # Build pagination links
       if result.is_a?(JSONAPI::ResourceSetOperationResult) ||
-          result.is_a?(JSONAPI::ResourcesSetOperationResult) ||
-          result.is_a?(JSONAPI::RelatedResourcesSetOperationResult)
+         result.is_a?(JSONAPI::ResourcesSetOperationResult) ||
+         result.is_a?(JSONAPI::RelatedResourcesSetOperationResult)
 
         result.pagination_params.each_pair do |link_name, params|
           if result.is_a?(JSONAPI::RelatedResourcesSetOperationResult)
             relationship = result.source_resource.class._relationships[result._type.to_sym]
             unless relationship.exclude_link?(link_name)
-              link = serializer.link_builder.relationships_related_link(result.source_resource, relationship, query_params(params))
+              link = serializer.link_builder.relationships_related_link(result.source_resource, relationship,
+                                                                        query_params(params))
             end
           else
             unless serializer.link_builder.primary_resource_klass.exclude_link?(link_name)
@@ -143,14 +144,16 @@ module JSONAPI
 
       request = @options[:request]
       if request.params[:fields]
-        query_params[:fields] = request.params[:fields].respond_to?(:to_unsafe_hash) ? request.params[:fields].to_unsafe_hash : request.params[:fields]
+        query_params[:fields] =
+          request.params[:fields].respond_to?(:to_unsafe_hash) ? request.params[:fields].to_unsafe_hash : request.params[:fields]
       end
 
       query_params[:include] = request.params[:include] if request.params[:include]
       query_params[:sort] = request.params[:sort] if request.params[:sort]
 
       if request.params[:filter]
-        query_params[:filter] = request.params[:filter].respond_to?(:to_unsafe_hash) ? request.params[:filter].to_unsafe_hash : request.params[:filter]
+        query_params[:filter] =
+          request.params[:filter].respond_to?(:to_unsafe_hash) ? request.params[:filter].to_unsafe_hash : request.params[:filter]
       end
 
       query_params

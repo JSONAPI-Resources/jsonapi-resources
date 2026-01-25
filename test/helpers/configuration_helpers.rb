@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Helpers
   module ConfigurationHelpers
     def with_jsonapi_config(new_config_options)
@@ -14,13 +15,13 @@ module Helpers
     end
 
     def with_resource_caching(cache, classes = :all)
-      results = {total: {hits: 0, misses: 0}}
+      results = { total: { hits: 0, misses: 0 } }
       new_config_options = {
         resource_cache: cache,
         default_caching: true,
         resource_cache_usage_report_function: Proc.new do |name, hits, misses|
           [name.to_sym, :total].each do |key|
-            results[key] ||= {hits: 0, misses: 0}
+            results[key] ||= { hits: 0, misses: 0 }
             results[key][:hits] += hits
             results[key][:misses] += misses
           end

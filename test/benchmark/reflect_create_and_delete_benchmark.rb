@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require File.expand_path('../../test_helper', __FILE__)
 
 class ReflectCreateAndDeleteBenchmark < IntegrationBenchmark
@@ -10,15 +11,15 @@ class ReflectCreateAndDeleteBenchmark < IntegrationBenchmark
     post '/posts/15/relationships/comments', params:
       {
         'data' => [
-          {type: 'comments', id: 1},
-          {type: 'comments', id: 2},
-          {type: 'comments', id: 3}
+          { type: 'comments', id: 1 },
+          { type: 'comments', id: 2 },
+          { type: 'comments', id: 3 }
         ]
       }.to_json,
-        headers: {
-          "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
-          'Accept' => JSONAPI::MEDIA_TYPE
-        }
+                                             headers: {
+                                               "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
+                                               'Accept' => JSONAPI::MEDIA_TYPE
+                                             }
     assert_response :no_content
     post_object = Post.find(15)
     assert_equal 3, post_object.comments.collect { |comment| comment.id }.length
@@ -26,15 +27,15 @@ class ReflectCreateAndDeleteBenchmark < IntegrationBenchmark
     delete '/posts/15/relationships/comments', params:
       {
         'data' => [
-          {type: 'comments', id: 1},
-          {type: 'comments', id: 2},
-          {type: 'comments', id: 3}
+          { type: 'comments', id: 1 },
+          { type: 'comments', id: 2 },
+          { type: 'comments', id: 3 }
         ]
       }.to_json,
-        headers: {
-          "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
-          'Accept' => JSONAPI::MEDIA_TYPE
-        }
+                                               headers: {
+                                                 "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
+                                                 'Accept' => JSONAPI::MEDIA_TYPE
+                                               }
     assert_response :no_content
     post_object = Post.find(15)
     assert_equal 0, post_object.comments.collect { |comment| comment.id }.length

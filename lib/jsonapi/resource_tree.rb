@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
 module JSONAPI
-
   # A tree structure representing the resource structure of the requested resource(s). This is an intermediate structure
   # used to keep track of the resources, by identity, found at different included relationships. It will be flattened and
   # the resource instances will be fetched from the cache or the record store.
   class ResourceTree
-
     attr_reader :fragments, :related_resource_trees
 
     # Gets the related Resource Id Tree for a relationship, and creates it first if it does not exist
@@ -74,7 +72,7 @@ module JSONAPI
     end
 
     def load_included(resource_klass, source_resource_tree, include_related, options)
-       include_related.try(:each_key) do |key|
+      include_related.try(:each_key) do |key|
         relationship = resource_klass._relationship(key)
         relationship_name = relationship.name.to_sym
 
@@ -144,7 +142,6 @@ module JSONAPI
   end
 
   class PrimaryResourceTree < ResourceTree
-
     # Creates a PrimaryResourceTree with no resources and no related ResourceTrees
     def initialize(fragments: nil, resources: nil, resource: nil, include_related: nil, options: nil)
       @fragments ||= {}
@@ -182,14 +179,13 @@ module JSONAPI
       resource_klasses = Set.new
       @fragments.each_key { |identity| resource_klasses << identity.resource_klass }
 
-      resource_klasses.each { |resource_klass| load_included(resource_klass, self, include_related, options)}
+      resource_klasses.each { |resource_klass| load_included(resource_klass, self, include_related, options) }
 
       self
     end
   end
 
   class RelatedResourceTree < ResourceTree
-
     attr_reader :parent_relationship, :source_resource_tree
 
     # Creates a RelatedResourceTree with no resources and no related ResourceTrees. A connection to the parent

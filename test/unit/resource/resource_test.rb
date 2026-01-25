@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require File.expand_path('../../../test_helper', __FILE__)
 
 class ArticleResource < JSONAPI::Resource
@@ -182,7 +183,8 @@ class ResourceTest < ActiveSupport::TestCase
   end
 
   def test_nil_model_class
-    assert_output nil, "[MODEL NOT FOUND] Model could not be found for NoMatchResource. If this is a base Resource declare it as abstract.\n" do
+    assert_output nil,
+                  "[MODEL NOT FOUND] Model could not be found for NoMatchResource. If this is a base Resource declare it as abstract.\n" do
       assert_nil NoMatchResource._model_class
     end
   end
@@ -244,7 +246,6 @@ class ResourceTest < ActiveSupport::TestCase
     end
   end
 
-
   def test_filter_on_to_many_relationship_id
     posts = PostResource.find(:comments => 3)
     assert_equal([2], posts.map(&:id))
@@ -271,14 +272,15 @@ class ResourceTest < ActiveSupport::TestCase
     comments = PostResource.find_included_fragments([post_resource], :comments, {})
     assert_equal(2, comments.size)
 
-    filtered_comments = PostResource.find_included_fragments([post_resource], :comments, { filters: { body: 'i liked it' } })
+    filtered_comments = PostResource.find_included_fragments([post_resource], :comments,
+                                                             { filters: { body: 'i liked it' } })
     assert_equal(1, filtered_comments.size)
   end
 
   def test_to_many_relationship_sorts
     post_resource = PostResource.new(Post.find(1), nil)
-    comment_ids = post_resource.class.find_included_fragments([post_resource], :comments, {}).keys.collect {|c| c.id }
-    assert_equal [1,2], comment_ids
+    comment_ids = post_resource.class.find_included_fragments([post_resource], :comments, {}).keys.collect { |c| c.id }
+    assert_equal [1, 2], comment_ids
 
     # define apply_filters method on post resource to sort descending
     PostResource.instance_eval do
@@ -291,12 +293,12 @@ class ResourceTest < ActiveSupport::TestCase
     end
 
     sorted_comment_ids = post_resource.class.find_included_fragments(
-        [post_resource],
-        :comments,
-        { sort_criteria: [{ field: 'id', direction: :desc }] }).keys.collect {|c| c.id}
+      [post_resource],
+      :comments,
+      { sort_criteria: [{ field: 'id', direction: :desc }] }
+    ).keys.collect { |c| c.id }
 
-    assert_equal [2,1], sorted_comment_ids
-
+    assert_equal [2, 1], sorted_comment_ids
   ensure
     PostResource.instance_eval do
       def apply_sort(records, order_options, context = {})
@@ -364,7 +366,6 @@ class ResourceTest < ActiveSupport::TestCase
     assert_raises JSONAPI::Exceptions::InvalidFieldValue do
       FelineResource.verify_key('45,345')
     end
-
   ensure
     FelineResource.instance_eval do
       key_type nil
@@ -382,7 +383,6 @@ class ResourceTest < ActiveSupport::TestCase
     assert_raises JSONAPI::Exceptions::InvalidFieldValue do
       FelineResource.verify_key('45,345')
     end
-
   ensure
     FelineResource.instance_eval do
       key_type nil
@@ -399,7 +399,6 @@ class ResourceTest < ActiveSupport::TestCase
     assert_raises JSONAPI::Exceptions::InvalidFieldValue do
       FelineResource.verify_key('f1a-e77a-4d0a-acbb-ee0b98b3f6b5')
     end
-
   ensure
     FelineResource.instance_eval do
       key_type nil
@@ -408,8 +407,9 @@ class ResourceTest < ActiveSupport::TestCase
 
   def test_key_type_proc
     FelineResource.instance_eval do
-      key_type -> (key, context) {
+      key_type ->(key, context) {
         return key if key.nil?
+
         if key.to_s.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)
           key
         else
@@ -423,13 +423,11 @@ class ResourceTest < ActiveSupport::TestCase
     assert_raises JSONAPI::Exceptions::InvalidFieldValue do
       FelineResource.verify_key('f1a-e77a-4d0a-acbb-ee0b98b3f6b5')
     end
-
   ensure
     FelineResource.instance_eval do
       key_type nil
     end
   end
-
 
   def test_id_attr_with_format
     _out, err = capture_io do
@@ -491,7 +489,8 @@ class ResourceTest < ActiveSupport::TestCase
         NoModelResource._model_class
       CODE
     end
-    assert_match "[MODEL NOT FOUND] Model could not be found for ResourceTest::NoModelResource. If this is a base Resource declare it as abstract.\n", err
+    assert_match "[MODEL NOT FOUND] Model could not be found for ResourceTest::NoModelResource. If this is a base Resource declare it as abstract.\n",
+                 err
   end
 
   def test_no_warning_when_abstract
@@ -506,7 +505,6 @@ class ResourceTest < ActiveSupport::TestCase
     assert_match "", err
   end
 
-
   def test_resource_for_model_use_hint
     special_person = Person.create!(name: 'Special', date_joined: Date.today, special: true)
     special_resource = SpecialPersonResource.new(special_person, nil)
@@ -514,12 +512,10 @@ class ResourceTest < ActiveSupport::TestCase
     assert_equal(SpecialPersonResource, SpecialPersonResource.resource_klass_for_model(resource_model))
   end
 
-
   def test_resources_for_transforms_records_into_resources
     resources = PostResource.resources_for([Post.first], {})
     assert_equal(PostResource, resources.first.class)
   end
-
 
   def test_sortable_field?
     assert(PostResource.sortable_field?(:title))
@@ -576,7 +572,6 @@ class ResourceTest < ActiveSupport::TestCase
     assert_raises do
       Api::V5::PostResource.exclude_links :self
     end
-
   ensure
     Api::V5::PostResource.exclude_links :none
   end

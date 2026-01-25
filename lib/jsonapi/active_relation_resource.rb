@@ -27,10 +27,10 @@ module JSONAPI
         paginator = options[:paginator]
 
         records = apply_request_settings_to_records(records: records(options),
-                               sort_criteria: sort_criteria,filters: filters,
-                               join_manager: join_manager,
-                               paginator: paginator,
-                               options: options)
+                                                    sort_criteria: sort_criteria, filters: filters,
+                                                    join_manager: join_manager,
+                                                    paginator: paginator,
+                                                    options: options)
 
         resources_for(records, options[:context])
       end
@@ -46,9 +46,9 @@ module JSONAPI
                                                        filters: filters)
 
         records = apply_request_settings_to_records(records: records(options),
-                               filters: filters,
-                               join_manager: join_manager,
-                               options: options)
+                                                    filters: filters,
+                                                    join_manager: join_manager,
+                                                    options: options)
 
         count_records(records)
       end
@@ -114,11 +114,11 @@ module JSONAPI
         paginator = options[:paginator]
 
         records = apply_request_settings_to_records(records: records(options),
-                               filters: filters,
-                               sort_criteria: sort_criteria,
-                               paginator: paginator,
-                               join_manager: join_manager,
-                               options: options)
+                                                    filters: filters,
+                                                    sort_criteria: sort_criteria,
+                                                    paginator: paginator,
+                                                    join_manager: join_manager,
+                                                    options: options)
 
         # This alias is going to be resolve down to the model's table name and will not actually be an alias
         resource_table_alias = resource_klass._table_name
@@ -138,13 +138,14 @@ module JSONAPI
           if linkage_relationship.polymorphic? && linkage_relationship.belongs_to?
             linkage_relationship.resource_types.each do |resource_type|
               klass = resource_klass_for(resource_type)
-              linkage_table_alias = join_manager.join_details_by_polymorphic_relationship(linkage_relationship, resource_type)[:alias]
+              linkage_table_alias = join_manager.join_details_by_polymorphic_relationship(linkage_relationship,
+                                                                                          resource_type)[:alias]
               primary_key = klass._primary_key
 
-              linkage_fields << {relationship_name: name,
-                                 resource_klass: klass,
-                                 field: sql_field_with_alias(linkage_table_alias, primary_key),
-                                 alias: alias_table_field(linkage_table_alias, primary_key)}
+              linkage_fields << { relationship_name: name,
+                                  resource_klass: klass,
+                                  field: sql_field_with_alias(linkage_table_alias, primary_key),
+                                  alias: alias_table_field(linkage_table_alias, primary_key) }
 
               pluck_fields << sql_field_with_alias(linkage_table_alias, primary_key)
             end
@@ -153,10 +154,10 @@ module JSONAPI
             linkage_table_alias = join_manager.join_details_by_relationship(linkage_relationship)[:alias]
             primary_key = klass._primary_key
 
-            linkage_fields << {relationship_name: name,
-                               resource_klass: klass,
-                               field: sql_field_with_alias(linkage_table_alias, primary_key),
-                               alias: alias_table_field(linkage_table_alias, primary_key)}
+            linkage_fields << { relationship_name: name,
+                                resource_klass: klass,
+                                field: sql_field_with_alias(linkage_table_alias, primary_key),
+                                alias: alias_table_field(linkage_table_alias, primary_key) }
 
             pluck_fields << sql_field_with_alias(linkage_table_alias, primary_key)
           end
@@ -184,7 +185,7 @@ module JSONAPI
 
           if cache_field
             fragments[rid].cache = cast_to_attribute_type(row[1], cache_field[:type])
-            attributes_offset+= 1
+            attributes_offset += 1
           end
 
           linkage_fields.each do |linkage_field_details|
@@ -194,11 +195,11 @@ module JSONAPI
               related_rid = JSONAPI::ResourceIdentity.new(linkage_field_details[:resource_klass], related_id)
               fragments[rid].add_related_identity(linkage_field_details[:relationship_name], related_rid)
             end
-            attributes_offset+= 1
+            attributes_offset += 1
           end
 
           model_fields.each_with_index do |k, idx|
-            fragments[rid].attributes[k[0]]= cast_to_attribute_type(row[idx + attributes_offset], k[1][:type])
+            fragments[rid].attributes[k[0]] = cast_to_attribute_type(row[idx + attributes_offset], k[1][:type])
           end
         end
 
@@ -259,11 +260,11 @@ module JSONAPI
                                                        filters: filters)
 
         records = apply_request_settings_to_records(records: records(options),
-                               resource_klass: related_klass,
-                               primary_keys: source_resource.id,
-                               join_manager: join_manager,
-                               filters: filters,
-                               options: options)
+                                                    resource_klass: related_klass,
+                                                    primary_keys: source_resource.id,
+                                                    join_manager: join_manager,
+                                                    filters: filters,
+                                                    options: options)
 
         related_alias = join_manager.join_details_by_relationship(relationship)[:alias]
 
@@ -389,6 +390,7 @@ module JSONAPI
       def find_record_by_key(key, options = {})
         record = apply_request_settings_to_records(records: records(options), primary_keys: key, options: options).first
         fail JSONAPI::Exceptions::RecordNotFound.new(key) if record.nil?
+
         record
       end
 
@@ -398,7 +400,7 @@ module JSONAPI
 
       def find_related_monomorphic_fragments(source_fragments, relationship, options, connect_source_identity)
         filters = options.fetch(:filters, {})
-        source_ids = source_fragments.collect {|item| item.identity.id}
+        source_ids = source_fragments.collect { |item| item.identity.id }
 
         include_directives = options.fetch(:include_directives, {})
         resource_klass = relationship.resource_klass
@@ -419,13 +421,13 @@ module JSONAPI
         paginator = options[:paginator]
 
         records = apply_request_settings_to_records(records: records_for_source_to_related(options),
-                               resource_klass: resource_klass,
-                               sort_criteria: sort_criteria,
-                               primary_keys: source_ids,
-                               paginator: paginator,
-                               filters: filters,
-                               join_manager: join_manager,
-                               options: options)
+                                                    resource_klass: resource_klass,
+                                                    sort_criteria: sort_criteria,
+                                                    primary_keys: source_ids,
+                                                    paginator: paginator,
+                                                    filters: filters,
+                                                    join_manager: join_manager,
+                                                    options: options)
 
         resource_table_alias = join_manager.join_details_by_relationship(relationship)[:alias]
 
@@ -447,15 +449,16 @@ module JSONAPI
           if linkage_relationship.polymorphic? && linkage_relationship.belongs_to?
             linkage_relationship.resource_types.each do |resource_type|
               klass = resource_klass_for(resource_type)
-              linkage_fields << {relationship_name: name, resource_klass: klass}
+              linkage_fields << { relationship_name: name, resource_klass: klass }
 
-              linkage_table_alias = join_manager.join_details_by_polymorphic_relationship(linkage_relationship, resource_type)[:alias]
+              linkage_table_alias = join_manager.join_details_by_polymorphic_relationship(linkage_relationship,
+                                                                                          resource_type)[:alias]
               primary_key = klass._primary_key
               pluck_fields << sql_field_with_alias(linkage_table_alias, primary_key)
             end
           else
             klass = linkage_relationship.resource_klass
-            linkage_fields << {relationship_name: name, resource_klass: klass}
+            linkage_fields << { relationship_name: name, resource_klass: klass }
 
             linkage_table_alias = join_manager.join_details_by_relationship(linkage_relationship)[:alias]
             primary_key = klass._primary_key
@@ -487,12 +490,12 @@ module JSONAPI
 
           if cache_field
             fragments[rid].cache = cast_to_attribute_type(row[attributes_offset], cache_field[:type])
-            attributes_offset+= 1
+            attributes_offset += 1
           end
 
           model_fields.each_with_index do |k, idx|
             fragments[rid].add_attribute(k[0], cast_to_attribute_type(row[idx + attributes_offset], k[1][:type]))
-            attributes_offset+= 1
+            attributes_offset += 1
           end
 
           source_rid = JSONAPI::ResourceIdentity.new(self, row[0])
@@ -506,7 +509,7 @@ module JSONAPI
               related_rid = JSONAPI::ResourceIdentity.new(linkage_field[:resource_klass], related_id)
               fragments[rid].add_related_identity(linkage_field[:relationship_name], related_rid)
             end
-            attributes_offset+= 1
+            attributes_offset += 1
           end
 
           if connect_source_identity
@@ -524,7 +527,7 @@ module JSONAPI
       # are stored on the primary resources. Cache fields will always be on the related resources.
       def find_related_polymorphic_fragments(source_fragments, relationship, options, connect_source_identity)
         filters = options.fetch(:filters, {})
-        source_ids = source_fragments.collect {|item| item.identity.id}
+        source_ids = source_fragments.collect { |item| item.identity.id }
 
         resource_klass = relationship.resource_klass
         include_directives = options.fetch(:include_directives, {})
@@ -551,22 +554,22 @@ module JSONAPI
         # Note: We will sort by the source table. Without using unions we can't sort on a polymorphic relationship
         # in any manner that makes sense
         records = apply_request_settings_to_records(records: records_for_source_to_related(options),
-                               resource_klass: resource_klass,
-                               sort_primary: true,
-                               primary_keys: source_ids,
-                               paginator: paginator,
-                               filters: filters,
-                               join_manager: join_manager,
-                               options: options)
+                                                    resource_klass: resource_klass,
+                                                    sort_primary: true,
+                                                    primary_keys: source_ids,
+                                                    paginator: paginator,
+                                                    filters: filters,
+                                                    join_manager: join_manager,
+                                                    options: options)
 
         primary_key = concat_table_field(_table_name, _primary_key)
         related_key = concat_table_field(_table_name, relationship.foreign_key)
         related_type = concat_table_field(_table_name, relationship.polymorphic_type)
 
         pluck_fields = [
-            Arel.sql("#{primary_key} AS #{alias_table_field(_table_name, _primary_key)}"),
-            Arel.sql("#{related_key} AS #{alias_table_field(_table_name, relationship.foreign_key)}"),
-            Arel.sql("#{related_type} AS #{alias_table_field(_table_name, relationship.polymorphic_type)}")
+          Arel.sql("#{primary_key} AS #{alias_table_field(_table_name, _primary_key)}"),
+          Arel.sql("#{related_key} AS #{alias_table_field(_table_name, relationship.foreign_key)}"),
+          Arel.sql("#{related_type} AS #{alias_table_field(_table_name, relationship.polymorphic_type)}")
         ]
 
         # Get the additional fields from each relation. There's a limitation that the fields must exist in each relation
@@ -592,7 +595,7 @@ module JSONAPI
             cache_offset = relation_index
             if cache_field
               pluck_fields << sql_field_with_alias(table_alias, cache_field[:name])
-              relation_index+= 1
+              relation_index += 1
             end
 
             model_fields = {}
@@ -601,21 +604,21 @@ module JSONAPI
               model_field = related_klass.attribute_to_model_field(attribute)
               model_fields[attribute] = model_field
               pluck_fields << sql_field_with_alias(table_alias, model_field[:name])
-              relation_index+= 1
+              relation_index += 1
             end
 
             model_offset = relation_index
             model_fields.each do |_k, v|
               pluck_fields << Arel.sql("#{concat_table_field(table_alias, v[:name])}")
-              relation_index+= 1
+              relation_index += 1
             end
 
-            relation_positions[type] = {relation_klass: related_klass,
-                                        cache_field: cache_field,
-                                        cache_offset: cache_offset,
-                                        model_fields: model_fields,
-                                        model_offset: model_offset,
-                                        field_offset: field_offset}
+            relation_positions[type] = { relation_klass: related_klass,
+                                         cache_field: cache_field,
+                                         cache_offset: cache_offset,
+                                         model_fields: model_fields,
+                                         model_offset: model_offset,
+                                         field_offset: field_offset }
           end
         end
 
@@ -633,15 +636,16 @@ module JSONAPI
           if linkage_relationship.polymorphic? && linkage_relationship.belongs_to?
             linkage_relationship.resource_types.each do |resource_type|
               klass = resource_klass_for(resource_type)
-              linkage_fields << {relationship: linkage_relationship, resource_klass: klass}
+              linkage_fields << { relationship: linkage_relationship, resource_klass: klass }
 
-              linkage_table_alias = join_manager.join_details_by_polymorphic_relationship(linkage_relationship, resource_type)[:alias]
+              linkage_table_alias = join_manager.join_details_by_polymorphic_relationship(linkage_relationship,
+                                                                                          resource_type)[:alias]
               primary_key = klass._primary_key
               pluck_fields << sql_field_with_alias(linkage_table_alias, primary_key)
             end
           else
             klass = linkage_relationship.resource_klass
-            linkage_fields << {relationship: linkage_relationship, resource_klass: klass}
+            linkage_fields << { relationship: linkage_relationship, resource_klass: klass }
 
             linkage_table_alias = join_manager.join_details_by_relationship(linkage_relationship)[:alias]
             primary_key = klass._primary_key
@@ -710,7 +714,6 @@ module JSONAPI
                                             sort_primary: nil,
                                             paginator: nil,
                                             options: {})
-
         options[:_relation_helper_options] = { join_manager: join_manager, sort_fields: [] }
 
         records = resource_klass.apply_joins(records, join_manager, options)

@@ -54,7 +54,7 @@ module JSONAPI
         if JSONAPI.configuration.include_application_backtraces_in_errors
           meta ||= Hash.new
           meta[:exception] ||= exception.message
-          meta[:application_backtrace] = exception.backtrace.select{|line| line =~ /#{Rails.root}/}
+          meta[:application_backtrace] = exception.backtrace.select { |line| line =~ /#{Rails.root}/ }
         end
 
         [create_error_object(code: JSONAPI::INTERNAL_SERVER_ERROR,
@@ -399,11 +399,11 @@ module JSONAPI
 
       def errors
         [create_error_object(code: JSONAPI::PARAM_NOT_ALLOWED,
-                            status: :bad_request,
-                            title: I18n.translate('jsonapi-resources.exceptions.parameter_not_allowed.title',
-                                                  default: 'Param not allowed'),
-                            detail: I18n.translate('jsonapi-resources.exceptions.parameters_not_allowed.detail',
-                                                   default: "#{param} is not allowed.", param: param))]
+                             status: :bad_request,
+                             title: I18n.translate('jsonapi-resources.exceptions.parameter_not_allowed.title',
+                                                   default: 'Param not allowed'),
+                             detail: I18n.translate('jsonapi-resources.exceptions.parameters_not_allowed.detail',
+                                                    default: "#{param} is not allowed.", param: param))]
       end
     end
 
@@ -507,6 +507,7 @@ module JSONAPI
 
       def metadata_for(attr_key, message)
         return if error_metadata.nil?
+
         error_metadata[attr_key] ? error_metadata[attr_key][message] : nil
       end
 
@@ -516,6 +517,7 @@ module JSONAPI
 
       def pointer(attr_or_relationship_name)
         return '/data' if general_error?(attr_or_relationship_name)
+
         formatted_attr_or_relationship_name = format_key(attr_or_relationship_name)
         if resource_relationships.include?(attr_or_relationship_name)
           "/data/relationships/#{formatted_attr_or_relationship_name}"

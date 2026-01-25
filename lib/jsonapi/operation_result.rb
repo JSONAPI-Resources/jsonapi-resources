@@ -31,11 +31,11 @@ module JSONAPI
 
     def to_hash(serializer = nil)
       {
-          errors: errors.collect do |error|
-            # :nocov:
-            error.to_hash
-            # :nocov:
-          end
+        errors: errors.collect do |error|
+          # :nocov:
+          error.to_hash
+          # :nocov:
+        end
       }
     end
   end

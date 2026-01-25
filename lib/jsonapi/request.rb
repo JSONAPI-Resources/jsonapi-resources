@@ -41,6 +41,7 @@ module JSONAPI
       setup_action_method_name = "setup_#{params[:action]}_action"
       if respond_to?(setup_action_method_name)
         raise params[:_parser_exception] if params[:_parser_exception]
+
         send(setup_action_method_name, params, resource_klass)
       end
     rescue ActionController::ParameterMissing => e
@@ -191,6 +192,7 @@ module JSONAPI
           if type != format_key(type)
             fail JSONAPI::Exceptions::InvalidResource.new(type, error_object_overrides)
           end
+
           type_resource = Resource.resource_klass_for(resource_klass.module_path + underscored_type.to_s)
         rescue NameError
           fail JSONAPI::Exceptions::InvalidResource.new(type, error_object_overrides)
@@ -264,6 +266,7 @@ module JSONAPI
       # apply default filters
       resource_klass._allowed_filters.each do |filter, opts|
         next if opts[:default].nil? || !parsed_filters[filter].nil?
+
         parsed_filters[filter] = opts[:default]
       end
 

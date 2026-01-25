@@ -47,7 +47,6 @@ module JSONAPI
         current[:include_related][relationship_name] ||= { include_related: {} }
         current = current[:include_related][relationship_name]
       end
-
     rescue JSONAPI::Exceptions::InvalidRelationship => _e
       raise JSONAPI::Exceptions::InvalidInclude.new(@resource_klass, include)
     end

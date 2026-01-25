@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require File.expand_path('../../../test_helper', __FILE__)
 require 'jsonapi-resources'
 require 'json'
@@ -22,33 +23,35 @@ class DefaultProcessorTest < ActionDispatch::IntegrationTest
 
     options = { filters: filters }
     params = {
-        filters: filters,
-        include_directives: {},
-        sort_criteria: {},
-        paginator: {},
-        fields: {},
-        serializer: {}
+      filters: filters,
+      include_directives: {},
+      sort_criteria: {},
+      paginator: {},
+      fields: {},
+      serializer: {}
     }
     p = JSONAPI::Processor.new(PostResource, :find, params)
     $id_tree_no_includes = p.send(:find_resource_tree, options, nil)
     $resource_set_no_includes = JSONAPI::ResourceSet.new($id_tree_no_includes)
-    $populated_resource_set_no_includes = JSONAPI::ResourceSet.new($id_tree_no_includes).populate!($serializer, nil,{})
+    $populated_resource_set_no_includes = JSONAPI::ResourceSet.new($id_tree_no_includes).populate!($serializer, nil, {})
 
     # has_one included
     directives = JSONAPI::IncludeDirectives.new(PostResource, ['author'])
     params = {
-        filters: filters,
-        include_directives: directives,
-        sort_criteria: {},
-        paginator: {},
-        fields: {},
-        serializer: {}
+      filters: filters,
+      include_directives: directives,
+      sort_criteria: {},
+      paginator: {},
+      fields: {},
+      serializer: {}
     }
     p = JSONAPI::Processor.new(PostResource, :find, params)
 
     $id_tree_has_one_includes = p.send(:find_resource_tree, options, directives[:include_related])
     $resource_set_has_one_includes = JSONAPI::ResourceSet.new($id_tree_has_one_includes)
-    $populated_resource_set_has_one_includes = JSONAPI::ResourceSet.new($id_tree_has_one_includes).populate!($serializer, nil,{})
+    $populated_resource_set_has_one_includes = JSONAPI::ResourceSet.new($id_tree_has_one_includes).populate!(
+      $serializer, nil, {}
+    )
   end
 
   def after_teardown
@@ -93,8 +96,12 @@ class DefaultProcessorTest < ActionDispatch::IntegrationTest
   end
 
   def test_id_tree_has_one_includes_resource_relationships_should_have_rids
-    assert_equal 1, $id_tree_has_one_includes.fragments[JSONAPI::ResourceIdentity.new(PostResource, 10)].related[:author].length
-    assert_equal 1, $id_tree_has_one_includes.fragments[JSONAPI::ResourceIdentity.new(PostResource, 12)].related[:author].length
+    assert_equal 1,
+                 $id_tree_has_one_includes.fragments[JSONAPI::ResourceIdentity.new(PostResource,
+                                                                                   10)].related[:author].length
+    assert_equal 1,
+                 $id_tree_has_one_includes.fragments[JSONAPI::ResourceIdentity.new(PostResource,
+                                                                                   12)].related[:author].length
   end
 
   def test_populated_resource_set_has_one_includes_have_resources
@@ -105,10 +112,14 @@ class DefaultProcessorTest < ActionDispatch::IntegrationTest
   end
 
   def test_populated_resource_set_has_one_includes_relationships_are_resolved
-    assert_equal 1003, $populated_resource_set_has_one_includes.resource_klasses[PostResource][10][:relationships][:author].first.id
-    assert_equal 1004, $populated_resource_set_has_one_includes.resource_klasses[PostResource][12][:relationships][:author].first.id
+    assert_equal 1003,
+                 $populated_resource_set_has_one_includes.resource_klasses[PostResource][10][:relationships][:author].first.id
+    assert_equal 1004,
+                 $populated_resource_set_has_one_includes.resource_klasses[PostResource][12][:relationships][:author].first.id
 
-    assert_equal 10, $populated_resource_set_has_one_includes.resource_klasses[PersonResource][1003][:relationships][:posts].first.id
-    assert_equal 12, $populated_resource_set_has_one_includes.resource_klasses[PersonResource][1004][:relationships][:posts].first.id
+    assert_equal 10,
+                 $populated_resource_set_has_one_includes.resource_klasses[PersonResource][1003][:relationships][:posts].first.id
+    assert_equal 12,
+                 $populated_resource_set_has_one_includes.resource_klasses[PersonResource][1004][:relationships][:posts].first.id
   end
 end

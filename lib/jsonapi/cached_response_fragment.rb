@@ -2,9 +2,7 @@
 
 module JSONAPI
   class CachedResponseFragment
-
     Lookup = Struct.new(:resource_klass, :serializer_config_key, :context, :context_key, :cache_ids) do
-
       def type
         resource_klass._type
       end
@@ -16,9 +14,9 @@ module JSONAPI
       end
     end
 
-    Write = Struct.new(:resource_klass, :resource, :serializer, :serializer_config_key, :context, :context_key, :relationship_data) do
+    Write = Struct.new(:resource_klass, :resource, :serializer, :serializer_config_key, :context, :context_key,
+                       :relationship_data) do
       def to_key_value
-
         (id, cache_key) = resource.cache_id
 
         json = serializer.object_hash(resource, relationship_data)
@@ -54,7 +52,7 @@ module JSONAPI
 
       # Relationships left uncompiled because we'll often want to insert included ids on retrieval
       # Remove the data since that should not be cached
-      @relationships = relationships&.transform_values {|v| v.delete_if {|k, _v| k == 'data'} }
+      @relationships = relationships&.transform_values { |v| v.delete_if { |k, _v| k == 'data' } }
       @links_json = CompiledJson.of(links_json)
       @attributes_json = CompiledJson.of(attributes_json)
       @meta_json = CompiledJson.of(meta_json)
@@ -75,11 +73,11 @@ module JSONAPI
     # @param [Lookup[]] lookups
     # @return [Hash<Class<Resource>, Hash<ID, CachedResourceFragment>>]
     def self.lookup(lookups, context)
-      type_to_klass = lookups.map {|l| [l.type, l.resource_klass]}.to_h
+      type_to_klass = lookups.map { |l| [l.type, l.resource_klass] }.to_h
 
       keys = lookups.map(&:keys).flatten(1)
 
-      hits = JSONAPI.configuration.resource_cache.read_multi(*keys).reject {|_, v| v.nil?}
+      hits = JSONAPI.configuration.resource_cache.read_multi(*keys).reject { |_, v| v.nil? }
 
       return keys.inject({}) do |hash, key|
         (type, id, _, _) = key
@@ -100,7 +98,7 @@ module JSONAPI
     def self.write(writes)
       key_values = writes.map(&:to_key_value)
 
-      to_write = key_values.map {|(k, v)| [k, v.to_cache_value]}.to_h
+      to_write = key_values.map { |(k, v)| [k, v.to_cache_value] }.to_h
 
       if JSONAPI.configuration.resource_cache.respond_to? :write_multi
         JSONAPI.configuration.resource_cache.write_multi(to_write)
@@ -109,7 +107,6 @@ module JSONAPI
           JSONAPI.configuration.resource_cache.write(key, value)
         end
       end
-
     end
 
     def self.from_cache_value(resource_klass, context, h)

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
+
 require File.expand_path('../../../test_helper', __FILE__)
 require 'jsonapi-resources'
 
 class PathTest < ActiveSupport::TestCase
-
   def test_one_relationship
     path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource, path_string: 'comments')
 
@@ -46,7 +46,6 @@ class PathTest < ActiveSupport::TestCase
   end
 
   def test_two_relationships_and_parse_fields_false_raises_with_field
-
     assert_raises JSONAPI::Exceptions::InvalidRelationship do
       path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource,
                                path_string: 'comments.author.name',
@@ -55,7 +54,8 @@ class PathTest < ActiveSupport::TestCase
   end
 
   def test_ensure_default_field_false
-    path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource, path_string: 'comments.author', ensure_default_field: false)
+    path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource, path_string: 'comments.author',
+                             ensure_default_field: false)
 
     assert path.segments.is_a?(Array)
     assert_equal 2, path.segments.length
@@ -67,7 +67,8 @@ class PathTest < ActiveSupport::TestCase
   end
 
   def test_ensure_default_field_true
-    path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource, path_string: 'comments.author', ensure_default_field: true)
+    path = JSONAPI::Path.new(resource_klass: Api::V1::PostResource, path_string: 'comments.author',
+                             ensure_default_field: true)
 
     assert path.segments.is_a?(Array)
     assert_equal 3, path.segments.length

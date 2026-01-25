@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 begin
   require 'bundler/inline'
   require 'bundler'
@@ -23,7 +24,6 @@ gemfile(true, ui: ENV['SILENT'] ? Bundler::UI::Silent.new : Bundler::UI::Shell.n
   else
     gem 'jsonapi-resources', git: 'https://github.com/cerebris/jsonapi-resources', require: false
   end
-
 end
 
 # prepare active_record database
@@ -103,7 +103,7 @@ class BugTest < Minitest::Test
   include Rack::Test::Methods
 
   def json_api_headers
-    {'Accept' => JSONAPI::MEDIA_TYPE, 'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE}
+    { 'Accept' => JSONAPI::MEDIA_TYPE, 'CONTENT_TYPE' => JSONAPI::MEDIA_TYPE }
   end
 
   def test_index_your_models
@@ -116,17 +116,17 @@ class BugTest < Minitest::Test
     refute_empty json_response['data'].first
     assert record.id.to_s, json_response['data'].first['id']
     assert 'your_models', json_response['data'].first['type']
-    assert({'name' => 'John Doe'}, json_response['data'].first['attributes'])
+    assert({ 'name' => 'John Doe' }, json_response['data'].first['attributes'])
   end
 
   def test_create_your_models
     json_request = {
-        'data' => {
-            type: 'your_models',
-            attributes: {
-                name: 'Jane Doe'
-            }
+      'data' => {
+        type: 'your_models',
+        attributes: {
+          name: 'Jane Doe'
         }
+      }
     }
     post '/your_models', json_request.to_json, json_api_headers
     assert last_response.created?

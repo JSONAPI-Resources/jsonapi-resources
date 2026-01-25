@@ -1,10 +1,10 @@
 # frozen_string_literal: true
+
 module JSONAPI
   module ActiveRelation
-
-  # Stores relationship paths starting from the resource_klass, consolidating duplicate paths from
-  # relationships, filters and sorts. When joins are made the table aliases are tracked in join_details
-  class JoinManager
+    # Stores relationship paths starting from the resource_klass, consolidating duplicate paths from
+    # relationships, filters and sorts. When joins are made the table aliases are tracked in join_details
+    class JoinManager
       attr_reader :resource_klass,
                   :source_relationship,
                   :resource_join_tree,
@@ -15,20 +15,19 @@ module JSONAPI
                      relationships: nil,
                      filters: nil,
                      sort_criteria: nil)
-
         @resource_klass = resource_klass
         @join_details = nil
         @collected_aliases = Set.new
 
         @resource_join_tree = {
-            root: {
-                join_type: :root,
-                resource_klasses: {
-                    resource_klass => {
-                        relationships: {}
-                    }
-                }
+          root: {
+            join_type: :root,
+            resource_klasses: {
+              resource_klass => {
+                relationships: {}
+              }
             }
+          }
         }
         add_source_relationship(source_relationship)
         add_sort_criteria(sort_criteria)
@@ -38,6 +37,7 @@ module JSONAPI
 
       def join(records, options)
         fail "can't be joined again" if @join_details
+
         @join_details = {}
         perform_joins(records, options)
       end
@@ -46,10 +46,11 @@ module JSONAPI
       # this method gets the join details whether they are on a relationship or are just pseudo details for the base
       # resource. Specify the resource type for polymorphic relationships
       #
-      def source_join_details(type=nil)
+      def source_join_details(type = nil)
         if source_relationship
           related_resource_klass = type ? resource_klass.resource_klass_for(type) : source_relationship.resource_klass
-          segment = PathSegment::Relationship.new(relationship: source_relationship, resource_klass: related_resource_klass)
+          segment = PathSegment::Relationship.new(relationship: source_relationship,
+                                                  resource_klass: related_resource_klass)
           details = @join_details[segment]
         else
           if type
@@ -62,12 +63,14 @@ module JSONAPI
       end
 
       def join_details_by_polymorphic_relationship(relationship, type)
-        segment = PathSegment::Relationship.new(relationship: relationship, resource_klass: resource_klass.resource_klass_for(type))
+        segment = PathSegment::Relationship.new(relationship: relationship,
+                                                resource_klass: resource_klass.resource_klass_for(type))
         @join_details[segment]
       end
 
       def join_details_by_relationship(relationship)
-        segment = PathSegment::Relationship.new(relationship: relationship, resource_klass: relationship.resource_klass)
+        segment = PathSegment::Relationship.new(relationship: relationship,
+                                                resource_klass: relationship.resource_klass)
         @join_details[segment]
       end
 
@@ -131,8 +134,8 @@ module JSONAPI
           relationship_details[:resource_klasses].each do |related_resource_klass, resource_details|
             join_array[level] << { relationship: relationship,
                                    relationship_details: relationship_details,
-                                   related_resource_klass: related_resource_klass}
-            flatten_join_tree_by_depth(join_array, resource_details[:relationships], level+1)
+                                   related_resource_klass: related_resource_klass }
+            flatten_join_tree_by_depth(join_array, resource_details[:relationships], level + 1)
           end
         end
         join_array
@@ -140,6 +143,7 @@ module JSONAPI
 
       def add_join_details(join_key, details, check_for_duplicate_alias = true)
         fail "details already set" if @join_details.has_key?(join_key)
+
         @join_details[join_key] = details
 
         # Joins are being tracked as they are added to the built up relation. If the same table is added to a
@@ -174,21 +178,25 @@ module JSONAPI
 
             if relationship == :root
               unless source_relationship
-                add_join_details('', {alias: resource_klass._table_name, join_type: :root, join_options: join_options})
+                add_join_details('',
+                                 { alias: resource_klass._table_name, join_type: :root, join_options: join_options })
               end
               next
             end
 
-            records, join_node = self.class.get_join_arel_node(records, relationship, join_type, options) {|records, options|
+            records, join_node = self.class.get_join_arel_node(records, relationship, join_type,
+                                                               options) { |records, options|
               related_resource_klass.join_relationship(
                 records: records,
                 resource_type: related_resource_klass._type,
                 join_type: join_type,
                 relationship: relationship,
-                options: options)
+                options: options
+              )
             }
 
-            details = {alias: self.class.alias_from_arel_node(join_node), join_type: join_type, join_options: join_options}
+            details = { alias: self.class.alias_from_arel_node(join_node), join_type: join_type,
+                        join_options: join_options }
 
             if relationship == source_relationship
               if relationship.polymorphic? && relationship.belongs_to?
@@ -201,7 +209,10 @@ module JSONAPI
             # We're adding the source alias with two keys. We only want the check for duplicate aliases once.
             # See the note in `add_join_details`.
             check_for_duplicate_alias = !(relationship == source_relationship)
-            add_join_details(PathSegment::Relationship.new(relationship: relationship, resource_klass: related_resource_klass), details, check_for_duplicate_alias)
+            add_join_details(
+              PathSegment::Relationship.new(relationship: relationship,
+                                            resource_klass: related_resource_klass), details, check_for_duplicate_alias
+            )
           end
         end
         records
@@ -220,7 +231,8 @@ module JSONAPI
           sourced_path = path
         end
 
-        join_manager, _field = parse_path_to_tree(sourced_path, resource_klass, default_type, default_polymorphic_join_type)
+        join_manager, _field = parse_path_to_tree(sourced_path, resource_klass, default_type,
+                                                  default_polymorphic_join_type)
 
         @resource_join_tree[:root].deep_merge!(join_manager) { |key, val, other_val|
           if key == :join_type
@@ -235,11 +247,11 @@ module JSONAPI
 
       def process_path_to_tree(path_segments, resource_klass, default_join_type, default_polymorphic_join_type)
         node = {
-            resource_klasses: {
-                resource_klass => {
-                    relationships: {}
-                }
+          resource_klasses: {
+            resource_klass => {
+              relationships: {}
             }
+          }
         }
 
         segment = path_segments.shift
@@ -249,7 +261,7 @@ module JSONAPI
 
           # join polymorphic as left joins
           node[:resource_klasses][resource_klass][:relationships][segment.relationship][:join_type] ||=
-              segment.relationship.polymorphic? ? default_polymorphic_join_type : default_join_type
+            segment.relationship.polymorphic? ? default_polymorphic_join_type : default_join_type
 
           segment.relationship.resource_types.each do |related_resource_type|
             related_resource_klass = resource_klass.resource_klass_for(related_resource_type)
@@ -259,7 +271,8 @@ module JSONAPI
             process_all_types = !segment.path_specified_resource_klass?
 
             if process_all_types || related_resource_klass == segment.resource_klass
-              related_resource_tree = process_path_to_tree(path_segments.dup, related_resource_klass, default_join_type, default_polymorphic_join_type)
+              related_resource_tree = process_path_to_tree(path_segments.dup, related_resource_klass,
+                                                           default_join_type, default_polymorphic_join_type)
               node[:resource_klasses][resource_klass][:relationships][segment.relationship].deep_merge!(related_resource_tree)
             end
           end
@@ -267,11 +280,13 @@ module JSONAPI
         node
       end
 
-      def parse_path_to_tree(path_string, resource_klass, default_join_type = :inner, default_polymorphic_join_type = :left)
+      def parse_path_to_tree(path_string, resource_klass, default_join_type = :inner,
+                             default_polymorphic_join_type = :left)
         path = JSONAPI::Path.new(resource_klass: resource_klass, path_string: path_string)
 
         field = path.segments[-1]
-        return process_path_to_tree(path.segments, resource_klass, default_join_type, default_polymorphic_join_type), field
+        return process_path_to_tree(path.segments, resource_klass, default_join_type,
+                                    default_polymorphic_join_type), field
       end
 
       def add_source_relationship(source_relationship)
@@ -281,23 +296,24 @@ module JSONAPI
           resource_klasses = {}
           source_relationship.resource_types.each do |related_resource_type|
             related_resource_klass = resource_klass.resource_klass_for(related_resource_type)
-            resource_klasses[related_resource_klass] = {relationships: {}}
+            resource_klasses[related_resource_klass] = { relationships: {} }
           end
 
           join_type = source_relationship.polymorphic? ? :left : :inner
 
           @resource_join_tree[:root][:resource_klasses][resource_klass][:relationships][@source_relationship] = {
-              source: true, resource_klasses: resource_klasses, join_type: join_type
+            source: true, resource_klasses: resource_klasses, join_type: join_type
           }
         end
       end
 
       def add_filters(filters)
         return if filters.blank?
+
         filters.each_key do |filter|
           # Do not add joins for filters with an apply callable. This can be overridden by setting perform_joins to true
           next if resource_klass._allowed_filters[filter].try(:[], :apply) &&
-              !resource_klass._allowed_filters[filter].try(:[], :perform_joins)
+                  !resource_klass._allowed_filters[filter].try(:[], :perform_joins)
 
           add_join(filter, :left)
         end
@@ -313,6 +329,7 @@ module JSONAPI
 
       def add_relationships(relationships)
         return if relationships.blank?
+
         relationships.each do |relationship|
           add_join(relationship, :left)
         end

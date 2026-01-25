@@ -2,7 +2,6 @@
 
 module JSONAPI
   class ResourceSerializer
-
     attr_reader :link_builder, :key_formatter, :serialization_options,
                 :fields, :include_directives, :always_include_to_one_linkage_data,
                 :always_include_to_many_linkage_data, :options
@@ -37,7 +36,7 @@ module JSONAPI
 
       # Warning: This makes ResourceSerializer non-thread-safe. That's not a problem with the
       # request-specific way it's currently used, though.
-      @value_formatter_type_cache = NaiveCache.new{|arg| ValueFormatter.value_formatter_for(arg) }
+      @value_formatter_type_cache = NaiveCache.new { |arg| ValueFormatter.value_formatter_for(arg) }
 
       @_config_keys = {}
       @_supplying_attribute_fields = {}
@@ -59,7 +58,6 @@ module JSONAPI
 
     # Converts a resource_set to a hash, conforming to the JSONAPI structure
     def serialize_resource_set_to_hash_single(resource_set)
-
       primary_objects = []
       included_objects = []
 
@@ -76,6 +74,7 @@ module JSONAPI
       end
 
       fail "Too many primary objects for show" if (primary_objects.count > 1)
+
       primary_hash = { 'data' => primary_objects[0] }
 
       primary_hash['included'] = included_objects if included_objects.size > 0
@@ -83,7 +82,6 @@ module JSONAPI
     end
 
     def serialize_resource_set_to_hash_plural(resource_set)
-
       primary_objects = []
       included_objects = []
 
@@ -271,7 +269,7 @@ module JSONAPI
     end
 
     def relationships_hash(source, fetchable_fields, relationship_data)
-      relationships = source.class._relationships.select{|k,_v| fetchable_fields.include?(k) }
+      relationships = source.class._relationships.select { |k, _v| fetchable_fields.include?(k) }
       field_set = supplying_relationship_fields(source.class) & relationships.keys
 
       relationships.each_with_object({}) do |(name, relationship), hash|
@@ -295,13 +293,15 @@ module JSONAPI
     def cached_relationships_hash(source, fetchable_fields, relationship_data)
       relationships = {}
 
-      source.relationships.try(:each_pair) do |k,v|
+      source.relationships.try(:each_pair) do |k, v|
         if fetchable_fields.include?(unformat_key(k).to_sym)
           relationships[k.to_sym] = v
         end
       end
 
-      field_set = supplying_relationship_fields(source.resource_klass).collect {|k| format_key(k).to_sym } & relationships.keys
+      field_set = supplying_relationship_fields(source.resource_klass).collect { |k|
+        format_key(k).to_sym
+      } & relationships.keys
 
       relationships.each_with_object({}) do |(name, relationship), hash|
         if field_set.include?(name)
@@ -350,7 +350,7 @@ module JSONAPI
         id = details.id
         type = details.resource_klass.try(:_type)
         if type && id
-          linkage.append({'type' => format_key(type), 'id' => @id_formatter.format(id)})
+          linkage.append({ 'type' => format_key(type), 'id' => @id_formatter.format(id) })
         end
       end
 
@@ -361,8 +361,8 @@ module JSONAPI
       return unless rid
 
       {
-          'type' => format_key(rid.resource_klass._type),
-          'id' => @id_formatter.format(rid.id),
+        'type' => format_key(rid.resource_klass._type),
+        'id' => @id_formatter.format(rid.id),
       }
     end
 

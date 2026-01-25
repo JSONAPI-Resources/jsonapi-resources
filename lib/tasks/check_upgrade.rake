@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'rake'
 require 'jsonapi-resources'
 
@@ -8,7 +9,7 @@ namespace :jsonapi do
     task :check_upgrade => :environment do
       Rails.application.eager_load!
 
-      resource_klasses = ObjectSpace.each_object(Class).select { |klass| klass < JSONAPI::Resource}
+      resource_klasses = ObjectSpace.each_object(Class).select { |klass| klass < JSONAPI::Resource }
 
       puts "Checking #{resource_klasses.count} resources"
 
@@ -17,7 +18,7 @@ namespace :jsonapi do
       klasses_with_deprecated = resource_klasses.select { |klass| klass.methods.include?(:find_records) }
       unless klasses_with_deprecated.empty?
         puts "  Found the following resources the still implement `find_records`:"
-        klasses_with_deprecated.each { |klass| puts "    #{klass}"}
+        klasses_with_deprecated.each { |klass| puts "    #{klass}" }
         puts "  The `find_records` method is no longer called by JR. Please review and ensure your functionality is ported over."
 
         issues_found = issues_found + klasses_with_deprecated.length
@@ -26,7 +27,7 @@ namespace :jsonapi do
       klasses_with_deprecated = resource_klasses.select { |klass| klass.methods.include?(:records_for) }
       unless klasses_with_deprecated.empty?
         puts "  Found the following resources the still implement `records_for`:"
-        klasses_with_deprecated.each { |klass| puts "    #{klass}"}
+        klasses_with_deprecated.each { |klass| puts "    #{klass}" }
         puts "  The `records_for` method is no longer called by JR. Please review and ensure your functionality is ported over."
 
         issues_found = issues_found + klasses_with_deprecated.length
@@ -35,7 +36,7 @@ namespace :jsonapi do
       klasses_with_deprecated = resource_klasses.select { |klass| klass.methods.include?(:apply_includes) }
       unless klasses_with_deprecated.empty?
         puts "  Found the following resources the still implement `apply_includes`:"
-        klasses_with_deprecated.each { |klass| puts "    #{klass}"}
+        klasses_with_deprecated.each { |klass| puts "    #{klass}" }
         puts "  The `apply_includes` method is no longer called by JR. Please review and ensure your functionality is ported over."
 
         issues_found = issues_found + klasses_with_deprecated.length

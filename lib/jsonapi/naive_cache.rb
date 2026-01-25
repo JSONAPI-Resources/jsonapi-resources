@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module JSONAPI
-
   # Cache which memoizes the given block.
   #
   # It's "naive" because it clears the least-recently-inserted cache entry
@@ -23,6 +22,7 @@ module JSONAPI
       found = true
       value = @data.fetch(key) { found = false }
       return value if found
+
       value = @calculator.call(key)
       @data[key] = value
       @data.shift if @data.length > @cap

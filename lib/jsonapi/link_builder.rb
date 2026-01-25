@@ -31,7 +31,7 @@ module JSONAPI
     def primary_resources_url
       if @primary_resource_klass._routed
         primary_resources_path = resources_path(primary_resource_klass)
-        @primary_resources_url_cached ||= "#{ base_url }#{ engine_mount_point }#{ primary_resources_path }"
+        @primary_resources_url_cached ||= "#{base_url}#{engine_mount_point}#{primary_resources_path}"
       else
         if JSONAPI.configuration.warn_on_missing_routes && !@primary_resource_klass._warned_missing_route
           warn "primary_resources_url for #{@primary_resource_klass} could not be generated"
@@ -44,13 +44,14 @@ module JSONAPI
     def query_link(query_params)
       url = primary_resources_url
       return url if url.nil?
-      "#{ url }?#{ query_params.to_query }"
+
+      "#{url}?#{query_params.to_query}"
     end
 
     def relationships_related_link(source, relationship, query_params = {})
       if relationship._routed
-        url = "#{ self_link(source) }/#{ route_for_relationship(relationship) }"
-        url = "#{ url }?#{ query_params.to_query }" if query_params.present?
+        url = "#{self_link(source)}/#{route_for_relationship(relationship)}"
+        url = "#{url}?#{query_params.to_query}" if query_params.present?
         url
       else
         if JSONAPI.configuration.warn_on_missing_routes && !relationship._warned_missing_route
@@ -63,7 +64,7 @@ module JSONAPI
 
     def relationships_self_link(source, relationship)
       if relationship._routed
-        "#{ self_link(source) }/relationships/#{ route_for_relationship(relationship) }"
+        "#{self_link(source)}/relationships/#{route_for_relationship(relationship)}"
       else
         if JSONAPI.configuration.warn_on_missing_routes && !relationship._warned_missing_route
           warn "self_link for #{relationship} could not be generated"
@@ -92,10 +93,10 @@ module JSONAPI
 
       begin
         unless scopes.empty?
-          "#{ scopes.first.to_s.camelize }::Engine".safe_constantize
+          "#{scopes.first.to_s.camelize}::Engine".safe_constantize
         end
 
-          # :nocov:
+      # :nocov:
       rescue LoadError => _e
         nil
         # :nocov:
@@ -114,7 +115,7 @@ module JSONAPI
                end
 
       unless scopes.empty?
-        "/#{ scopes.map {|scope| format_route(scope.to_s.underscore)}.compact.join('/') }/"
+        "/#{scopes.map { |scope| format_route(scope.to_s.underscore) }.compact.join('/')}/"
       else
         "/"
       end
@@ -138,7 +139,7 @@ module JSONAPI
     end
 
     def resource_url(source)
-      "#{ base_url }#{ engine_mount_point }#{ resource_path(source) }"
+      "#{base_url}#{engine_mount_point}#{resource_path(source)}"
     end
 
     def route_for_relationship(relationship)

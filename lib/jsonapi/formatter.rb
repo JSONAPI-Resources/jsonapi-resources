@@ -71,8 +71,8 @@ module JSONAPI
 
     def initialize(formatter_klass)
       @formatter_klass = formatter_klass
-      @format_cache = NaiveCache.new{|arg| formatter_klass.format(arg) }
-      @unformat_cache = NaiveCache.new{|arg| formatter_klass.unformat(arg) }
+      @format_cache = NaiveCache.new { |arg| formatter_klass.format(arg) }
+      @unformat_cache = NaiveCache.new { |arg| formatter_klass.unformat(arg) }
     end
 
     def format(arg)
@@ -124,11 +124,11 @@ class DefaultValueFormatter < JSONAPI::ValueFormatter
   class << self
     def format(raw_value)
       case raw_value
-        when Date, Time, DateTime, ActiveSupport::TimeWithZone, BigDecimal
-          # Use the as_json methods added to various base classes by ActiveSupport
-          return raw_value.as_json
-        else
-          return raw_value
+      when Date, Time, DateTime, ActiveSupport::TimeWithZone, BigDecimal
+        # Use the as_json methods added to various base classes by ActiveSupport
+        return raw_value.as_json
+      else
+        return raw_value
       end
     end
   end
@@ -138,6 +138,7 @@ class IdValueFormatter < JSONAPI::ValueFormatter
   class << self
     def format(raw_value)
       return if raw_value.nil?
+
       raw_value.to_s
     end
   end

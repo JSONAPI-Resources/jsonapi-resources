@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require File.expand_path('../../../test_helper', __FILE__)
 
 class ArPostResource < JSONAPI::Resource
@@ -54,7 +55,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
     source_rids = [JSONAPI::ResourceIdentity.new(ArPostResource, 1),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 2),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 20)]
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
 
     related_fragments = ArPostResource.find_included_fragments(source_fragments, 'author', options)
 
@@ -70,7 +71,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
     source_rids = [JSONAPI::ResourceIdentity.new(ArPostResource, 1),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 2),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 20)]
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
 
     related_fragments = ArPostResource.find_included_fragments(source_fragments, 'author', options)
 
@@ -87,7 +88,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
     source_rids = [JSONAPI::ResourceIdentity.new(ArPostResource, 1),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 2),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 20)]
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
 
     related_fragments = ArPostResource.find_included_fragments(source_fragments, 'author', options)
 
@@ -107,7 +108,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
                    JSONAPI::ResourceIdentity.new(ArPostResource, 2),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 12),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 14)]
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
 
     related_fragments = ArPostResource.find_included_fragments(source_fragments, 'tags', options)
 
@@ -123,7 +124,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(number: 2, size: 4)
     options = { paginator: PagedPaginator.new(params) }
     source_rids = [JSONAPI::ResourceIdentity.new(ArPostResource, 15)]
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
 
     related_fragments = ArPostResource.find_included_fragments(source_fragments, 'tags', options)
 
@@ -140,7 +141,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
                    JSONAPI::ResourceIdentity.new(ArPostResource, 2),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 12),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 14)]
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
 
     related_fragments = ArPostResource.find_included_fragments(source_fragments, 'tags', options)
 
@@ -160,7 +161,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
                    JSONAPI::ResourceIdentity.new(ArPostResource, 12),
                    JSONAPI::ResourceIdentity.new(ArPostResource, 14)]
 
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
     related_fragments = ArPostResource.find_included_fragments(source_fragments, 'tags', options)
 
     assert_equal 8, related_fragments.length
@@ -179,7 +180,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
     source_rids = [JSONAPI::ResourceIdentity.new(PictureResource, 1),
                    JSONAPI::ResourceIdentity.new(PictureResource, 2),
                    JSONAPI::ResourceIdentity.new(PictureResource, 3)]
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
 
     related_fragments = PictureResource.find_included_fragments(source_fragments, 'imageable', options)
 
@@ -198,7 +199,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
     source_rids = [JSONAPI::ResourceIdentity.new(PictureResource, 1),
                    JSONAPI::ResourceIdentity.new(PictureResource, 2),
                    JSONAPI::ResourceIdentity.new(PictureResource, 3)]
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
 
     related_fragments = PictureResource.find_included_fragments(source_fragments, 'imageable', options)
 
@@ -218,7 +219,7 @@ class ActiveRelationResourceTest < ActiveSupport::TestCase
     source_rids = [JSONAPI::ResourceIdentity.new(PictureResource, 1),
                    JSONAPI::ResourceIdentity.new(PictureResource, 2),
                    JSONAPI::ResourceIdentity.new(PictureResource, 3)]
-    source_fragments = source_rids.collect {|rid| JSONAPI::ResourceFragment.new(rid) }
+    source_fragments = source_rids.collect { |rid| JSONAPI::ResourceFragment.new(rid) }
 
     related_fragments = PictureResource.find_included_fragments(source_fragments, 'imageable', options)
 

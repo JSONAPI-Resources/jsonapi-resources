@@ -3,6 +3,7 @@
 module JSONAPI
   class Path
     attr_reader :segments, :resource_klass
+
     def initialize(resource_klass:,
                    path_string:,
                    ensure_default_field: true,
@@ -12,8 +13,8 @@ module JSONAPI
       current_resource_klass = resource_klass
       @segments = path_string.to_s.split('.').collect do |segment_string|
         segment = PathSegment.parse(source_resource_klass: current_resource_klass,
-                                 segment_string: segment_string,
-                                 parse_fields: parse_fields)
+                                    segment_string: segment_string,
+                                    parse_fields: parse_fields)
 
         current_resource_klass = segment.resource_klass
         segment
@@ -27,7 +28,7 @@ module JSONAPI
     end
 
     def relationship_segments
-      @segments.select {|p| p.is_a?(PathSegment::Relationship)}
+      @segments.select { |p| p.is_a?(PathSegment::Relationship) }
     end
 
     def relationship_path_string

@@ -4,7 +4,6 @@ module JSONAPI
   # Contains a hash of resource types which contain a hash of resources, relationships and primary status keyed by
   # resource id.
   class ResourceSet
-
     attr_reader :resource_klasses, :populated
 
     def initialize(source, include_related = nil, options = nil)
@@ -109,7 +108,7 @@ module JSONAPI
       missed_resource_ids.each_pair do |resource_klass, ids|
         next if ids.empty?
 
-        find_opts = {context: context, fields: options[:fields]}
+        find_opts = { context: context, fields: options[:fields] }
         found_resources = resource_klass.find_to_populate_by_keys(ids, find_opts)
 
         found_resources.each do |resource|
@@ -122,14 +121,14 @@ module JSONAPI
             context_key = "ATTR-CTX-#{context_b64.gsub("/", "_")}"
 
             writes.push(CachedResponseFragment::Write.new(
-              resource_klass,
-              resource,
-              serializer,
-              serializer_config_key,
-              context,
-              context_key,
-              relationship_data
-            ))
+                          resource_klass,
+                          resource,
+                          serializer,
+                          serializer_config_key,
+                          context,
+                          context_key,
+                          relationship_data
+                        ))
           end
 
           register_resource(resource_klass, resource)
@@ -149,7 +148,8 @@ module JSONAPI
 
     def register_resource(resource_klass, resource, primary = false)
       @resource_klasses[resource_klass] ||= {}
-      @resource_klasses[resource_klass][resource.id] ||= {primary: resource.try(:primary) || primary, relationships: {}}
+      @resource_klasses[resource_klass][resource.id] ||= { primary: resource.try(:primary) || primary,
+                                                           relationships: {} }
       @resource_klasses[resource_klass][resource.id][:resource] = resource
     end
 
@@ -169,13 +169,12 @@ module JSONAPI
 
     def flatten_resource_tree(resource_tree, flattened_tree = {})
       resource_tree.fragments.each_pair do |resource_rid, fragment|
-
         resource_klass = resource_rid.resource_klass
         id = resource_rid.id
 
         flattened_tree[resource_klass] ||= {}
 
-        flattened_tree[resource_klass][id] ||= {primary: fragment.primary, relationships: {}}
+        flattened_tree[resource_klass][id] ||= { primary: fragment.primary, relationships: {} }
         flattened_tree[resource_klass][id][:cache_id] ||= fragment.cache if fragment.cache
         flattened_tree[resource_klass][id][:resource] ||= fragment.resource if fragment.resource
 

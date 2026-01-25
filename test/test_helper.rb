@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'logger'
 require 'simplecov'
 require 'database_cleaner'
@@ -25,9 +26,9 @@ if ENV['COVERAGE']
     enable_coverage :branch if respond_to?(:enable_coverage)
 
     formatter SimpleCov::Formatter::MultiFormatter.new([
-      SimpleCov::Formatter::HTMLFormatter,
-      SimpleCov::Formatter::SimpleFormatter
-    ])
+                                                         SimpleCov::Formatter::HTMLFormatter,
+                                                         SimpleCov::Formatter::SimpleFormatter
+                                                       ])
   end
 end
 
@@ -146,17 +147,17 @@ module ActionController
           # parser = ActionDispatch::Http::Parameters::DEFAULT_PARSERS[Mime::Type.lookup(fetch_header('CONTENT_TYPE'))]
 
           case content_mime_type.to_sym
-            when nil
-              raise "Unknown Content-Type: #{content_type}"
-            when :json, :api_json
-              data = ActiveSupport::JSON.encode(non_path_parameters)
-            when :xml
-              data = non_path_parameters.to_xml
-            when :url_encoded_form
-              data = non_path_parameters.to_query
-            else
-              @custom_param_parsers[content_mime_type] = ->(_) { non_path_parameters }
-              data = non_path_parameters.to_query
+          when nil
+            raise "Unknown Content-Type: #{content_type}"
+          when :json, :api_json
+            data = ActiveSupport::JSON.encode(non_path_parameters)
+          when :xml
+            data = non_path_parameters.to_xml
+          when :url_encoded_form
+            data = non_path_parameters.to_query
+          else
+            @custom_param_parsers[content_mime_type] = ->(_) { non_path_parameters }
+            data = non_path_parameters.to_query
           end
         end
 
@@ -177,7 +178,7 @@ end
 
 def assert_query_count(expected, msg = nil, &block)
   @queries = []
-  callback = lambda {|_, _, _, _, payload|
+  callback = lambda { |_, _, _, _, payload|
     @queries.push payload[:sql]
   }
   ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
@@ -189,7 +190,7 @@ end
 
 def track_queries(&block)
   @queries = []
-  callback = lambda {|_, _, _, _, payload|
+  callback = lambda { |_, _, _, _, payload|
     @queries.push payload[:sql]
   }
   ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
@@ -214,7 +215,6 @@ require File.expand_path('../fixtures/active_record', __FILE__)
 module Pets
   module V1
     class CatsController < JSONAPI::ResourceController
-
     end
 
     class CatResource < JSONAPI::Resource
@@ -310,7 +310,6 @@ TestApp.routes.draw do
       jsonapi_resources :authors
       jsonapi_resources :books
       jsonapi_resources :book_comments
-      #
       jsonapi_resources :sections
       jsonapi_resources :comments
       jsonapi_resources :vehicles
@@ -366,9 +365,7 @@ TestApp.routes.draw do
       jsonapi_resources :tags
       jsonapi_resources :comments
 
-
       jsonapi_resources :employees
-
     end
     JSONAPI.configuration.route_format = :underscored_route
 
@@ -560,7 +557,7 @@ class ActionController::TestCase
     assert_nil JSONAPI.configuration.resource_cache
 
     normal_queries = []
-    normal_query_callback = lambda {|_, _, _, _, payload| normal_queries.push payload[:sql] }
+    normal_query_callback = lambda { |_, _, _, _, payload| normal_queries.push payload[:sql] }
     ActiveSupport::Notifications.subscribed(normal_query_callback, 'sql.active_record') do
       get action, **args
     end
@@ -572,12 +569,12 @@ class ActionController::TestCase
     orig_request_headers = @request.headers.dup
 
     ar_resource_klass = nil
-    modes = {none: [], all: :all}
+    modes = { none: [], all: :all }
     if @controller.class.included_modules.include?(JSONAPI::ActsAsResourceController)
       ar_resource_klass = @controller.send(:resource_klass)
       if ar_resource_klass._model_class.respond_to?(:arel_table)
         modes[:root_only] = [ar_resource_klass]
-        modes[:all_but_root] = {except: [ar_resource_klass]}
+        modes[:all_but_root] = { except: [ar_resource_klass] }
       else
         ar_resource_klass = nil
       end
@@ -645,7 +642,7 @@ class ActionController::TestCase
           cache_activity[:lookup][:total][:hits],
           :>=,
           cache_activity[:warmup][:total][:misses],
-         "Cache (mode: #{mode}) lookup response must use cache entries created by warmup"
+          "Cache (mode: #{mode}) lookup response must use cache entries created by warmup"
         )
       end
     end
@@ -726,6 +723,7 @@ class OptionalRouteFormatter < JSONAPI::RouteFormatter
   class << self
     def format(route)
       return if route == 'v1'
+
       super
     end
 

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module JSONAPI
   module ActiveRelation
     module Adapters
@@ -14,7 +15,7 @@ module JSONAPI
             join_dependency = ActiveRecord::Associations::JoinDependency.new(self, columns, [])
             joins(join_dependency)
           end
-         end
+        end
 
         alias_method :join_left, :joins_left
       end

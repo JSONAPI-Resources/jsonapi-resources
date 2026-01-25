@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Helpers
   module ValueMatchers
     ### Matchers
@@ -27,6 +28,7 @@ module Helpers
 
     def matches_array?(array1, array2, options = {})
       return false unless array1.kind_of?(Array) && array2.kind_of?(Array)
+
       if options[:exact]
         unless array1.size == array2.size
           return false
@@ -57,6 +59,7 @@ module Helpers
     # options => {exact: true} # hashes must match exactly (i.e. have same number of key-value pairs that are all equal)
     def matches_hash?(hash1, hash2, options = {})
       return false unless hash1.kind_of?(Hash) && hash2.kind_of?(Hash)
+
       if options[:exact]
         unless hash1.size == hash2.size
           return false

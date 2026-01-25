@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module JSONAPI
-
   # ResourceIdentity describes a unique identity of a resource in the system.
   # This consists of a Resource class and an identifier that is unique within
   # that Resource class. ResourceIdentities are intended to be used as hash

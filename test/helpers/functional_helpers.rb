@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Helpers
   module FunctionalHelpers
     # from http://jamieonsoftware.com/blog/entry/testing-restful-response-types

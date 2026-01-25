@@ -25,7 +25,7 @@ module JSONAPI
             fail JSONAPI::Exceptions::InvalidRequestFormat.new
           end
         rescue JSON::ParserError => e
-          { _parser_exception: JSONAPI::Exceptions::BadRequest.new(e.to_s)  }
+          { _parser_exception: JSONAPI::Exceptions::BadRequest.new(e.to_s) }
         rescue => e
           { _parser_exception: e }
         end

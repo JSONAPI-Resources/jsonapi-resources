@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require File.expand_path('../../test_helper', __FILE__)
 
 class ReflectUpdateRelationshipsBenchmark < IntegrationBenchmark
@@ -9,26 +10,24 @@ class ReflectUpdateRelationshipsBenchmark < IntegrationBenchmark
   def replace_tags
     put '/posts/15/relationships/tags', params:
       {
-        'data' => [{type: 'tags', id: 11}, {type: 'tags', id: 3}, {type: 'tags', id: 12}, {type: 'tags', id: 13}, {type: 'tags', id: 14}
-        ]
+        'data' => [{ type: 'tags', id: 11 }, { type: 'tags', id: 3 }, { type: 'tags', id: 12 }, { type: 'tags', id: 13 }, { type: 'tags', id: 14 }]
       }.to_json,
-        headers: {
-          "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
-          'Accept' => JSONAPI::MEDIA_TYPE
-        }
+                                        headers: {
+                                          "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
+                                          'Accept' => JSONAPI::MEDIA_TYPE
+                                        }
     assert_response :no_content
     post_object = Post.find(15)
     assert_equal 5, post_object.tags.collect { |tag| tag.id }.length
 
     put '/posts/15/relationships/tags', params:
       {
-        'data' => [{type: 'tags', id: 2}, {type: 'tags', id: 3}, {type: 'tags', id: 4}
-        ]
+        'data' => [{ type: 'tags', id: 2 }, { type: 'tags', id: 3 }, { type: 'tags', id: 4 }]
       }.to_json,
-        headers: {
-          "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
-          'Accept' => JSONAPI::MEDIA_TYPE
-        }
+                                        headers: {
+                                          "CONTENT_TYPE" => JSONAPI::MEDIA_TYPE,
+                                          'Accept' => JSONAPI::MEDIA_TYPE
+                                        }
     assert_response :no_content
     post_object = Post.find(15)
     assert_equal 3, post_object.tags.collect { |tag| tag.id }.length

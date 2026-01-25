@@ -11,6 +11,7 @@ module JSONAPI
           unless relationship.resource_types.include?(last_part)
             raise JSONAPI::Exceptions::InvalidRelationship.new(source_resource_klass._type, segment_string)
           end
+
           resource_klass = source_resource_klass.resource_klass_for(last_part)
         end
         return PathSegment::Relationship.new(relationship: relationship, resource_klass: resource_klass)

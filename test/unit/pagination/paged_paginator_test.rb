@@ -1,13 +1,12 @@
 # frozen_string_literal: true
+
 require File.expand_path('../../../test_helper', __FILE__)
 require 'jsonapi-resources'
 
 class PagedPaginatorTest < ActiveSupport::TestCase
-
   def test_paged_default_page_params
     params = ActionController::Parameters.new(
-      {
-      }
+      {}
     )
 
     paginator = PagedPaginator.new(params)

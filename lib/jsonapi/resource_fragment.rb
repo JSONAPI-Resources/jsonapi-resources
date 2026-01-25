@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module JSONAPI
-
   # A ResourceFragment holds a ResourceIdentity and associated partial resource data.
   #
   # The following partial resource data may be stored
@@ -18,7 +17,7 @@ module JSONAPI
 
     attr_accessor :primary, :cache
 
-    alias :cache_field :cache #ToDo: Rename one or the other
+    alias :cache_field :cache # ToDo: Rename one or the other
 
     def initialize(identity, resource: nil, cache: nil, primary: false)
       @identity = identity

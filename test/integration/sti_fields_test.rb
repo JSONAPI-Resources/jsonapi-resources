@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require File.expand_path("../../test_helper", __FILE__)
 
 class StiFieldsTest < ActionDispatch::IntegrationTest
@@ -6,7 +7,8 @@ class StiFieldsTest < ActionDispatch::IntegrationTest
     get "/posts", params: {
                     filter: { id: "1,2" },
                     include: "author",
-                    fields: { posts: "author", people: "email" } },
+                    fields: { posts: "author", people: "email" }
+                  },
                   headers: { 'Accept' => JSONAPI::MEDIA_TYPE }
     assert_response :success
     assert_equal 2, json_response["data"].size

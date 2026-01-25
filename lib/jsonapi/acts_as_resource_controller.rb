@@ -11,7 +11,9 @@ module JSONAPI
       base.extend ClassMethods
       base.cattr_reader :server_error_callbacks
       base.include ActiveSupport::Callbacks
-      base.define_callbacks :process_operations, terminator: ->(target, result) { result.lambda? && result.call == false }
+      base.define_callbacks :process_operations, terminator: ->(target, result) {
+        result.lambda? && result.call == false
+      }
     end
 
     attr_reader :response_document, :jsonapi_request
@@ -59,7 +61,8 @@ module JSONAPI
         params,
         context: context,
         key_formatter: key_formatter,
-        server_error_callbacks: (self.class.server_error_callbacks || []))
+        server_error_callbacks: (self.class.server_error_callbacks || [])
+      )
       fail JSONAPI::Exceptions::Errors.new(@jsonapi_request.errors) if @jsonapi_request.errors.any?
     end
 
@@ -181,10 +184,10 @@ module JSONAPI
 
     def create_response_document
       JSONAPI::ResponseDocument.new(
-          key_formatter: key_formatter,
-          base_meta: base_meta,
-          base_links: base_response_links,
-          request: request
+        key_formatter: key_formatter,
+        base_meta: base_meta,
+        base_links: base_response_links,
+        request: request
       )
     end
 
@@ -192,27 +195,27 @@ module JSONAPI
     # Note: Be sure to either call super(e) or handle JSONAPI::Exceptions::Error and raise unhandled exceptions
     def handle_exceptions(e)
       case e
-        when JSONAPI::Exceptions::Error
-          errors = e.errors
-        when ActionController::ParameterMissing
-          errors = JSONAPI::Exceptions::ParameterMissing.new(e.param).errors
+      when JSONAPI::Exceptions::Error
+        errors = e.errors
+      when ActionController::ParameterMissing
+        errors = JSONAPI::Exceptions::ParameterMissing.new(e.param).errors
+      else
+        if JSONAPI.configuration.exception_class_allowed?(e)
+          raise e
         else
-          if JSONAPI.configuration.exception_class_allowed?(e)
-            raise e
-          else
-            if self.class.server_error_callbacks
-              self.class.server_error_callbacks.each { |callback|
-                safe_run_callback(callback, e)
-              }
-            end
-
-            # Store exception for other middlewares
-            request.env['action_dispatch.exception'] ||= e
-
-            internal_server_error = JSONAPI::Exceptions::InternalServerError.new(e)
-            Rails.logger.error { "Internal Server Error: #{e.message} #{e.backtrace.join("\n")}" }
-            errors = internal_server_error.errors
+          if self.class.server_error_callbacks
+            self.class.server_error_callbacks.each { |callback|
+              safe_run_callback(callback, e)
+            }
           end
+
+          # Store exception for other middlewares
+          request.env['action_dispatch.exception'] ||= e
+
+          internal_server_error = JSONAPI::Exceptions::InternalServerError.new(e)
+          Rails.logger.error { "Internal Server Error: #{e.message} #{e.backtrace.join("\n")}" }
+          errors = internal_server_error.errors
+        end
       end
 
       response_document.add_result(JSONAPI::ErrorsOperationResult.new(errors[0].status, errors), nil)
@@ -251,4 +254,3 @@ module JSONAPI
     end
   end
 end
-

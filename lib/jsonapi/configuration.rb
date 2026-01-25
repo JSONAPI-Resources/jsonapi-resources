@@ -43,13 +43,13 @@ module JSONAPI
                 :use_related_resource_records_for_joins
 
     def initialize
-      #:underscored_key, :camelized_key, :dasherized_key, or custom
+      # :underscored_key, :camelized_key, :dasherized_key, or custom
       self.json_key_format = :dasherized_key
 
-      #:underscored_route, :camelized_route, :dasherized_route, or custom
+      # :underscored_route, :camelized_route, :dasherized_route, or custom
       self.route_format = :dasherized_route
 
-      #:integer, :uuid, :string, or custom (provide a proc)
+      # :integer, :uuid, :string, or custom (provide a proc)
       self.resource_key_type = :integer
 
       # optional request features

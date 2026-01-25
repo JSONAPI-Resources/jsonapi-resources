@@ -54,7 +54,8 @@ module JSONAPI
       end
 
       if JSONAPI.configuration.top_level_links_include_pagination && paginator
-        page_options[:pagination_params] = paginator.links_page_params(page_options.merge(fetched_resources: resource_set))
+        page_options[:pagination_params] =
+          paginator.links_page_params(page_options.merge(fetched_resources: resource_set))
       end
 
       JSONAPI::ResourcesSetOperationResult.new(:ok, resource_set, page_options)
@@ -78,6 +79,7 @@ module JSONAPI
       resource_set = find_resource_set(include_directives, options)
 
       fail JSONAPI::Exceptions::RecordNotFound.new(id) if resource_set.resource_klasses.empty?
+
       resource_set.populate!(serializer, context, options)
 
       JSONAPI::ResourceSetOperationResult.new(:ok, resource_set, result_options)
@@ -181,7 +183,8 @@ module JSONAPI
         opts[:record_count] = source_resource.class.count_related(
           source_resource,
           relationship_type,
-          options)
+          options
+        )
       end
 
       if (paginator && top_level_meta_include_page_count && opts[:record_count])

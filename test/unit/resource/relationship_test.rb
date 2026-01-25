@@ -1,11 +1,12 @@
 # frozen_string_literal: true
+
 require File.expand_path('../../../test_helper', __FILE__)
 
 class LambdaBlogPostsResource < JSONAPI::Resource
   model_name 'Post'
 
-  has_one :author, allow_include: -> (context) { context[:admin] }
-  has_many :comments, allow_include: -> (context) { context[:admin] }
+  has_one :author, allow_include: ->(context) { context[:admin] }
+  has_many :comments, allow_include: ->(context) { context[:admin] }
 end
 
 class CallableBlogPostsResource < JSONAPI::Resource
@@ -43,23 +44,21 @@ class RelationshipTest < ActiveSupport::TestCase
 
   def test_use_related_resource_records_for_joins_is_disabled_by_deafult_with_relation_name
     relationship = JSONAPI::Relationship::ToOne.new(:author,
-                                                    relation_name: "foo" )
+                                                    relation_name: "foo")
     refute relationship.use_related_resource_records_for_joins
   end
 
   def test_use_related_resource_records_for_joins_can_be_disabled
     relationship = JSONAPI::Relationship::ToOne.new(:author,
-                                                    use_related_resource_records_for_joins: false )
+                                                    use_related_resource_records_for_joins: false)
     refute relationship.use_related_resource_records_for_joins
   end
 end
 
 class HasOneRelationshipTest < ActiveSupport::TestCase
-
   def test_polymorphic_type
     relationship = JSONAPI::Relationship::ToOne.new("imageable",
-      polymorphic: true
-    )
+                                                    polymorphic: true)
     assert_equal(relationship.polymorphic_type, "imageable_type")
   end
 
@@ -73,7 +72,6 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
     JSONAPI.configuration.default_allow_include_to_one = false
     relationship = JSONAPI::Relationship::ToOne.new("foo")
     refute(relationship.allow_include?)
-
   ensure
     JSONAPI.configuration = original_config
   end
@@ -88,7 +86,6 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
     JSONAPI.configuration.default_allow_include_to_one = false
     relationship = JSONAPI::Relationship::ToOne.new("foobar")
     refute(relationship.allow_include?)
-
   ensure
     JSONAPI.configuration = original_config
   end
@@ -105,7 +102,6 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
     JSONAPI.configuration.default_allow_include_to_one = false
     refute(relationship1.allow_include?)
     assert(relationship2.allow_include?)
-
   ensure
     JSONAPI.configuration = original_config
   end
@@ -122,7 +118,6 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
     JSONAPI.configuration.default_allow_include_to_one = false
     refute(relationship1.allow_include?)
     assert(relationship2.allow_include?)
-
   ensure
     JSONAPI.configuration = original_config
   end
@@ -277,6 +272,4 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
   ensure
     JSONAPI.configuration.default_exclude_links = :none
   end
-
-
 end
