@@ -2,14 +2,15 @@
 
 [![Join the chat at https://gitter.im/cerebris/jsonapi-resources](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cerebris/jsonapi-resources?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-`JSONAPI::Resources`, or "JR", provides a framework for developing an API server that complies with the
-[JSON:API](http://jsonapi.org/) specification.
+`JSONAPI::Resources`, or "JR", provides a high-performance framework for serving **read-only** JSON:API compliant responses in Rails 8.0+ applications.
 
 Like JSON:API itself, JR's design is focused on the resources served by an API. JR needs little more than a definition
 of your resources, including their attributes and relationships, to make your server compliant with JSON API.
 
-JR is designed to work with Rails 5.1+, and provides custom routes, controllers, and serializers. JR's resources may be
+JR is designed to work with **Rails 8.0+**, and provides custom routes, controllers, and serializers. JR's resources may be
 backed by ActiveRecord models or by custom objects.
+
+**Note: This version of JR is read-only. Mutation operations (create, update, destroy) have been removed to streamline the library for high-scale reading purposes.**
 
 ## Documentation
 

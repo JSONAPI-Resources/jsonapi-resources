@@ -70,7 +70,7 @@ module JSONAPI
         @join_details[segment]
       end
 
-      def self.get_join_arel_node(records, options = {})
+      def self.get_join_arel_node(records, relationship, join_type, options = {})
         init_join_sources = records.arel.join_sources
         init_join_sources_length = init_join_sources.length
 
@@ -80,9 +80,27 @@ module JSONAPI
         if join_sources.length > init_join_sources_length
           last_join = (join_sources - init_join_sources).last
         else
+          # Try to find a pre-existing join for this table.
+          # We can get here if include_optional_linkage_data is true
+          # (or always_include_to_xxx_linkage_data),
+          # and the user's custom `records` method has already added that join.
+          #
+          # If we want a left join and there is already an inner/left join,
+          # then we can use that.
+          # If we want an inner join and there is alrady an inner join,
+          # then we can use that (but not a left join, since that doesn't filter things out).
+          valid_join_types = [Arel::Nodes::InnerJoin]
+          valid_join_types << Arel::Nodes::OuterJoin if join_type == :left
+          table_name = relationship.resource_klass._table_name
+
+          last_join = join_sources.find { |j|
+            valid_join_types.any? { |t| j.is_a?(t) } && j.left.name == table_name
+          }
+        end
+
+        if last_join.nil?
           # :nocov:
           warn "get_join_arel_node: No join added"
-          last_join = nil
           # :nocov:
         end
 
@@ -160,7 +178,7 @@ module JSONAPI
               next
             end
 
-            records, join_node = self.class.get_join_arel_node(records, options) {|records, options|
+            records, join_node = self.class.get_join_arel_node(records, relationship, join_type, options) {|records, options|
               related_resource_klass.join_relationship(
                 records: records,
                 resource_type: related_resource_klass._type,

@@ -20,10 +20,6 @@ module JSONAPI
       @relation_name = options.fetch(:relation_name, @name)
       @polymorphic = options.fetch(:polymorphic, false) == true
       @polymorphic_types = options[:polymorphic_types]
-      if options[:polymorphic_relations]
-        ActiveSupport::Deprecation.warn('Use polymorphic_types instead of polymorphic_relations')
-        @polymorphic_types ||= options[:polymorphic_relations]
-      end
 
       use_related_resource_records_for_joins_default = if options[:relation_name]
                                                          false

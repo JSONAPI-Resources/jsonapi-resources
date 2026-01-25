@@ -1,30 +1,61 @@
+require 'logger'
 require 'simplecov'
 require 'database_cleaner'
+require 'minitest'
+require 'minitest/autorun'
 
 # To run tests with coverage:
 # COVERAGE=true bundle exec rake test
 
-# To test on a specific rails version use this:
-# export RAILS_VERSION=5.2.4.4; bundle update; bundle exec rake test
-# export RAILS_VERSION=6.0.3.4; bundle update; bundle exec rake test
-# export RAILS_VERSION=6.1.1; bundle update; bundle exec rake test
-
-# We are no longer having Travis test Rails 4.2.11., but you can try it with:
-# export RAILS_VERSION=4.2.11; bundle update rails; bundle exec rake test
-
-# To Switch rails versions and run a particular test order:
-# export RAILS_VERSION=6.1.1; bundle update; bundle exec rake TESTOPTS="--seed=39333" test
-
 if ENV['COVERAGE']
   SimpleCov.start do
+    add_filter '/test/'
+    add_filter '/config/'
+    add_filter '/vendor/'
+
+    add_group 'Controllers', 'lib/jsonapi/acts_as_resource_controller'
+    add_group 'Resources', 'lib/jsonapi/resource'
+    add_group 'Serializers', 'lib/jsonapi/serializer'
+    add_group 'Processors', 'lib/jsonapi/processor'
+    add_group 'ActiveRelation', 'lib/jsonapi/active_relation'
+    add_group 'Routing', 'lib/jsonapi/routing'
+
+    track_files 'lib/**/*.rb'
+    enable_coverage :branch if respond_to?(:enable_coverage)
+
+    formatter SimpleCov::Formatter::MultiFormatter.new([
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::SimpleFormatter
+    ])
   end
 end
 
 ENV['DATABASE_URL'] ||= "sqlite3:test_db"
 
 require 'active_record/railtie'
+
+# Rails 8+ initialization
+Rails.env = 'test'
+
+class TestApp < Rails::Application
+  config.eager_load = false
+  config.root = File.dirname(__FILE__)
+  config.session_store :cookie_store, key: 'session'
+  config.secret_key_base = 'secret'
+
+  config.action_controller.action_on_unpermitted_parameters = :raise
+
+  ActiveRecord::Schema.verbose = false
+  config.active_record.schema_format = :ruby
+  config.active_support.test_order = :random
+
+  config.active_record.time_zone_aware_types = [:time, :datetime]
+  config.active_record.belongs_to_required_by_default = false
+end
+
+TestApp.initialize!
+
 require 'rails/test_help'
-require 'minitest/mock'
 require 'jsonapi-resources'
 require 'pry'
 
@@ -42,30 +73,12 @@ JSONAPI.configure do |config|
   config.json_key_format = :camelized_key
 end
 
-ActiveSupport::Deprecation.silenced = true
+# Silence deprecation warnings
+if defined?(Rails.application) && Rails.application.respond_to?(:deprecators)
+  Rails.application.deprecators.silenced = true
+end
 
 puts "Testing With RAILS VERSION #{Rails.version}"
-
-class TestApp < Rails::Application
-  config.eager_load = false
-  config.root = File.dirname(__FILE__)
-  config.session_store :cookie_store, key: 'session'
-  config.secret_key_base = 'secret'
-
-  #Raise errors on unsupported parameters
-  config.action_controller.action_on_unpermitted_parameters = :raise
-
-  ActiveRecord::Schema.verbose = false
-  config.active_record.schema_format = :none
-  config.active_support.test_order = :random
-
-  config.active_support.halt_callback_chains_on_return_false = false
-  config.active_record.time_zone_aware_types = [:time, :datetime]
-  config.active_record.belongs_to_required_by_default = false
-  if Rails::VERSION::MAJOR == 5 && Rails::VERSION::MINOR == 2
-    config.active_record.sqlite3.represent_boolean_as_integer = true
-  end
-end
 
 DatabaseCleaner.allow_remote_database_url = true
 DatabaseCleaner.strategy = :transaction
@@ -190,7 +203,10 @@ def show_queries
   end
 end
 
-TestApp.initialize!
+# Initialize TestApp for Rails < 7.1 (for Rails 7.1+ it was already initialized before rails/test_help)
+unless Rails::VERSION::MAJOR >= 8 || (Rails::VERSION::MAJOR == 7 && Rails::VERSION::MINOR >= 1)
+  TestApp.initialize!
+end
 
 require File.expand_path('../fixtures/active_record', __FILE__)
 
@@ -312,6 +328,9 @@ TestApp.routes.draw do
         jsonapi_link :author, except: [:destroy]
         jsonapi_links :tags, only: [:show, :create]
       end
+
+      jsonapi_resources :planets
+      jsonapi_resources :moons
     end
 
     JSONAPI.configuration.route_format = :camelized_route
@@ -457,12 +476,22 @@ class Minitest::Test
     true
   end
 
-  self.fixture_path = "#{Rails.root}/fixtures"
+  # Rails 7.2+ changed fixture_path= to fixture_paths=
+  if respond_to?(:fixture_paths=)
+    self.fixture_paths = ["#{Rails.root}/fixtures"]
+  else
+    self.fixture_path = "#{Rails.root}/fixtures"
+  end
   fixtures :all
 end
 
 class ActiveSupport::TestCase
-  self.fixture_path = "#{Rails.root}/fixtures"
+  # Rails 7.2+ changed fixture_path= to fixture_paths=
+  if respond_to?(:fixture_paths=)
+    self.fixture_paths = ["#{Rails.root}/fixtures"]
+  else
+    self.fixture_path = "#{Rails.root}/fixtures"
+  end
   fixtures :all
   setup do
     @routes = TestApp.routes
@@ -470,7 +499,12 @@ class ActiveSupport::TestCase
 end
 
 class ActionDispatch::IntegrationTest
-  self.fixture_path = "#{Rails.root}/fixtures"
+  # Rails 7.2+ changed fixture_path= to fixture_paths=
+  if respond_to?(:fixture_paths=)
+    self.fixture_paths = ["#{Rails.root}/fixtures"]
+  else
+    self.fixture_path = "#{Rails.root}/fixtures"
+  end
   fixtures :all
 
   def assert_jsonapi_response(expected_status, msg = nil)

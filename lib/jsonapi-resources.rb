@@ -9,11 +9,7 @@ require 'jsonapi/resource'
 require 'jsonapi/cached_response_fragment'
 require 'jsonapi/response_document'
 require 'jsonapi/acts_as_resource_controller'
-if Rails::VERSION::MAJOR >= 6
-  ActiveSupport.on_load(:action_controller_base) do
-    require 'jsonapi/resource_controller'
-  end
-else
+ActiveSupport.on_load(:action_controller_base) do
   require 'jsonapi/resource_controller'
 end
 require 'jsonapi/resource_controller_metal'
@@ -33,7 +29,6 @@ require 'jsonapi/relationship'
 require 'jsonapi/include_directives'
 require 'jsonapi/operation'
 require 'jsonapi/operation_result'
-require 'jsonapi/callbacks'
 require 'jsonapi/link_builder'
 require 'jsonapi/active_relation/adapters/join_left_active_record_adapter'
 require 'jsonapi/active_relation/join_manager'

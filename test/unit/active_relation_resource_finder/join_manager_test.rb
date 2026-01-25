@@ -6,7 +6,10 @@ class JoinTreeTest < ActiveSupport::TestCase
   def db_true
     case ActiveRecord::Base.connection.adapter_name
       when 'SQLite'
-        if Rails::VERSION::MAJOR >= 6 || (Rails::VERSION::MAJOR >= 5 && ActiveRecord::VERSION::MINOR >= 2)
+        if Rails::VERSION::MAJOR >= 8 && Rails::VERSION::MINOR >= 1
+          # Rails 8.1+ SQLite uses TRUE instead of 1
+          "TRUE"
+        elsif Rails::VERSION::MAJOR >= 6 || (Rails::VERSION::MAJOR >= 5 && ActiveRecord::VERSION::MINOR >= 2)
           "1"
         else
           "'t'"

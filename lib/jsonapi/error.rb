@@ -4,6 +4,26 @@ module JSONAPI
   class Error
     attr_accessor :title, :detail, :id, :href, :code, :source, :links, :status, :meta
 
+    # Rack 3.0+ deprecated :unprocessable_entity in favor of :unprocessable_content
+    # This mapping ensures compatibility across Rack versions
+    DEPRECATED_STATUS_SYMBOLS = {
+      unprocessable_entity: :unprocessable_content
+    }.freeze
+
+    def self.status_code_for(status_symbol)
+      return nil if status_symbol.nil?
+
+      # Try the symbol directly first
+      code = Rack::Utils::SYMBOL_TO_STATUS_CODE[status_symbol]
+
+      # If not found and it's a deprecated symbol, try the new symbol
+      if code.nil? && DEPRECATED_STATUS_SYMBOLS.key?(status_symbol)
+        code = Rack::Utils::SYMBOL_TO_STATUS_CODE[DEPRECATED_STATUS_SYMBOLS[status_symbol]]
+      end
+
+      code&.to_s
+    end
+
     def initialize(options = {})
       @title          = options[:title]
       @detail         = options[:detail]
@@ -17,7 +37,7 @@ module JSONAPI
       @source         = options[:source]
       @links          = options[:links]
 
-      @status         = Rack::Utils::SYMBOL_TO_STATUS_CODE[options[:status]].to_s
+      @status         = self.class.status_code_for(options[:status])
       @meta           = options[:meta]
     end
 
@@ -48,7 +68,7 @@ module JSONAPI
 
       if error_object_overrides[:status]
         # :nocov:
-        @status         = Rack::Utils::SYMBOL_TO_STATUS_CODE[error_object_overrides[:status]].to_s
+        @status         = self.class.status_code_for(error_object_overrides[:status])
         # :nocov:
       end
       @meta           = error_object_overrides[:meta] || @meta

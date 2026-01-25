@@ -243,9 +243,6 @@ class ResourceTest < ActiveSupport::TestCase
     end
   end
 
-  def test_updatable_fields_does_not_include_id
-    assert(!FelineResource.updatable_fields.include?(:id))
-  end
 
   def test_filter_on_to_many_relationship_id
     posts = PostResource.find(:comments => 3)
@@ -432,20 +429,6 @@ class ResourceTest < ActiveSupport::TestCase
     end
   end
 
-  def test_id_attr_deprecation
-
-    ActiveSupport::Deprecation.silenced = false
-    _out, err = capture_io do
-      eval <<-CODE
-        class ProblemResource < JSONAPI::Resource
-          attribute :id
-        end
-      CODE
-    end
-    assert_match /DEPRECATION WARNING: Id without format is no longer supported. Please remove ids from attributes, or specify a format./, err
-  ensure
-    ActiveSupport::Deprecation.silenced = true
-  end
 
   def test_id_attr_with_format
     _out, err = capture_io do
@@ -522,14 +505,6 @@ class ResourceTest < ActiveSupport::TestCase
     assert_match "", err
   end
 
-  def test_correct_error_surfaced_if_validation_errors_in_after_save_callback
-    post = PostWithBadAfterSave.find(1)
-    post_resource = ArticleWithBadAfterSaveResource.new(post, nil)
-    err = assert_raises JSONAPI::Exceptions::ValidationErrors do
-      post_resource.replace_fields({:attributes => {:title => 'Some title'}})
-    end
-    assert_equal(err.error_messages[:base], ['Boom! Error added in after_save callback.'])
-  end
 
   def test_resource_for_model_use_hint
     special_person = Person.create!(name: 'Special', date_joined: Date.today, special: true)
@@ -538,27 +513,12 @@ class ResourceTest < ActiveSupport::TestCase
     assert_equal(SpecialPersonResource, SpecialPersonResource.resource_klass_for_model(resource_model))
   end
 
-  def test_resource_performs_validations_in_custom_context
-    post = PostWithCustomValidationContext.find(1)
-    post_resource = ArticleWithCustomValidationContextResource.new(post, nil)
-    err = assert_raises JSONAPI::Exceptions::ValidationErrors do
-      post_resource._save
-    end
-    assert_equal(err.error_messages[:base], ['Record is invalid'])
-  end
 
   def test_resources_for_transforms_records_into_resources
     resources = PostResource.resources_for([Post.first], {})
     assert_equal(PostResource, resources.first.class)
   end
 
-  def test_readonly_attribute
-    refute_includes(PostWithReadonlyAttributesResource.creatable_fields, :title)
-    refute_includes(PostWithReadonlyAttributesResource.updatable_fields, :title)
-
-    refute_includes(PostWithReadonlyAttributesResource.creatable_fields, :author)
-    refute_includes(PostWithReadonlyAttributesResource.updatable_fields, :author)
-  end
 
   def test_sortable_field?
     assert(PostResource.sortable_field?(:title))

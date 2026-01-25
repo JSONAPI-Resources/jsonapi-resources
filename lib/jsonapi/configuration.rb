@@ -27,7 +27,6 @@ module JSONAPI
                 :top_level_meta_record_count_key,
                 :top_level_meta_include_page_count,
                 :top_level_meta_page_count_key,
-                :allow_transactions,
                 :include_backtraces_in_errors,
                 :include_application_backtraces_in_errors,
                 :exception_class_allowlist,
@@ -35,7 +34,6 @@ module JSONAPI
                 :always_include_to_one_linkage_data,
                 :always_include_to_many_linkage_data,
                 :cache_formatters,
-                :use_relationship_reflection,
                 :resource_cache,
                 :default_caching,
                 :default_resource_cache_field,
@@ -94,11 +92,6 @@ module JSONAPI
       self.include_application_backtraces_in_errors = (Rails.env.development? || Rails.env.test?)
 
       # List of classes that should not be rescued by the operations processor.
-      # For example, if you use Pundit for authorization, you might
-      # raise a Pundit::NotAuthorizedError at some point during operations
-      # processing. If you want to use Rails' `rescue_from` macro to
-      # catch this error and render a 403 status code, you should add
-      # the `Pundit::NotAuthorizedError` to the `exception_class_allowlist`.
       self.exception_class_allowlist = []
 
       # If enabled, will override configuration option `exception_class_allowlist`
@@ -107,7 +100,6 @@ module JSONAPI
 
       # Resource Linkage
       # Controls the serialization of resource linkage for non compound documents
-      # NOTE: always_include_to_many_linkage_data is not currently implemented
       self.always_include_to_one_linkage_data = false
       self.always_include_to_many_linkage_data = false
 
@@ -115,56 +107,30 @@ module JSONAPI
       # for a Resource.
       self.default_processor_klass_name = 'JSONAPI::Processor'
 
-      # Allows transactions for creating and updating records
-      # Set this to false if your backend does not support transactions (e.g. Mongodb)
-      self.allow_transactions = true
-
       # Formatter Caching
       # Set to false to disable caching of string operations on keys and links.
-      # Note that unlike the resource cache, formatter caching is always done
-      # internally in-memory and per-thread; no ActiveSupport::Cache is used.
       self.cache_formatters = true
-
-      # Relationship reflection invokes the related resource when updates
-      # are made to a has_many relationship. By default relationship_reflection
-      # is turned off because it imposes a small performance penalty.
-      self.use_relationship_reflection = false
 
       # Resource cache
       # An ActiveSupport::Cache::Store or similar, used by Resources with caching enabled.
-      # Set to `nil` (the default) to disable caching, or to `Rails.cache` to use the
-      # Rails cache store.
       self.resource_cache = nil
 
       # Cache resources by default
-      # Cache resources by default. Individual resources can be excluded from caching by calling:
-      # `caching false`
       self.default_caching = false
 
       # Default resource cache field
-      # On Resources with caching enabled, this field will be used to check for out-of-date
-      # cache entries, unless overridden on a specific Resource. Defaults to "updated_at".
       self.default_resource_cache_field = :updated_at
 
       # Resource cache digest function
-      # Provide a callable that returns a unique value for string inputs with
-      # low chance of collision. The default is SHA256 base64.
       self.resource_cache_digest_function = Digest::SHA2.new.method(:base64digest)
 
       # Resource cache usage reporting
-      # Optionally provide a callable which JSONAPI will call with information about cache
-      # performance. Should accept three arguments: resource name, hits count, misses count.
       self.resource_cache_usage_report_function = nil
 
       # Global configuration for links exclusion
-      # Controls whether to generate links like `self`, `related` with all the resources
-      # and relationships. Accepts either `:default`, `:none`, or array containing the
-      # specific default links to exclude, which may be `:self` and `:related`.
       self.default_exclude_links = :none
 
-      # Use a related resource's `records` when performing joins. This setting allows included resources to account for
-      # permission scopes. It can be overridden explicitly per relationship. Furthermore, specifying a `relation_name`
-      # on a relationship will cause this setting to be ignored.
+      # Use a related resource's `records` when performing joins.
       self.use_related_resource_records_for_joins = true
     end
 
@@ -232,11 +198,6 @@ module JSONAPI
         @exception_class_allowlist.flatten.any? { |k| e.class.ancestors.map(&:to_s).include?(k.to_s) }
     end
 
-    def default_processor_klass=(default_processor_klass)
-      ActiveSupport::Deprecation.warn('`default_processor_klass` has been replaced by `default_processor_klass_name`.')
-      @default_processor_klass = default_processor_klass
-    end
-
     def default_processor_klass
       @default_processor_klass ||= default_processor_klass_name.safe_constantize
     end
@@ -244,22 +205,6 @@ module JSONAPI
     def default_processor_klass_name=(default_processor_klass_name)
       @default_processor_klass = nil
       @default_processor_klass_name = default_processor_klass_name
-    end
-
-    def allow_include=(allow_include)
-      ActiveSupport::Deprecation.warn('`allow_include` has been replaced by `default_allow_include_to_one` and `default_allow_include_to_many` options.')
-      @default_allow_include_to_one = allow_include
-      @default_allow_include_to_many = allow_include
-    end
-
-    def whitelist_all_exceptions=(allow_all_exceptions)
-      ActiveSupport::Deprecation.warn('`whitelist_all_exceptions` has been replaced by `allow_all_exceptions`')
-      @allow_all_exceptions = allow_all_exceptions
-    end
-
-    def exception_class_whitelist=(exception_class_allowlist)
-      ActiveSupport::Deprecation.warn('`exception_class_whitelist` has been replaced by `exception_class_allowlist`')
-      @exception_class_allowlist = exception_class_allowlist
     end
 
     attr_writer :allow_sort, :allow_filter, :default_allow_include_to_one, :default_allow_include_to_many
@@ -282,8 +227,6 @@ module JSONAPI
 
     attr_writer :top_level_meta_page_count_key
 
-    attr_writer :allow_transactions
-
     attr_writer :include_backtraces_in_errors
 
     attr_writer :include_application_backtraces_in_errors
@@ -304,8 +247,6 @@ module JSONAPI
 
     attr_writer :warn_on_performance_issues
 
-    attr_writer :use_relationship_reflection
-
     attr_writer :resource_cache
 
     attr_writer :default_caching
@@ -322,12 +263,14 @@ module JSONAPI
   end
 
   class << self
-    attr_accessor :configuration
+    attr_writer :configuration
+
+    def configuration
+      @configuration ||= Configuration.new
+    end
   end
 
-  @configuration ||= Configuration.new
-
   def self.configure
-    yield(@configuration)
+    yield(configuration)
   end
 end

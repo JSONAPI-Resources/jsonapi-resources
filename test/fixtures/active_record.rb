@@ -52,7 +52,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :posts, force: true do |t|
-    t.string     :title, length: 255
+    t.string     :title, limit: 255
     t.text       :body
     t.integer    :author_id
     t.integer    :parent_post_id
@@ -324,8 +324,8 @@ ActiveRecord::Schema.define do
 
   create_table :related_things, force: true  do |t|
     t.string :name
-    t.references :from, references: :thing
-    t.references :to, references: :thing
+    t.references :from, foreign_key: false
+    t.references :to, foreign_key: false
 
     t.timestamps null: false
   end
@@ -647,8 +647,8 @@ class Breed
 end
 
 class Book < ActiveRecord::Base
-  has_many :book_comments
-  has_many :approved_book_comments, -> { where(approved: true) }, class_name: "BookComment"
+  has_many :book_comments, -> { order(:id) }
+  has_many :approved_book_comments, -> { where(approved: true).order(:id) }, class_name: "BookComment"
 
   has_and_belongs_to_many :authors, join_table: :book_authors, class_name: "Person"
 
@@ -658,6 +658,8 @@ class Book < ActiveRecord::Base
 end
 
 class BookComment < ActiveRecord::Base
+  default_scope { order(:id) }
+
   belongs_to :author, class_name: 'Person', foreign_key: 'author_id'
   belongs_to :book
 
@@ -1059,6 +1061,8 @@ module Api
   module V3
     class PostsController < JSONAPI::ResourceController
     end
+    class MoonsController < JSONAPI::ResourceController
+    end
   end
 
   module V4
@@ -1403,38 +1407,6 @@ class PostResource < JSONAPI::Resource
     [{field: 'title', direction: :desc}, {field: 'id', direction: :desc}]
   end
 
-  before_save do
-    msg = "Before save"
-  end
-
-  after_save do
-    msg = "After save"
-  end
-
-  before_update do
-    msg = "Before update"
-  end
-
-  after_update do
-    msg = "After update"
-  end
-
-  before_replace_fields do
-    msg = "Before replace_fields"
-  end
-
-  after_replace_fields do
-    msg = "After replace_fields"
-  end
-
-  around_update :around_update_check
-
-  def around_update_check
-    # do nothing
-    yield
-    # do nothing
-  end
-
   def subject
     @model.title
   end
@@ -1676,7 +1648,7 @@ class PlanetResource < JSONAPI::Resource
   attribute :description
 
   has_many :moons
-  belongs_to :planet_type
+  has_one :planet_type
 
   has_many :tags, acts_as_set: true
 end
@@ -1765,10 +1737,12 @@ class PictureResource < JSONAPI::Resource
 end
 
 class ImageableResource < JSONAPI::Resource
+  abstract
   polymorphic
 end
 
 class FileableResource < JSONAPI::Resource
+  abstract
   polymorphic
 end
 
@@ -2012,6 +1986,11 @@ module Api
         records.where(BookComment.arel_table[:body].matches("%#{value[0]}%"))
       }
 
+      # Add default sort to ensure stable ordering across cache/non-cache scenarios
+      def self.default_sort
+        [{field: 'id', direction: :asc}]
+      end
+
       class << self
         def book_comments
           BookComment.arel_table
@@ -2034,6 +2013,15 @@ module Api
   module V3
     class PostResource < PostResource; end
     class PreferencesResource < PreferencesResource; end
+    class PlanetResource < JSONAPI::Resource
+    end
+    class MoonResource < JSONAPI::Resource
+      has_one :planet, always_include_optional_linkage_data: true
+
+      def self.records(options = {})
+        Moon.joins(:planet).merge(Planet.where(name: 'Satern')) # sic
+      end
+    end
   end
 end
 
@@ -2518,12 +2506,6 @@ end
 
 # CustomProcessors
 class Api::V4::BookProcessor < JSONAPI::Processor
-  after_find do
-    unless @results.is_a?(JSONAPI::ErrorsOperationResult)
-      @result.meta[:total_records] = @result.record_count
-      @result.links['spec'] = 'https://test_corp.com'
-    end
-  end
 end
 
 class PostProcessor < JSONAPI::Processor
@@ -2533,13 +2515,6 @@ class PostProcessor < JSONAPI::Processor
     end
     # puts("In custom Operations Processor without Namespace")
     super
-  end
-
-  after_find do
-    unless @results.is_a?(JSONAPI::ErrorsOperationResult)
-      @result.meta[:total_records] = @result.record_count
-      @result.links['spec'] = 'https://test_corp.com'
-    end
   end
 end
 

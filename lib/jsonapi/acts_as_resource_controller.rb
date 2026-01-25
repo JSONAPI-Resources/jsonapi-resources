@@ -9,10 +9,9 @@ module JSONAPI
 
     def self.included(base)
       base.extend ClassMethods
-      base.include Callbacks
       base.cattr_reader :server_error_callbacks
-      base.define_jsonapi_resources_callbacks :process_operations,
-                                              :transaction
+      base.include ActiveSupport::Callbacks
+      base.define_callbacks :process_operations, terminator: ->(target, result) { result.lambda? && result.call == false }
     end
 
     attr_reader :response_document, :jsonapi_request
@@ -29,30 +28,6 @@ module JSONAPI
       process_request
     end
 
-    def create
-      process_request
-    end
-
-    def create_relationship
-      process_request
-    end
-
-    def update_relationship
-      process_request
-    end
-
-    def update
-      process_request
-    end
-
-    def destroy
-      process_request
-    end
-
-    def destroy_relationship
-      process_request
-    end
-
     def show_related_resource
       process_request
     end
@@ -61,29 +36,14 @@ module JSONAPI
       process_request
     end
 
-    def get_related_resource
-      # :nocov:
-    ActiveSupport::Deprecation.warn "In #{self.class.name} you exposed a `get_related_resource`"\
-                                      " action. Please use `show_related_resource` instead."
-      show_related_resource
-      # :nocov:
-    end
-
-    def get_related_resources
-      # :nocov:
-      ActiveSupport::Deprecation.warn "In #{self.class.name} you exposed a `get_related_resources`"\
-                                      " action. Please use `index_related_resources` instead."
-      index_related_resources
-      # :nocov:
-    end
-
     def process_request
       begin
         setup_response_document
-        verify_content_type_header
         verify_accept_header
         parse_request
-        execute_request
+        run_callbacks :process_operations do
+          execute_request
+        end
       rescue => e
         handle_exceptions(e)
       end
@@ -104,43 +64,20 @@ module JSONAPI
     end
 
     def execute_request
-      process_operations(jsonapi_request.transactional?) do
-        run_callbacks :process_operations do
-          jsonapi_request.operations.each do |op|
-            op.options[:serializer] = resource_serializer_klass.new(
-              op.resource_klass,
-              include_directives: op.options[:include_directives],
-              fields: op.options[:fields],
-              base_url: base_url,
-              key_formatter: key_formatter,
-              route_formatter: route_formatter,
-              serialization_options: serialization_options,
-              controller: self
-            )
-            op.options[:cache_serializer_output] = !JSONAPI.configuration.resource_cache.nil?
+      jsonapi_request.operations.each do |op|
+        op.options[:serializer] = resource_serializer_klass.new(
+          op.resource_klass,
+          include_directives: op.options[:include_directives],
+          fields: op.options[:fields],
+          base_url: base_url,
+          key_formatter: key_formatter,
+          route_formatter: route_formatter,
+          serialization_options: serialization_options,
+          controller: self
+        )
+        op.options[:cache_serializer_output] = !JSONAPI.configuration.resource_cache.nil?
 
-            process_operation(op)
-          end
-        end
-        if response_document.has_errors?
-          raise ActiveRecord::Rollback
-        end
-      end
-    end
-
-    def process_operations(transactional)
-      if transactional
-        run_callbacks :transaction do
-          ActiveRecord::Base.transaction do
-            yield
-          end
-        end
-      else
-        begin
-          yield
-        rescue ActiveRecord::Rollback
-          # Can't rollback without transaction, so just ignore it
-        end
+        process_operation(op)
       end
     end
 
@@ -165,14 +102,6 @@ module JSONAPI
 
     def resource_klass_name
       @resource_klass_name ||= "#{self.class.name.underscore.sub(/_controller$/, '').singularize}_resource".camelize
-    end
-
-    def verify_content_type_header
-      if ['create', 'create_relationship', 'update_relationship', 'update'].include?(params[:action])
-        unless request.media_type == JSONAPI::MEDIA_TYPE
-          fail JSONAPI::Exceptions::UnsupportedMediaTypeError.new(request.media_type)
-        end
-      end
     end
 
     def verify_accept_header
@@ -240,11 +169,6 @@ module JSONAPI
       else
         # Bypassing ActiveSupport allows us to use CompiledJson objects for cached response fragments
         render_options[:body] = JSON.generate(content)
-
-        if (response_document.status == 201 && content[:data].class != Array) &&
-            content['data'] && content['data']['links'] && content['data']['links']['self']
-          render_options[:location] = content['data']['links']['self']
-        end
       end
 
       # For whatever reason, `render` ignores :status and :content_type when :body is set.
@@ -304,14 +228,7 @@ module JSONAPI
       end
     end
 
-    # Pass in a methods or a block to be run when an exception is
-    # caught that is not a JSONAPI::Exceptions::Error
-    # Useful for additional logging or notification configuration that
-    # would normally depend on rails catching and rendering an exception.
-    # Ignores allowlist exceptions from config
-
     module ClassMethods
-
       def on_server_error(*args, &callback_block)
         callbacks ||= []
 
@@ -331,7 +248,7 @@ module JSONAPI
         callbacks += method_callbacks
         self.class_variable_set :@@server_error_callbacks, callbacks
       end
-
     end
   end
 end
+
