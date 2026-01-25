@@ -16,3 +16,9 @@ plugins:
 Style/GlobalVars:
   Exclude:
     - test/**/*
+
+Minitest/MultipleAssertions:
+  Exclude:
+    - test/**/*
+
+

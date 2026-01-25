@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
 require 'jsonapi-resources'
 
 class PathTest < ActiveSupport::TestCase
@@ -85,7 +85,8 @@ class PathTest < ActiveSupport::TestCase
     assert_kind_of Array, path.segments
     assert_kind_of JSONAPI::PathSegment::Relationship, path.segments[0], 'should be a PathSegment::Relationship'
     assert_equal PictureResource._relationship(:imageable), path.segments[0].relationship
-    refute_predicate path.segments[0], :path_specified_resource_klass?, 'should note that the resource klass was not specified'
+    refute_predicate path.segments[0], :path_specified_resource_klass?,
+                     'should note that the resource klass was not specified'
   end
 
   def test_polymorphic_path_with_resource_type
@@ -95,7 +96,8 @@ class PathTest < ActiveSupport::TestCase
     assert_kind_of JSONAPI::PathSegment::Relationship, path.segments[0], 'should be a PathSegment::Relationship'
     assert_equal PictureResource._relationship(:imageable), path.segments[0].relationship
     assert_equal DocumentResource, path.segments[0].resource_klass, 'should return the specified resource klass'
-    assert_predicate path.segments[0], :path_specified_resource_klass?, 'should note that the resource klass was specified'
+    assert_predicate path.segments[0], :path_specified_resource_klass?,
+                     'should note that the resource klass was specified'
   end
 
   def test_polymorphic_path_with_wrong_resource_type

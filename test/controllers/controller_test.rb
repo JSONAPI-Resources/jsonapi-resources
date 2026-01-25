@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require File.expand_path('../test_helper', __dir__)
 
 def set_content_type_header!
   @request.headers['Content-Type'] = JSONAPI::MEDIA_TYPE

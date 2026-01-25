@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require File.expand_path('../test_helper', __dir__)
 
 class StiFieldsTest < ActionDispatch::IntegrationTest
   def test_index_fields_when_resource_does_not_match_relationship

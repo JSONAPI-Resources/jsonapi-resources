@@ -61,14 +61,14 @@ require 'rails/test_help'
 require 'jsonapi-resources'
 require 'pry'
 
-require File.expand_path('../helpers/value_matchers', __FILE__)
-require File.expand_path('../helpers/assertions', __FILE__)
-require File.expand_path('../helpers/functional_helpers', __FILE__)
-require File.expand_path('../helpers/configuration_helpers', __FILE__)
+require File.expand_path('helpers/value_matchers', __dir__)
+require File.expand_path('helpers/assertions', __dir__)
+require File.expand_path('helpers/functional_helpers', __dir__)
+require File.expand_path('helpers/configuration_helpers', __dir__)
 
 Rails.env = 'test'
 
-I18n.load_path += Dir[File.expand_path('../../locales/*.yml', __FILE__)]
+I18n.load_path += Dir[File.expand_path('../locales/*.yml', __dir__)]
 I18n.enforce_available_locales = false
 
 JSONAPI.configure do |config|
@@ -211,7 +211,7 @@ unless Rails::VERSION::MAJOR >= 8 || (Rails::VERSION::MAJOR == 7 && Rails::VERSI
   TestApp.initialize!
 end
 
-require File.expand_path('../fixtures/active_record', __FILE__)
+require File.expand_path('fixtures/active_record', __dir__)
 
 module Pets
   module V1

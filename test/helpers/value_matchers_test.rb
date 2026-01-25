@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require File.expand_path('../test_helper', __dir__)
 
 class ValueMatchersTest < ActionController::TestCase
   def test_matches_value_any
