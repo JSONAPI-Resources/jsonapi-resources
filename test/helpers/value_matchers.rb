@@ -44,12 +44,12 @@ module Helpers
       matched = {}
       (0..(array1.size - 1)).each do |i|
         (0..(array2.size - 1)).each do |j|
-          if !matched.has_value?(j.to_s) && matches_value?(array1[i], array2[j], options)
+          if !matched.value?(j.to_s) && matches_value?(array1[i], array2[j], options)
             matched[i.to_s] = j.to_s
             break
           end
         end
-        unless matched.has_key?(i.to_s)
+        unless matched.key?(i.to_s)
           return false
         end
       end
@@ -70,7 +70,7 @@ module Helpers
       hash2 = hash2.deep_symbolize_keys
 
       hash1.each do |k1, v1|
-        unless hash2.has_key?(k1) && matches_value?(v1, hash2[k1], options)
+        unless hash2.key?(k1) && matches_value?(v1, hash2[k1], options)
           return false
         end
       end

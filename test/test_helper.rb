@@ -661,8 +661,8 @@ class ActionController::TestCase
 
     r = json_response.dup
     (r['errors'] || []).each do |err|
-      err['meta'].delete('backtrace') if err.has_key?('meta')
-      err['meta'].delete('application_backtrace') if err.has_key?('meta')
+      err['meta'].delete('backtrace') if err.key?('meta')
+      err['meta'].delete('application_backtrace') if err.key?('meta')
     end
     return r
   end

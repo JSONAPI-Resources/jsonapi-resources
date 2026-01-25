@@ -380,7 +380,7 @@ module JSONAPI
         include_related ||= {}
         relationships = []
         _relationships.each do |name, relationship|
-          if relationship.is_a?(JSONAPI::Relationship::ToOne) && !include_related.has_key?(name) && relationship.include_optional_linkage_data?
+          if relationship.is_a?(JSONAPI::Relationship::ToOne) && !include_related.key?(name) && relationship.include_optional_linkage_data?
             relationships << name
           end
         end

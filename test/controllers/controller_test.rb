@@ -614,9 +614,9 @@ class PostsControllerTest < ActionController::TestCase
     assert_cacheable_get :show, params: { id: '1', include: 'author' }
     assert_response :success
     assert_equal 1, json_response['included'].size
-    assert json_response['data']['relationships']['author'].has_key?('data'), 'Missing required data key'
+    assert json_response['data']['relationships']['author'].key?('data'), 'Missing required data key'
     refute_nil json_response['data']['relationships']['author']['data'], 'Data should not be nil'
-    refute json_response['data']['relationships']['tags'].has_key?('data'),
+    refute json_response['data']['relationships']['tags'].key?('data'),
            'Not included relationships should not have data'
   end
 
@@ -624,9 +624,9 @@ class PostsControllerTest < ActionController::TestCase
     assert_cacheable_get :show, params: { id: '1', include: 'section' }
     assert_response :success
     assert_nil json_response['included']
-    assert json_response['data']['relationships']['section'].has_key?('data'), 'Missing required data key'
+    assert json_response['data']['relationships']['section'].key?('data'), 'Missing required data key'
     assert_nil json_response['data']['relationships']['section']['data'], 'Data should be nil'
-    refute json_response['data']['relationships']['tags'].has_key?('data'),
+    refute json_response['data']['relationships']['tags'].key?('data'),
            'Not included relationships should not have data'
   end
 
@@ -646,10 +646,10 @@ class PostsControllerTest < ActionController::TestCase
     assert_cacheable_get :show, params: { id: '17', include: 'author,tags' }
 
     assert_response :success
-    assert json_response['data']['relationships']['author'].has_key?('data'),
+    assert json_response['data']['relationships']['author'].key?('data'),
            'data key should exist for empty has_one relationship'
     assert_nil json_response['data']['relationships']['author']['data'], 'Data should be null'
-    assert json_response['data']['relationships']['tags'].has_key?('data'),
+    assert json_response['data']['relationships']['tags'].key?('data'),
            'data key should exist for empty has_many relationship'
     assert_kind_of Array, json_response['data']['relationships']['tags']['data'], 'Data should be array'
     assert_empty json_response['data']['relationships']['tags']['data'], 'Data array should be empty'
@@ -671,10 +671,10 @@ class PostsControllerTest < ActionController::TestCase
 
     assert_cacheable_get :show, params: { id: '17' }
     assert_response :success
-    assert json_response['data']['relationships']['author'].has_key?('data'),
+    assert json_response['data']['relationships']['author'].key?('data'),
            'data key should exist for empty has_one relationship'
     assert_nil json_response['data']['relationships']['author']['data'], 'Data should be null'
-    refute json_response['data']['relationships']['tags'].has_key?('data'),
+    refute json_response['data']['relationships']['tags'].key?('data'),
            'data key should not exist for empty has_many relationship if not included'
   ensure
     JSONAPI.configuration.always_include_to_one_linkage_data = false
@@ -685,10 +685,10 @@ class PostsControllerTest < ActionController::TestCase
 
     assert_cacheable_get :index, params: { filter: { id: '17' } }
     assert_response :success
-    assert json_response['data'][0]['relationships']['author'].has_key?('data'),
+    assert json_response['data'][0]['relationships']['author'].key?('data'),
            'data key should exist for empty has_one relationship'
     assert_nil json_response['data'][0]['relationships']['author']['data'], 'Data should be null'
-    refute json_response['data'][0]['relationships']['tags'].has_key?('data'),
+    refute json_response['data'][0]['relationships']['tags'].key?('data'),
            'data key should not exist for empty has_many relationship if not included'
   ensure
     JSONAPI.configuration.always_include_to_one_linkage_data = false

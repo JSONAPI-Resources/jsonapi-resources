@@ -142,7 +142,7 @@ module JSONAPI
       end
 
       def add_join_details(join_key, details, check_for_duplicate_alias = true)
-        fail 'details already set' if @join_details.has_key?(join_key)
+        fail 'details already set' if @join_details.key?(join_key)
 
         @join_details[join_key] = details
 

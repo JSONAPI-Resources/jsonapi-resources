@@ -208,7 +208,7 @@ module JSONAPI
         attrs = Set.new(resource_klass._attributes.keys.map(&:to_sym))
         cur = resource_klass
         while !cur.root? # do not traverse beyond the first root resource
-          if @fields.has_key?(cur._type)
+          if @fields.key?(cur._type)
             attrs &= @fields[cur._type]
             break
           end
@@ -223,7 +223,7 @@ module JSONAPI
         relationships = Set.new(resource_klass._relationships.keys.map(&:to_sym))
         cur = resource_klass
         while !cur.root? # do not traverse beyond the first root resource
-          if @fields.has_key?(cur._type)
+          if @fields.key?(cur._type)
             relationships &= @fields[cur._type]
             break
           end

@@ -84,7 +84,7 @@ module JSONAPI
         resource_klass = type_to_klass[type]
         hash[resource_klass] ||= {}
 
-        if hits.has_key?(key)
+        if hits.key?(key)
           hash[resource_klass][id] = self.from_cache_value(resource_klass, context, hits[key])
         else
           hash[resource_klass][id] = nil
