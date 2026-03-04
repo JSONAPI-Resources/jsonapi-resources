@@ -1019,7 +1019,14 @@ module JSONAPI
 
       # Generate a hashcode from the value to be used as part of the cache lookup
       def hash_cache_field(value)
-        value.hash
+        if value.nil?
+          nil
+        elsif value.is_a?(ActiveSupport::TimeWithZone)
+          # for timestamps use to_f instead of computing a hash
+          value.to_f
+        else
+          Digest::MD5.hexdigest(value)
+        end
       end
 
       def _model_class

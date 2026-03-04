@@ -95,7 +95,7 @@ end
 
 class ResourceTest < ActiveSupport::TestCase
   def setup
-    @post = Post.first
+    @post = posts(:post_1)
   end
 
   def test_model_name
@@ -124,6 +124,33 @@ class ResourceTest < ActiveSupport::TestCase
     assert_raises NameError do
       ArticleResource.resource_klass_for('related')
     end
+  end
+
+  def test_cache_ids_are_consistent_from_run_to_run
+    assert_equal '2020-01-15 14:15:12 UTC', @post.updated_at.to_s
+
+    post_resource = PostResource.new(@post, {})
+    assert_equal [@post.id, 1579097712.0], post_resource.cache_id
+  end
+
+  def test_cache_ids_change_when_cache_field_is_changed
+    assert_equal '2020-01-15 14:15:12 UTC', @post.updated_at.to_s
+
+    post_resource = PostResource.new(@post, {})
+    assert_equal [@post.id, 1579097712.0], post_resource.cache_id
+
+    assert @post.touch
+    refute_equal [@post.id, 1579097712.0], post_resource.cache_id
+  end
+
+  def test_date_based_cache_ids_change_with_milliseconds_if_hash_cache_field_is_time_stamp
+    assert_equal '2020-01-15 14:15:12 UTC', @post.updated_at.to_s
+
+    post_resource = PostResource.new(@post, {})
+    assert_equal [@post.id, 1579097712.0], post_resource.cache_id
+
+    @post.updated_at = @post.updated_at + 0.222
+    refute_equal [@post.id, 1579097712.0], post_resource.cache_id
   end
 
   def test_resource_for_with_underscored_namespaced_paths

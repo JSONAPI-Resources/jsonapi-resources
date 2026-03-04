@@ -3,6 +3,8 @@ post_1:
   title: New post
   body: A body!!!
   author_id: 1001
+  created_at: 2020-01-01 14:15:16 UTC
+  updated_at: 2020-01-15 14:15:12 UTC
 
 post_2:
   id: 2
