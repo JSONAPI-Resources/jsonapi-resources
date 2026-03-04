@@ -31,7 +31,7 @@ module ActionDispatch
           options = resources.extract_options!.dup
           options[:controller] ||= @resource_type
           options.merge!(res.routing_resource_options)
-          options[:path] = format_route(@resource_type)
+          options[:path] = format_route(options[:path] || @resource_type)
 
           if options[:except]
             options[:except] << :new unless options[:except].include?(:new) || options[:except].include?('new')
@@ -100,7 +100,7 @@ module ActionDispatch
 
           options[:param] = :id
 
-          options[:path] = format_route(@resource_type)
+          options[:path] = format_route(options[:path] || @resource_type)
 
           if res.resource_key_type == :uuid
             options[:constraints] ||= {}
