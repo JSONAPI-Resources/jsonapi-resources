@@ -13,7 +13,6 @@ gemfile(true) do
 
   gem 'activerecord-jdbcsqlite3-adapter',
       git: 'https://github.com/jruby/activerecord-jdbc-adapter',
-      branch: 'rails-5',
       platform: :jruby
 
   gem 'jsonapi-resources', require: false

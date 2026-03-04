@@ -14,7 +14,6 @@ gemfile(true, ui: ENV['SILENT'] ? Bundler::UI::Silent.new : Bundler::UI::Shell.n
 
   gem 'activerecord-jdbcsqlite3-adapter',
       git: 'https://github.com/jruby/activerecord-jdbc-adapter',
-      branch: 'rails-5',
       platform: :jruby
 
   if ENV['JSONAPI_RESOURCES_PATH']
