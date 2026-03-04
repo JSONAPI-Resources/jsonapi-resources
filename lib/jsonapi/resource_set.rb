@@ -11,7 +11,7 @@ module JSONAPI
       @populated = false
       tree = if source.is_a?(JSONAPI::ResourceTree)
                source
-             elsif source.class < JSONAPI::BasicResource
+             elsif source.class.include?(JSONAPI::ResourceCommon)
                JSONAPI::PrimaryResourceTree.new(resource: source, include_related: include_related, options: options)
              elsif source.is_a?(Array)
                JSONAPI::PrimaryResourceTree.new(resources: source, include_related: include_related, options: options)
@@ -180,7 +180,7 @@ module JSONAPI
         flattened_tree[resource_klass][id][:resource] ||= fragment.resource if fragment.resource
 
         fragment.related.try(:each_pair) do |relationship_name, related_rids|
-          flattened_tree[resource_klass][id][:relationships][relationship_name] ||= Set.new
+          flattened_tree[resource_klass][id][:relationships][relationship_name] ||= JSONAPI.configuration.related_identities_set.new
           flattened_tree[resource_klass][id][:relationships][relationship_name].merge(related_rids)
         end
       end

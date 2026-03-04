@@ -1,0 +1,7 @@
+#!/bin/bash
+
+rbenv global $1;
+
+../test_postgresql
+../test_mysql
+../test_sqlite

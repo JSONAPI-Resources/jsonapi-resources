@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xargs -L 1 ./test_ruby < ruby_versions.txt

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd /src
+bundle update;
+
+RUBY_VERSION=$(ruby -v);
+
+echo "Testing With SQLite and Ruby $RUBY_VERSION";
+export DATABASE_URL="sqlite3:test_db"
+bundle exec rake test;

@@ -52,7 +52,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :posts, force: true do |t|
-    t.string     :title, length: 255
+    t.string     :title, limit: 255
     t.text       :body
     t.integer    :author_id
     t.integer    :parent_post_id
@@ -275,6 +275,7 @@ ActiveRecord::Schema.define do
     t.string :drive_layout
     t.string :serial_number
     t.integer :person_id
+    t.references :imageable, polymorphic: true, index: true
     t.timestamps null: false
   end
 
@@ -311,8 +312,8 @@ ActiveRecord::Schema.define do
 
   create_table :things, force: true  do |t|
     t.string :name
-    t.references :user
-    t.references :box
+    t.belongs_to :user
+    t.belongs_to :box
 
     t.timestamps null: false
   end
@@ -324,8 +325,8 @@ ActiveRecord::Schema.define do
 
   create_table :related_things, force: true  do |t|
     t.string :name
-    t.references :from, references: :thing
-    t.references :to, references: :thing
+    t.belongs_to :from
+    t.belongs_to :to
 
     t.timestamps null: false
   end
@@ -467,6 +468,7 @@ class ResponseText < ActiveRecord::Base
 end
 
 class ResponseText::Paragraph < ResponseText
+  belongs_to :response
 end
 
 class Person < ActiveRecord::Base
@@ -590,7 +592,7 @@ class Planet < ActiveRecord::Base
 
   def check_not_pluto
     # Pluto can't be a planet, so cancel the save
-    if name.downcase == 'pluto'
+    if name.underscore == 'pluto'
       throw(:abort)
     end
   end
@@ -728,11 +730,14 @@ class Picture < ActiveRecord::Base
   belongs_to :document, -> { where( pictures: { imageable_type: 'Document' } ) }, foreign_key: 'imageable_id'
   belongs_to :product, -> { where( pictures: { imageable_type: 'Product' } ) }, foreign_key: 'imageable_id'
 
-  has_one :file_properties, as: 'fileable'
+  has_one :file_properties, as: :fileable
 end
 
 class Vehicle < ActiveRecord::Base
   belongs_to :person
+  belongs_to :imageable, polymorphic: true
+  # belongs_to :document, -> { where( pictures: { imageable_type: 'Document' } ) }, foreign_key: 'imageable_id'
+  # belongs_to :product, -> { where( pictures: { imageable_type: 'Product' } ) }, foreign_key: 'imageable_id'
 end
 
 class Car < Vehicle
@@ -742,15 +747,15 @@ class Boat < Vehicle
 end
 
 class Document < ActiveRecord::Base
-  has_many :pictures, as: :imageable
+  has_many :pictures, as: :imageable # polymorphic
   belongs_to :author, class_name: 'Person', foreign_key: 'author_id'
-  has_one :file_properties, as: 'fileable'
+  has_one :file_properties, as: :fileable
 end
 
 class Product < ActiveRecord::Base
-  has_many :pictures, as: :imageable
+  has_many :pictures, as: :imageable # polymorphic
   belongs_to :designer, class_name: 'Person', foreign_key: 'designer_id'
-  has_one :file_properties, as: 'fileable'
+  has_one :file_properties, as: :fileable
 end
 
 class FileProperties < ActiveRecord::Base
@@ -1252,7 +1257,9 @@ class SessionResource < JSONAPI::Resource
       }
     }
   end
-  def responses
+
+  def responses(options)
+    []
   end
 
   def self.creatable_fields(context)
@@ -1335,6 +1342,7 @@ class VehicleResource < JSONAPI::Resource
   immutable
 
   has_one :person
+  has_one :imageable, polymorphic: true
   attributes :make, :model, :serial_number
 end
 
@@ -1524,7 +1532,7 @@ class EmployeeResource < JSONAPI::Resource
   has_many :expense_entries
 end
 
-class PoroResource < JSONAPI::BasicResource
+class PoroResource < JSONAPI::SimpleResource
   root_resource
 
   class << self
@@ -1637,7 +1645,6 @@ class PoroResource < JSONAPI::BasicResource
 end
 
 class BreedResource < PoroResource
-
   attribute :name, format: :title
 
   # This is unneeded, just here for testing
@@ -1710,7 +1717,9 @@ class CraterResource < JSONAPI::Resource
 
   filter :description, apply: -> (records, value, options) {
     fail "context not set" unless options[:context][:current_user] != nil && options[:context][:current_user] == $test_user
-    records.where(concat_table_field(options.dig(:_relation_helper_options, :join_manager).source_join_details[:alias], :description) => value)
+    join_manager = options.dig(:_relation_helper_options, :join_manager)
+    field = join_manager ? get_aliased_field('description', join_manager) : 'description'
+    records.where(Arel.sql(field) => value)
   }
 
   def self.verify_key(key, context = nil)
@@ -1751,7 +1760,11 @@ class PictureResource < JSONAPI::Resource
   has_one :author
 
   has_one :imageable, polymorphic: true
-  has_one :file_properties, inverse_relationship: :fileable, :foreign_key_on => :related, polymorphic: true
+  # the imageable polymorphic relationship will implicitly create the following relationships
+  # has_one :document, exclude_linkage_data: true, polymorphic_type_relationship_for: :imageable
+  # has_one :product, exclude_linkage_data: true, polymorphic_type_relationship_for: :imageable
+
+  has_one :file_properties, :foreign_key_on => :related
 
   filter 'imageable.name', perform_joins: true, apply: -> (records, value, options) {
     join_manager = options.dig(:_relation_helper_options, :join_manager)
@@ -1768,6 +1781,7 @@ end
 
 class ImageableResource < JSONAPI::Resource
   polymorphic
+  has_one :picture
 end
 
 class FileableResource < JSONAPI::Resource
@@ -1776,7 +1790,10 @@ end
 
 class DocumentResource < JSONAPI::Resource
   attribute :name
-  has_many :pictures, inverse_relationship: :imageable
+
+  # Will use implicitly defined inverse relationship on PictureResource
+  has_many :pictures
+
   has_one :author, class_name: 'Person'
 
   has_one :file_properties, inverse_relationship: :fileable, :foreign_key_on => :related
@@ -1784,7 +1801,9 @@ end
 
 class ProductResource < JSONAPI::Resource
   attribute :name
-  has_many :pictures, inverse_relationship: :imageable
+
+  # Will use implicitly defined inverse relationship on PictureResource
+  has_many :pictures
   has_one :designer, class_name: 'Person'
 
   has_one :file_properties, inverse_relationship: :fileable, :foreign_key_on => :related
@@ -1903,6 +1922,8 @@ module Api
     class SectionResource < SectionResource; end
     class TagResource < TagResource; end
     class CommentResource < CommentResource; end
+    class DocumentResource < DocumentResource; end
+    class ProductResource < ProductResource; end
     class VehicleResource < VehicleResource; end
     class CarResource < CarResource; end
     class BoatResource < BoatResource; end
@@ -2204,8 +2225,6 @@ module Api
     class PostResource < PostResource
       attribute :base
 
-      has_one :author
-
       def base
         _model.title
       end
@@ -2355,7 +2374,7 @@ module Api
         key
       }
 
-      has_one :person, :foreign_key_on => :related
+      has_one :person, foreign_key_on: :related, relation_name: :author
 
       attribute :nickname
     end

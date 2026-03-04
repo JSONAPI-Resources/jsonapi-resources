@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 module JSONAPI
-  class Resource < ActiveRelationResource
+  class Resource
+    include ResourceCommon
     root_resource
+    abstract
+    immutable
   end
 end

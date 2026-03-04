@@ -1,27 +1,21 @@
 require File.expand_path('../../../test_helper', __FILE__)
 require 'jsonapi-resources'
 
-class JoinTreeTest < ActiveSupport::TestCase
-
-  def db_true
-    case ActiveRecord::Base.connection.adapter_name
-      when 'SQLite'
-        if Rails::VERSION::MAJOR >= 6 || (Rails::VERSION::MAJOR >= 5 && ActiveRecord::VERSION::MINOR >= 2)
-          "1"
-        else
-          "'t'"
-        end
-      when 'PostgreSQL'
-        'TRUE'
-    end
-  end
+class JoinManagerTest < ActiveSupport::TestCase
+  # def setup
+  #   JSONAPI.configuration.default_alias_on_join = false
+  # end
+  #
+  # def teardown
+  #   JSONAPI.configuration.default_alias_on_join = false
+  # end
 
   def test_no_added_joins
     join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource)
 
     records = PostResource.records({})
     records = join_manager.join(records, {})
-    assert_equal 'SELECT "posts".* FROM "posts"', records.to_sql
+    assert_equal 'SELECT "posts".* FROM "posts"', sql_for_compare(records.to_sql)
 
     assert_hash_equals({alias: 'posts', join_type: :root}, join_manager.source_join_details)
   end
@@ -31,7 +25,7 @@ class JoinTreeTest < ActiveSupport::TestCase
     join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource, filters: filters)
     records = PostResource.records({})
     records = join_manager.join(records, {})
-    assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"', records.to_sql
+    assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"', sql_for_compare(records.to_sql)
     assert_hash_equals({alias: 'posts', join_type: :root}, join_manager.source_join_details)
     assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(PostResource._relationship(:tags)))
   end
@@ -42,7 +36,7 @@ class JoinTreeTest < ActiveSupport::TestCase
     records = PostResource.records({})
     records = join_manager.join(records, {})
 
-    assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"', records.to_sql
+    assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"', sql_for_compare(records.to_sql)
     assert_hash_equals({alias: 'posts', join_type: :root}, join_manager.source_join_details)
     assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(PostResource._relationship(:tags)))
   end
@@ -53,7 +47,7 @@ class JoinTreeTest < ActiveSupport::TestCase
     join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PostResource, sort_criteria: sort_criteria, filters: filters)
     records = PostResource.records({})
     records = join_manager.join(records, {})
-    assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"', records.to_sql
+    assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id"', sql_for_compare(records.to_sql)
     assert_hash_equals({alias: 'posts', join_type: :root}, join_manager.source_join_details)
     assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(PostResource._relationship(:tags)))
   end
@@ -68,7 +62,7 @@ class JoinTreeTest < ActiveSupport::TestCase
     records = PostResource.records({})
     records = join_manager.join(records, {})
 
-    assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id" LEFT OUTER JOIN "people" ON "people"."id" = "posts"."author_id"', records.to_sql
+    assert_equal 'SELECT "posts".* FROM "posts" LEFT OUTER JOIN "posts_tags" ON "posts_tags"."post_id" = "posts"."id" LEFT OUTER JOIN "tags" ON "tags"."id" = "posts_tags"."tag_id" LEFT OUTER JOIN "people" ON "people"."id" = "posts"."author_id"', sql_for_compare(records.to_sql)
     assert_hash_equals({alias: 'posts', join_type: :root}, join_manager.source_join_details)
     assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(PostResource._relationship(:tags)))
     assert_hash_equals({alias: 'people', join_type: :left}, join_manager.join_details_by_relationship(PostResource._relationship(:author)))
@@ -81,7 +75,7 @@ class JoinTreeTest < ActiveSupport::TestCase
     records = PostResource.records({})
     records = join_manager.join(records, {})
 
-    assert_equal 'SELECT "posts".* FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"', records.to_sql
+    assert_equal 'SELECT "posts".* FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"', sql_for_compare(records.to_sql)
     assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.source_join_details)
   end
 
@@ -94,7 +88,7 @@ class JoinTreeTest < ActiveSupport::TestCase
 
     sql = 'SELECT "posts".* FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id" WHERE "comments"."approved" = ' + db_true
 
-    assert_equal sql, records.to_sql
+    assert_equal sql, sql_for_compare(records.to_sql)
 
     assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.source_join_details)
   end
@@ -162,7 +156,7 @@ class JoinTreeTest < ActiveSupport::TestCase
 
     assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.source_join_details)
     assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.join_details_by_relationship(Api::V10::PostResource._relationship(:comments)))
-    assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::CommentResource._relationship(:tags)))
+    assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::PostResource._relationship(:tags)))
     assert_hash_equals({alias: 'comments_people', join_type: :left}, join_manager.join_details_by_relationship(Api::V10::PersonResource._relationship(:comments)))
   end
 
@@ -183,19 +177,21 @@ class JoinTreeTest < ActiveSupport::TestCase
 
     assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.source_join_details)
     assert_hash_equals({alias: 'comments', join_type: :inner}, join_manager.join_details_by_relationship(PostResource._relationship(:comments)))
-    assert_hash_equals({alias: 'people', join_type: :left}, join_manager.join_details_by_relationship(CommentResource._relationship(:author)))
-    assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(CommentResource._relationship(:tags)))
+    assert_hash_equals({alias: 'people', join_type: :left}, join_manager.join_details_by_relationship(PostResource._relationship(:author)))
+    assert_hash_equals({alias: 'tags', join_type: :left}, join_manager.join_details_by_relationship(PostResource._relationship(:tags)))
     assert_hash_equals({alias: 'comments_people', join_type: :left}, join_manager.join_details_by_relationship(PersonResource._relationship(:comments)))
   end
 
   def test_polymorphic_join_belongs_to_just_source
-    join_manager = JSONAPI::ActiveRelation::JoinManager.new(resource_klass: PictureResource,
-                                                                          source_relationship: PictureResource._relationship(:imageable))
+    join_manager = JSONAPI::ActiveRelation::JoinManager.new(
+      resource_klass: PictureResource,
+      source_relationship: PictureResource._relationship(:imageable)
+    )
 
     records = PictureResource.records({})
     records = join_manager.join(records, {})
 
-    # assert_equal 'SELECT "pictures".* FROM "pictures" LEFT OUTER JOIN "products" ON "products"."id" = "pictures"."imageable_id" AND "pictures"."imageable_type" = \'Product\' LEFT OUTER JOIN "documents" ON "documents"."id" = "pictures"."imageable_id" AND "pictures"."imageable_type" = \'Document\'', records.to_sql
+    # assert_equal 'SELECT "pictures".* FROM "pictures" LEFT OUTER JOIN "products" ON "products"."id" = "pictures"."imageable_id" AND "pictures"."imageable_type" = \'Product\' LEFT OUTER JOIN "documents" ON "documents"."id" = "pictures"."imageable_id" AND "pictures"."imageable_type" = \'Document\'', sql_for_compare(records.to_sql)
     assert_hash_equals({alias: 'products', join_type: :left}, join_manager.source_join_details('products'))
     assert_hash_equals({alias: 'documents', join_type: :left}, join_manager.source_join_details('documents'))
     assert_hash_equals({alias: 'products', join_type: :left}, join_manager.join_details_by_polymorphic_relationship(PictureResource._relationship(:imageable), 'products'))
@@ -209,7 +205,7 @@ class JoinTreeTest < ActiveSupport::TestCase
     records = PictureResource.records({})
     records = join_manager.join(records, {})
 
-    # assert_equal 'SELECT "pictures".* FROM "pictures" LEFT OUTER JOIN "products" ON "products"."id" = "pictures"."imageable_id" AND "pictures"."imageable_type" = \'Product\' LEFT OUTER JOIN "documents" ON "documents"."id" = "pictures"."imageable_id" AND "pictures"."imageable_type" = \'Document\'', records.to_sql
+    # assert_equal 'SELECT "pictures".* FROM "pictures" LEFT OUTER JOIN "products" ON "products"."id" = "pictures"."imageable_id" AND "pictures"."imageable_type" = \'Product\' LEFT OUTER JOIN "documents" ON "documents"."id" = "pictures"."imageable_id" AND "pictures"."imageable_type" = \'Document\'', sql_for_compare(records.to_sql)
     assert_hash_equals({alias: 'pictures', join_type: :root}, join_manager.source_join_details)
     assert_hash_equals({alias: 'products', join_type: :left}, join_manager.join_details_by_polymorphic_relationship(PictureResource._relationship(:imageable), 'products'))
     assert_hash_equals({alias: 'documents', join_type: :left}, join_manager.join_details_by_polymorphic_relationship(PictureResource._relationship(:imageable), 'documents'))
@@ -226,7 +222,7 @@ class JoinTreeTest < ActiveSupport::TestCase
                                                                           relationships: relationships)
 
     records = PictureResource.records({})
-    records = join_manager.join(records, {})
+    join_manager.join(records, {})
 
     assert_hash_equals({alias: 'pictures', join_type: :root}, join_manager.source_join_details)
     assert_hash_equals({alias: 'products', join_type: :left}, join_manager.join_details_by_polymorphic_relationship(PictureResource._relationship(:imageable), 'products'))

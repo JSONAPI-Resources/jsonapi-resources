@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd /src
+bundle update;
+
+RUBY_VERSION=$(ruby -v);
+
+echo "Testing With PostgreSQL and Ruby $RUBY_VERSION";
+export DATABASE_URL="postgresql://postgres:password@postgres:5432/test"
+bundle exec rake test;

@@ -22,7 +22,8 @@ class HasOneRelationshipTest < ActiveSupport::TestCase
 
   def test_polymorphic_type
     relationship = JSONAPI::Relationship::ToOne.new("imageable",
-      polymorphic: true
+      polymorphic: true,
+      parent_resource: CallableBlogPostsResource
     )
     assert_equal(relationship.polymorphic_type, "imageable_type")
   end

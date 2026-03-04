@@ -1,15 +1,20 @@
 # frozen_string_literal: true
 
 require 'jsonapi/resources/railtie'
+require 'jsonapi/utils/polymorphic_types_lookup'
 require 'jsonapi/naive_cache'
 require 'jsonapi/compiled_json'
-require 'jsonapi/basic_resource'
-require 'jsonapi/active_relation_resource'
+require 'jsonapi/relation_retrieval'
+require 'jsonapi/active_relation_retrieval'
+require 'jsonapi/active_relation_retrieval_v09'
+require 'jsonapi/active_relation_retrieval_v10'
+require 'jsonapi/resource_common'
 require 'jsonapi/resource'
+require 'jsonapi/simple_resource'
 require 'jsonapi/cached_response_fragment'
 require 'jsonapi/response_document'
 require 'jsonapi/acts_as_resource_controller'
-if Rails::VERSION::MAJOR >= 6
+if ::Rails::VERSION::MAJOR >= 6
   ActiveSupport.on_load(:action_controller_base) do
     require 'jsonapi/resource_controller'
   end
@@ -37,6 +42,7 @@ require 'jsonapi/callbacks'
 require 'jsonapi/link_builder'
 require 'jsonapi/active_relation/adapters/join_left_active_record_adapter'
 require 'jsonapi/active_relation/join_manager'
+require 'jsonapi/active_relation/join_manager_v10'
 require 'jsonapi/resource_identity'
 require 'jsonapi/resource_fragment'
 require 'jsonapi/resource_tree'

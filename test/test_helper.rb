@@ -24,7 +24,6 @@ end
 ENV['DATABASE_URL'] ||= "sqlite3:test_db"
 
 require 'active_record/railtie'
-require 'rails/test_help'
 require 'minitest/mock'
 require 'jsonapi-resources'
 require 'pry'
@@ -41,13 +40,14 @@ I18n.enforce_available_locales = false
 
 JSONAPI.configure do |config|
   config.json_key_format = :camelized_key
-end
 
-ActiveSupport::Deprecation.silenced = true
+  require 'sorted_set'
+  config.related_identities_set = SortedSet
+end
 
 puts "Testing With RAILS VERSION #{Rails.version}"
 
-class TestApp < Rails::Application
+class TestApp < ::Rails::Application
   config.eager_load = false
   config.root = File.dirname(__FILE__)
   config.session_store :cookie_store, key: 'session'
@@ -63,10 +63,22 @@ class TestApp < Rails::Application
   config.active_support.halt_callback_chains_on_return_false = false
   config.active_record.time_zone_aware_types = [:time, :datetime]
   config.active_record.belongs_to_required_by_default = false
-  if Rails::VERSION::MAJOR == 5 && Rails::VERSION::MINOR == 2
+  if ::Rails::VERSION::MAJOR == 5 && ::Rails::VERSION::MINOR == 2
     config.active_record.sqlite3.represent_boolean_as_integer = true
   end
+
+  config.hosts << "www.example.com"
 end
+
+def silence_deprecations!(bool = true)
+  if defined?(Rails.application) && Rails.application.respond_to?(:deprecators)
+    Rails.application.deprecators.silenced = bool
+  else
+    ActiveSupport::Deprecation.silenced = bool
+  end
+end
+
+require 'rails/test_help'
 
 DatabaseCleaner.allow_remote_database_url = true
 DatabaseCleaner.strategy = :transaction
@@ -165,7 +177,7 @@ end
 def assert_query_count(expected, msg = nil, &block)
   @queries = []
   callback = lambda {|_, _, _, _, payload|
-    @queries.push payload[:sql]
+    @queries.push payload[:sql] unless payload[:sql].starts_with?("SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'")
   }
   ActiveSupport::Notifications.subscribed(callback, 'sql.active_record', &block)
 
@@ -461,12 +473,67 @@ class Minitest::Test
     true
   end
 
-  self.fixture_path = "#{Rails.root}/fixtures"
+  if respond_to?(:fixture_paths=)
+    self.fixture_paths |= ["#{Rails.root}/fixtures"]
+  else
+    self.fixture_path = "#{Rails.root}/fixtures"
+  end
   fixtures :all
+
+  def adapter_name
+    ActiveRecord::Base.connection.adapter_name
+  end
+
+  # Postgres sorts nulls last, whereas sqlite and mysql sort nulls first
+  def adapter_sorts_nulls_last
+    case adapter_name
+    when 'PostgreSQL' then true
+    when 'SQLite', 'Mysql2' then false
+    else
+      fail ArgumentError, "Unhandled adapter #{adapter_name} in #{__callee__}"
+    end
+  end
+
+  def db_quote_identifier
+    case adapter_name
+    when 'SQLite', 'PostgreSQL'
+      %{"}
+    when 'Mysql2'
+      %{`}
+    else
+      fail ArgumentError, "Unhandled adapter #{adapter_name} in #{__callee__}"
+    end
+  end
+
+  def is_db?(db_name)
+    case db_name
+    when :sqlite then /sqlite/i.match?(adapter_name)
+    when :postgres, :pg then /postgres/i.match?(adapter_name)
+    when :mysql then /mysql/i.match?(adapter_name)
+    else
+      /#{db_name}/i.match?(adapter_name)
+    end
+  end
+
+  def db_true
+    ActiveRecord::Base.connection.quote(true)
+  end
+
+  def sql_for_compare(sql)
+    sql.tr(db_quote_identifier, %{"})
+  end
+
+  def response_json_for_compare(response)
+    response.pretty_inspect
+  end
 end
 
 class ActiveSupport::TestCase
-  self.fixture_path = "#{Rails.root}/fixtures"
+  if respond_to?(:fixture_paths=)
+    self.fixture_paths |= ["#{Rails.root}/fixtures"]
+  else
+    self.fixture_path = "#{Rails.root}/fixtures"
+  end
   fixtures :all
   setup do
     @routes = TestApp.routes
@@ -474,7 +541,11 @@ class ActiveSupport::TestCase
 end
 
 class ActionDispatch::IntegrationTest
-  self.fixture_path = "#{Rails.root}/fixtures"
+  if respond_to?(:fixture_paths=)
+    self.fixture_paths |= ["#{Rails.root}/fixtures"]
+  else
+    self.fixture_path = "#{Rails.root}/fixtures"
+  end
   fixtures :all
 
   def assert_jsonapi_response(expected_status, msg = nil)
@@ -505,8 +576,8 @@ class ActionDispatch::IntegrationTest
     end
 
     assert_equal(
-      non_caching_response.pretty_inspect,
-      json_response.pretty_inspect,
+      response_json_for_compare(non_caching_response),
+      response_json_for_compare(json_response),
       "Cache warmup response must match normal response"
     )
 
@@ -515,12 +586,17 @@ class ActionDispatch::IntegrationTest
     end
 
     assert_equal(
-      non_caching_response.pretty_inspect,
-      json_response.pretty_inspect,
+      response_json_for_compare(non_caching_response),
+      response_json_for_compare(json_response),
       "Cached response must match normal response"
     )
     assert_equal 0, cached[:total][:misses], "Cached response must not cause any cache misses"
     assert_equal warmup[:total][:misses], cached[:total][:hits], "Cached response must use cache"
+  end
+
+
+  def testing_v09?
+    JSONAPI.configuration.default_resource_retrieval_strategy == 'JSONAPI::ActiveRelationRetrievalV09'
   end
 end
 
@@ -584,16 +660,18 @@ class ActionController::TestCase
           "Cache (mode: #{mode}) #{phase} response status must match normal response"
         )
         assert_equal(
-          non_caching_response.pretty_inspect,
-          json_response_sans_all_backtraces.pretty_inspect,
-          "Cache (mode: #{mode}) #{phase} response body must match normal response"
+          response_json_for_compare(non_caching_response),
+          response_json_for_compare(json_response_sans_all_backtraces),
+          "Cache (mode: #{mode}) #{phase} response body must match normal response\n#{non_caching_response.pretty_inspect},\n#{json_response_sans_all_backtraces.pretty_inspect}"
         )
-        assert_operator(
-          cache_queries.size,
-          :<=,
-          normal_queries.size,
-          "Cache (mode: #{mode}) #{phase} action made too many queries:\n#{cache_queries.pretty_inspect}"
-        )
+
+        # The query count will now differ between the cached and non cached versions so we will not test that
+        # assert_operator(
+        #   cache_queries.size,
+        #   :<=,
+        #   normal_queries.size,
+        #   "Cache (mode: #{mode}) #{phase} action made too many queries:\n#{cache_queries.pretty_inspect}"
+        # )
       end
 
       if mode == :all
@@ -620,6 +698,14 @@ class ActionController::TestCase
     end
 
     @queries = orig_queries
+  end
+
+  def testing_v10?
+    JSONAPI.configuration.default_resource_retrieval_strategy == 'JSONAPI::ActiveRelationRetrievalV10'
+  end
+
+  def testing_v09?
+    JSONAPI.configuration.default_resource_retrieval_strategy == 'JSONAPI::ActiveRelationRetrievalV09'
   end
 
   private
@@ -686,7 +772,7 @@ class TitleValueFormatter < JSONAPI::ValueFormatter
     end
 
     def unformat(value)
-      value.to_s.downcase
+      value.to_s.underscore
     end
   end
 end

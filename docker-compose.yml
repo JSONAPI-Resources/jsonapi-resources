@@ -1,0 +1,49 @@
+version: "3.9"
+
+networks:
+  back:
+
+services:
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432"
+    networks:
+      back:
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=test
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 2s
+      retries: 15
+
+  mysql:
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - 3306
+    networks:
+      - back
+    environment:
+      - MYSQL_DATABASE=test
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=password
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 2s
+      retries: 15
+
+  tests:
+    image: jr_tests:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - back
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy

@@ -34,7 +34,7 @@ module JSONAPI
         @primary_resources_url_cached ||= "#{ base_url }#{ engine_mount_point }#{ primary_resources_path }"
       else
         if JSONAPI.configuration.warn_on_missing_routes && !@primary_resource_klass._warned_missing_route
-          warn "primary_resources_url for #{@primary_resource_klass} could not be generated"
+          warn "primary_resources_url for #{@primary_resource_klass.name} could not be generated"
           @primary_resource_klass._warned_missing_route = true
         end
         nil
@@ -49,12 +49,12 @@ module JSONAPI
 
     def relationships_related_link(source, relationship, query_params = {})
       if relationship._routed
-        url = "#{ self_link(source) }/#{ route_for_relationship(relationship) }"
-        url = "#{ url }?#{ query_params.to_query }" if query_params.present?
+        url = +"#{ self_link(source) }/#{ route_for_relationship(relationship) }"
+        url << "?#{ query_params.to_query }" if query_params.present?
         url
       else
         if JSONAPI.configuration.warn_on_missing_routes && !relationship._warned_missing_route
-          warn "related_link for #{relationship} could not be generated"
+          warn "related_link for #{relationship.display_name} could not be generated"
           relationship._warned_missing_route = true
         end
         nil
@@ -66,7 +66,7 @@ module JSONAPI
         "#{ self_link(source) }/relationships/#{ route_for_relationship(relationship) }"
       else
         if JSONAPI.configuration.warn_on_missing_routes && !relationship._warned_missing_route
-          warn "self_link for #{relationship} could not be generated"
+          warn "self_link for #{relationship.display_name} could not be generated"
           relationship._warned_missing_route = true
         end
         nil
@@ -78,7 +78,7 @@ module JSONAPI
         resource_url(source)
       else
         if JSONAPI.configuration.warn_on_missing_routes && !source.class._warned_missing_route
-          warn "self_link for #{source.class} could not be generated"
+          warn "self_link for #{source.class.name} could not be generated"
           source.class._warned_missing_route = true
         end
         nil
@@ -92,7 +92,7 @@ module JSONAPI
 
       begin
         unless scopes.empty?
-          "#{ scopes.first.to_s.camelize }::Engine".safe_constantize
+          "#{ scopes.first.to_s.classify }::Engine".safe_constantize
         end
 
           # :nocov:
@@ -129,16 +129,12 @@ module JSONAPI
       @_resources_path[source_klass] ||= formatted_module_path_from_class(source_klass) + format_route(source_klass._type.to_s)
     end
 
-    def resource_path(source)
-      if source.class.singleton?
-        resources_path(source.class)
-      else
-        "#{resources_path(source.class)}/#{source.id}"
-      end
-    end
-
     def resource_url(source)
-      "#{ base_url }#{ engine_mount_point }#{ resource_path(source) }"
+      if source.class.singleton?
+        "#{ base_url }#{ engine_mount_point }#{ resources_path(source.class) }"
+      else
+        "#{ base_url }#{ engine_mount_point }#{resources_path(source.class)}/#{source.id}"
+      end
     end
 
     def route_for_relationship(relationship)

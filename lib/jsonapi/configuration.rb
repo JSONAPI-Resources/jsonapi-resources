@@ -13,6 +13,9 @@ module JSONAPI
                 :warn_on_route_setup_issues,
                 :warn_on_missing_routes,
                 :warn_on_performance_issues,
+                :warn_on_eager_loading_disabled,
+                :warn_on_missing_relationships,
+                :raise_on_missing_relationships,
                 :default_allow_include_to_one,
                 :default_allow_include_to_many,
                 :allow_sort,
@@ -41,7 +44,10 @@ module JSONAPI
                 :default_resource_cache_field,
                 :resource_cache_digest_function,
                 :resource_cache_usage_report_function,
-                :default_exclude_links
+                :default_exclude_links,
+                :default_resource_retrieval_strategy,
+                :use_related_resource_records_for_joins,
+                :related_identities_set
 
     def initialize
       #:underscored_key, :camelized_key, :dasherized_key, or custom
@@ -64,6 +70,12 @@ module JSONAPI
       self.warn_on_route_setup_issues = true
       self.warn_on_missing_routes = true
       self.warn_on_performance_issues = true
+      self.warn_on_eager_loading_disabled = true
+      self.warn_on_missing_relationships = true
+      # If this is set to true an error will be raised if a resource is found to be missing a relationship
+      # If this is set to false a warning will be logged (see warn_on_missing_relationships) and related resouces for
+      # this relationship will not be included in the response.
+      self.raise_on_missing_relationships = false
 
       # :none, :offset, :paged, or a custom paginator name
       self.default_paginator = :none
@@ -86,11 +98,11 @@ module JSONAPI
 
       # Whether or not to include exception backtraces in JSONAPI error
       # responses.  Defaults to `false` in anything other than development or test.
-      self.include_backtraces_in_errors = (Rails.env.development? || Rails.env.test?)
+      self.include_backtraces_in_errors = (::Rails.env.development? || ::Rails.env.test?)
 
       # Whether or not to include exception application backtraces in JSONAPI error
       # responses.  Defaults to `false` in anything other than development or test.
-      self.include_application_backtraces_in_errors = (Rails.env.development? || Rails.env.test?)
+      self.include_application_backtraces_in_errors = (::Rails.env.development? || ::Rails.env.test?)
 
       # List of classes that should not be rescued by the operations processor.
       # For example, if you use Pundit for authorization, you might
@@ -160,6 +172,33 @@ module JSONAPI
       # and relationships. Accepts either `:default`, `:none`, or array containing the
       # specific default links to exclude, which may be `:self` and `:related`.
       self.default_exclude_links = :none
+
+      # Global configuration for resource retrieval strategy used by the Resource class.
+      # Selecting a default_resource_retrieval_strategy will affect all resources that derive from
+      # Resource. The default value is 'JSONAPI::ActiveRelationRetrieval'.
+      #
+      # To use multiple retrieval strategies in an app set this to :none and set a custom retrieval strategy
+      # per resource (or base resource) using the class method `load_resource_retrieval_strategy`.
+      #
+      # Available strategies:
+      # 'JSONAPI::ActiveRelationRetrieval'
+      # 'JSONAPI::ActiveRelationRetrievalV09'
+      # 'JSONAPI::ActiveRelationRetrievalV10'
+      # :none
+      # :self
+      self.default_resource_retrieval_strategy = 'JSONAPI::ActiveRelationRetrieval'
+
+      # For 'JSONAPI::ActiveRelationRetrievalV10': use a related resource's `records` when performing joins.
+      # This setting allows included resources to account for permission scopes. It can be overridden explicitly per
+      # relationship. Furthermore, specifying a `relation_name` on a relationship will cause this setting to be ignored.
+      self.use_related_resource_records_for_joins = true
+
+      # Collect the include keys into a Set or a SortedSet. SortedSet carries a small performance cost in the rails app
+      # but produces consistent and more human navigable result sets.
+      # To use SortedSet be sure to add `sorted_set` to your Gemfile and the following two lines to your JR initializer:
+      # require 'sorted_set'
+      # config.related_identities_set = SortedSet
+      self.related_identities_set = Set
     end
 
     def cache_formatters=(bool)
@@ -226,8 +265,16 @@ module JSONAPI
         @exception_class_allowlist.flatten.any? { |k| e.class.ancestors.map(&:to_s).include?(k.to_s) }
     end
 
+    def deprecate(msg)
+      if defined?(ActiveSupport.deprecator)
+        ActiveSupport.deprecator.warn(msg)
+      else
+        ActiveSupport::Deprecation.warn(msg)
+      end
+    end
+
     def default_processor_klass=(default_processor_klass)
-      ActiveSupport::Deprecation.warn('`default_processor_klass` has been replaced by `default_processor_klass_name`.')
+      deprecate('`default_processor_klass` has been replaced by `default_processor_klass_name`.')
       @default_processor_klass = default_processor_klass
     end
 
@@ -241,19 +288,9 @@ module JSONAPI
     end
 
     def allow_include=(allow_include)
-      ActiveSupport::Deprecation.warn('`allow_include` has been replaced by `default_allow_include_to_one` and `default_allow_include_to_many` options.')
+      deprecate('`allow_include` has been replaced by `default_allow_include_to_one` and `default_allow_include_to_many` options.')
       @default_allow_include_to_one = allow_include
       @default_allow_include_to_many = allow_include
-    end
-
-    def whitelist_all_exceptions=(allow_all_exceptions)
-      ActiveSupport::Deprecation.warn('`whitelist_all_exceptions` has been replaced by `allow_all_exceptions`')
-      @allow_all_exceptions = allow_all_exceptions
-    end
-
-    def exception_class_whitelist=(exception_class_allowlist)
-      ActiveSupport::Deprecation.warn('`exception_class_whitelist` has been replaced by `exception_class_allowlist`')
-      @exception_class_allowlist = exception_class_allowlist
     end
 
     attr_writer :allow_sort, :allow_filter, :default_allow_include_to_one, :default_allow_include_to_many
@@ -298,6 +335,12 @@ module JSONAPI
 
     attr_writer :warn_on_performance_issues
 
+    attr_writer :warn_on_eager_loading_disabled
+
+    attr_writer :warn_on_missing_relationships
+
+    attr_writer :raise_on_missing_relationships
+
     attr_writer :use_relationship_reflection
 
     attr_writer :resource_cache
@@ -311,6 +354,12 @@ module JSONAPI
     attr_writer :resource_cache_usage_report_function
 
     attr_writer :default_exclude_links
+
+    attr_writer :default_resource_retrieval_strategy
+
+    attr_writer :use_related_resource_records_for_joins
+
+    attr_writer :related_identities_set
   end
 
   class << self

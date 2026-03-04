@@ -171,6 +171,30 @@ class JSONAPIRequestTest < ActiveSupport::TestCase
     assert_equal 'iso_currency is not a valid includable relationship of expense-entries', request.errors[0].detail
   end
 
+  def test_parse_fields_singular
+    params = ActionController::Parameters.new(
+      {
+        controller: 'expense_entries',
+        action: 'index',
+        fields: {expense_entry: 'iso_currency'}
+      }
+    )
+
+    request = JSONAPI::Request.new(
+      params,
+      {
+        context: nil,
+        key_formatter: JSONAPI::Formatter.formatter_for(:underscored_key)
+      }
+    )
+
+    e = assert_raises JSONAPI::Exceptions::InvalidResource do
+      request.parse_fields(ExpenseEntryResource, params[:fields])
+    end
+    refute e.errors.empty?
+    assert_equal 'expense_entry is not a valid resource.', e.errors[0].detail
+  end
+
   def test_parse_fields_underscored
     params = ActionController::Parameters.new(
       {

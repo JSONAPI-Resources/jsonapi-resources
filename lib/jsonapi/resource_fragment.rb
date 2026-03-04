@@ -10,11 +10,9 @@ module JSONAPI
   # related_from - a set of related resource identities that loaded the fragment
   # resource - a resource instance
   #
-  # Todo: optionally use these for faster responses by bypassing model instantiation)
-  # attributes - resource attributes
 
   class ResourceFragment
-    attr_reader :identity, :attributes, :related_from, :related, :resource
+    attr_reader :identity, :related_from, :related, :resource
 
     attr_accessor :primary, :cache
 
@@ -26,9 +24,8 @@ module JSONAPI
       @resource = resource
       @primary = primary
 
-      @attributes = {}
       @related = {}
-      @related_from = Set.new
+      @related_from = JSONAPI.configuration.related_identities_set.new
     end
 
     def initialize_related(relationship_name)
@@ -47,10 +44,6 @@ module JSONAPI
 
     def add_related_from(identity)
       @related_from << identity
-    end
-
-    def add_attribute(name, value)
-      @attributes[name] = value
     end
   end
 end

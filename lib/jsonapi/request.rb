@@ -309,6 +309,7 @@ module JSONAPI
         if type_resource.nil?
           fail JSONAPI::Exceptions::InvalidResource.new(type, error_object_overrides)
         else
+          verify_type(type, type_resource)
           unless values.nil?
             valid_fields = type_resource.fields.collect { |key| format_key(key) }
             values.each do |field|

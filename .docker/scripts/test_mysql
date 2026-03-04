@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd /src
+bundle update;
+
+RUBY_VERSION=$(ruby -v);
+
+echo "Testing With MySQL and Ruby $RUBY_VERSION";
+export DATABASE_URL="mysql2://test:password@mysql:3306/test"
+bundle exec rake test;

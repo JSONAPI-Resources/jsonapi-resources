@@ -180,7 +180,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     source        = primary_resource_klass.new(@great_post, nil)
 
-    relationship  = Api::Secret::PostResource._relationships[:author]
+    relationship  = Api::Secret::PostResource._relationship(:author)
 
     # Should not warn if warn_on_missing_routes is false
     JSONAPI.configuration.warn_on_missing_routes = false
@@ -228,7 +228,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     source        = primary_resource_klass.new(@great_post, nil)
 
-    relationship  = Api::Secret::PostResource._relationships[:author]
+    relationship  = Api::Secret::PostResource._relationship(:author)
 
     # Should not warn if warn_on_missing_routes is false
     JSONAPI.configuration.warn_on_missing_routes = false
@@ -248,7 +248,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
       link = builder.relationships_related_link(source, relationship)
       assert_nil link
     end
-    assert_equal(err, "related_link for Api::Secret::PostResource.author(BelongsToOne) could not be generated\n")
+    assert_equal("related_link for Api::Secret::PostResource.author(BelongsToOne) could not be generated\n", err)
 
     # should only warn once
     builder = JSONAPI::LinkBuilder.new(config)
@@ -366,7 +366,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     builder       = JSONAPI::LinkBuilder.new(config)
     source        = Api::V1::PersonResource.new(@steve, nil)
-    relationship  = Api::V1::PersonResource._relationships[:posts]
+    relationship  = Api::V1::PersonResource._relationship(:posts)
     expected_link = "#{ @base_url }/api/v1/people/#{ @steve.id }/relationships/posts"
 
     assert_equal expected_link,
@@ -383,7 +383,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     builder       = JSONAPI::LinkBuilder.new(config)
     source        = Api::V1::PreferencesResource.new(@steves_prefs, nil)
-    relationship  = Api::V1::PreferencesResource._relationships[:author]
+    relationship  = Api::V1::PreferencesResource._relationship(:author)
     expected_link = "#{ @base_url }/api/v1/preferences/relationships/author"
 
     assert_equal expected_link,
@@ -400,7 +400,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     builder       = JSONAPI::LinkBuilder.new(config)
     source        = Api::V1::PreferencesResource.new(@steves_prefs, nil)
-    relationship  = Api::V1::PreferencesResource._relationships[:author]
+    relationship  = Api::V1::PreferencesResource._relationship(:author)
     expected_link = "#{ @base_url }/api/v1/preferences/author"
 
     assert_equal expected_link,
@@ -417,7 +417,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     builder       = JSONAPI::LinkBuilder.new(config)
     source        = ApiV2Engine::PersonResource.new(@steve, nil)
-    relationship  = ApiV2Engine::PersonResource._relationships[:posts]
+    relationship  = ApiV2Engine::PersonResource._relationship(:posts)
     expected_link = "#{ @base_url }/api_v2/people/#{ @steve.id }/relationships/posts"
 
     assert_equal expected_link,
@@ -434,7 +434,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     builder       = JSONAPI::LinkBuilder.new(config)
     source        = MyEngine::Api::V1::PersonResource.new(@steve, nil)
-    relationship  = MyEngine::Api::V1::PersonResource._relationships[:posts]
+    relationship  = MyEngine::Api::V1::PersonResource._relationship(:posts)
     expected_link = "#{ @base_url }/boomshaka/api/v1/people/#{ @steve.id }/relationships/posts"
 
     assert_equal expected_link,
@@ -451,7 +451,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     builder       = JSONAPI::LinkBuilder.new(config)
     source        = Api::V1::PersonResource.new(@steve, nil)
-    relationship  = Api::V1::PersonResource._relationships[:posts]
+    relationship  = Api::V1::PersonResource._relationship(:posts)
     expected_link = "#{ @base_url }/api/v1/people/#{ @steve.id }/posts"
 
     assert_equal expected_link,
@@ -468,7 +468,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     builder       = JSONAPI::LinkBuilder.new(config)
     source        = ApiV2Engine::PersonResource.new(@steve, nil)
-    relationship  = ApiV2Engine::PersonResource._relationships[:posts]
+    relationship  = ApiV2Engine::PersonResource._relationship(:posts)
     expected_link = "#{ @base_url }/api_v2/people/#{ @steve.id }/posts"
 
     assert_equal expected_link,
@@ -485,7 +485,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     builder       = JSONAPI::LinkBuilder.new(config)
     source        = MyEngine::Api::V1::PersonResource.new(@steve, nil)
-    relationship  = MyEngine::Api::V1::PersonResource._relationships[:posts]
+    relationship  = MyEngine::Api::V1::PersonResource._relationship(:posts)
     expected_link = "#{ @base_url }/boomshaka/api/v1/people/#{ @steve.id }/posts"
 
     assert_equal expected_link,
@@ -502,7 +502,7 @@ class LinkBuilderTest < ActionDispatch::IntegrationTest
 
     builder       = JSONAPI::LinkBuilder.new(config)
     source        = Api::V1::PersonResource.new(@steve, nil)
-    relationship  = Api::V1::PersonResource._relationships[:posts]
+    relationship  = Api::V1::PersonResource._relationship(:posts)
     expected_link = "#{ @base_url }/api/v1/people/#{ @steve.id }/posts?page%5Blimit%5D=12&page%5Boffset%5D=0"
     query         = { page: { offset: 0, limit: 12 } }
 

@@ -108,6 +108,7 @@ module JSONAPI
     def show_relationship
       parent_key = params[:parent_key]
       relationship_type = params[:relationship_type].to_sym
+      relationship = resource_klass._relationship(relationship_type)
       paginator = params[:paginator]
       sort_criteria = params[:sort_criteria]
       include_directives = params[:include_directives]
@@ -125,14 +126,14 @@ module JSONAPI
 
       resource_tree = find_related_resource_tree(
         parent_resource,
-        relationship_type,
+        relationship,
         options,
         nil
       )
 
       JSONAPI::RelationshipOperationResult.new(:ok,
                                                parent_resource,
-                                               resource_klass._relationship(relationship_type),
+                                               relationship,
                                                resource_tree.fragments.keys,
                                                result_options)
     end
@@ -200,9 +201,11 @@ module JSONAPI
         (paginator && paginator.class.requires_record_count) ||
         (JSONAPI.configuration.top_level_meta_include_page_count))
 
+        relationship = source_resource.class._relationship(relationship_type)
+
         opts[:record_count] = source_resource.class.count_related(
           source_resource,
-          relationship_type,
+          relationship,
           options)
       end
 
@@ -384,11 +387,13 @@ module JSONAPI
       PrimaryResourceTree.new(fragments: fragments, include_related: include_related, options: options)
     end
 
-    def find_related_resource_tree(parent_resource, relationship_name, options, include_related)
+    def find_related_resource_tree(parent_resource, relationship, options, include_related)
       options = options.except(:include_directives)
       options[:cache] = resource_klass.caching?
 
-      fragments = resource_klass.find_included_fragments([parent_resource], relationship_name, options)
+      parent_resource_fragment = parent_resource.fragment(primary: true)
+
+      fragments = resource_klass.find_related_fragments(parent_resource_fragment, relationship, options)
       PrimaryResourceTree.new(fragments: fragments, include_related: include_related, options: options)
     end
 
@@ -398,7 +403,7 @@ module JSONAPI
       options = options.except(:include_directives)
       options[:cache] = relationship.resource_klass.caching?
 
-      fragments = resource.class.find_related_fragments([resource], relationship_name, options)
+      fragments = resource.class.find_related_fragments(resource.fragment, relationship, options)
 
       PrimaryResourceTree.new(fragments: fragments, include_related: include_related, options: options)
     end

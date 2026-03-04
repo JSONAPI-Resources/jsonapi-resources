@@ -1,7 +1,7 @@
 require File.expand_path('../../../../test_helper', __FILE__)
 require 'generators/jsonapi/controller_generator'
 
-module Jsonapi
+module JSONAPI
   class ControllerGeneratorTest < Rails::Generators::TestCase
     tests ControllerGenerator
     destination Rails.root.join('../controllers')

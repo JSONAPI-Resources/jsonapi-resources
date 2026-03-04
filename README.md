@@ -46,6 +46,43 @@ gem install jsonapi-resources
 
 **For further usage see the [v0.10 alpha Guide](http://jsonapi-resources.com/v0.10/guide/)**
 
+## Development
+
+There is a docker compose setup that can be used for testing your code against the supported versions of ruby and
+against PostgreSQL, MYSQL, and SQLite databases.
+
+First build the docker image:
+```bash
+docker compose build
+```
+Be sure to rebuild after making code changes. It should be fast after the initial build.
+
+### Running the tests
+
+The default command will run everything (it may take a while):
+```bash
+docker compose run tests
+```
+
+To test just one database against the latest ruby:
+```bash
+docker compose run tests ./test_mysql
+docker compose run tests ./test_postgresql
+docker compose run tests ./test_sqlite
+```
+
+To test a version of ruby against all databases:
+```bash
+docker compose run tests ./test_ruby 2.7.7
+```
+
+The tests by default run against the latest rails version. To override that you can set the RAILS_VERSION environment
+variable:
+
+```bash
+docker compose run -e RAILS_VERSION=6.1.1 tests ./test_postgresql
+```
+
 ## Contributing
 
 1. Submit an issue describing any new features you wish it add or the bug you intend to fix
@@ -73,4 +110,4 @@ and **paste the content into the issue description or attach as a file**:
 
 ## License
 
-Copyright 2014-2021 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2023 Cerebris Corporation. MIT License (see LICENSE for details).

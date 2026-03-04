@@ -53,7 +53,7 @@ module Helpers
     # end
     #
     def json_response
-      JSON.parse(@response.body)
+      @response.parsed_body
     end
   end
 end

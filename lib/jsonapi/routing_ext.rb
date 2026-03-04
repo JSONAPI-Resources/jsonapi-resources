@@ -224,7 +224,7 @@ module ActionDispatch
           options = relationship.extract_options!.dup
 
           relationship_name = relationship.first
-          relationship = source._relationships[relationship_name]
+          relationship = source._relationship(relationship_name)
 
           relationship._routed = true
 
@@ -248,7 +248,7 @@ module ActionDispatch
           options = relationship.extract_options!.dup
 
           relationship_name = relationship.first
-          relationship = source._relationships[relationship_name]
+          relationship = source._relationship(relationship_name)
 
           relationship._routed = true
 
