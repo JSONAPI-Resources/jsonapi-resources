@@ -60,17 +60,48 @@ module JSONAPI
     end
 
     def self.polymorphic_types(name)
+      polymorphic_types_lookup[name.to_sym]
+    end
+
+    def self.polymorphic_types_lookup(warn_on_no_name: false)
       @poly_hash ||= {}.tap do |hash|
-        ObjectSpace.each_object do |klass|
-          next unless Module === klass
-          if ActiveRecord::Base > klass
-            klass.reflect_on_all_associations(:has_many).select{|r| r.options[:as] }.each do |reflection|
-              (hash[reflection.options[:as]] ||= []) << klass.name.downcase
-            end
+        build_active_record_polymorphic_types_lookup(hash, warn_on_no_name: warn_on_no_name)
+      end
+    end
+
+    def self.build_active_record_polymorphic_types_lookup(hash, warn_on_no_name: false)
+      candidate_active_record_polymorphic_classes.each do |klass|
+        if klass.name.nil?
+          if warn_on_no_name
+            model_name =
+              if klass.respond_to?(:model_name)
+                begin
+                  klass.model_name.name
+                rescue ArgumentError => e
+                  "Responds to ActiveModel::Naming but #{e.message}"
+                end
+              else
+                "Does not extend ActiveModel::Naming"
+              end
+            warn "No class name found for #{klass} (#{model_name})"
           end
+          next
+        end
+        klass.reflect_on_all_associations(:has_many).select{|r| r.options[:as] }.each do |reflection|
+          (hash[reflection.options[:as]] ||= []) << klass.name.downcase
         end
       end
-      @poly_hash[name.to_sym]
+    end
+
+    def self.candidate_active_record_polymorphic_classes
+      candidate_polymorphic_classes = []
+      ObjectSpace.each_object do |klass|
+        next unless Module === klass
+        if ActiveRecord::Base > klass
+          candidate_polymorphic_classes << klass
+        end
+      end
+      candidate_polymorphic_classes
     end
 
     def resource_types

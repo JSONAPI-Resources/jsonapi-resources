@@ -46,6 +46,10 @@ end
 ActiveSupport::Deprecation.silenced = true
 
 puts "Testing With RAILS VERSION #{Rails.version}"
+Minitest.after_run do
+  puts "Found JSONAPI::Relationship.polymorphic_types_lookup"
+  puts "\t #{JSONAPI::Relationship.polymorphic_types_lookup(warn_on_no_name: true).inspect}\n"
+end
 
 class TestApp < Rails::Application
   config.eager_load = false
@@ -415,6 +419,16 @@ TestApp.routes.draw do
 
   mount MyEngine::Engine => "/boomshaka", as: :my_engine
   mount ApiV2Engine::Engine => "/api_v2", as: :api_v2_engine
+
+  jsonapi_resources :contact_media do
+    jsonapi_relationships
+  end
+  jsonapi_resources :individuals do
+    jsonapi_relationships
+  end
+  jsonapi_resources :organizations do
+    jsonapi_relationships
+  end
 end
 
 MyEngine::Engine.routes.draw do

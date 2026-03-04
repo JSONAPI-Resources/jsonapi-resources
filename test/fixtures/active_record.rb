@@ -429,6 +429,19 @@ ActiveRecord::Schema.define do
     t.integer :version
     t.timestamps null: false
   end
+
+  create_table :contact_media do |t|
+    t.string :name
+    t.references :party, polymorphic: true, index: true
+  end
+
+  create_table :individuals do |t|
+    t.string :name
+  end
+
+  create_table :organizations do |t|
+    t.string :name
+  end
 end
 
 ### MODELS
@@ -621,6 +634,22 @@ class Fact < ActiveRecord::Base
 end
 
 class Like < ActiveRecord::Base
+end
+
+ class TestApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+end
+
+class ContactMedium < TestApplicationRecord
+  belongs_to :party, polymorphic: true, inverse_of: :contact_media
+end
+
+class Individual < TestApplicationRecord
+  has_many :contact_media, as: :party
+end
+
+class Organization < TestApplicationRecord
+  has_many :contact_media, as: :party
 end
 
 class Breed
@@ -1226,6 +1255,18 @@ class IndicatorsController < JSONAPI::ResourceController
 end
 
 class RobotsController < JSONAPI::ResourceController
+end
+
+class IndividualsController < BaseController
+end
+
+class OrganizationsController < BaseController
+end
+
+class ContactMediaController < BaseController
+end
+
+class PartiesController < BaseController
 end
 
 ### RESOURCES
@@ -2682,6 +2723,24 @@ class RobotResource < ::JSONAPI::Resource
   sort :lower_name, apply: ->(records, direction, _context) do
     records.order("LOWER(robots.name) #{direction}")
   end
+end
+
+class ContactMediumResource < JSONAPI::Resource
+  attribute :name
+  has_one :party, polymorphic: true
+end
+
+class IndividualResource < JSONAPI::Resource
+  attribute :name
+  has_many :contact_media
+end
+
+class OrganizationResource < JSONAPI::Resource
+  attribute :name
+  has_many :contact_media
+end
+
+class PartyResource < JSONAPI::Resource
 end
 
 ### PORO Data - don't do this in a production app
