@@ -402,7 +402,7 @@ module JSONAPI
                             status: :bad_request,
                             title: I18n.translate('jsonapi-resources.exceptions.parameter_not_allowed.title',
                                                   default: 'Param not allowed'),
-                            detail: I18n.translate('jsonapi-resources.exceptions.parameters_not_allowed.detail',
+                            detail: I18n.translate('jsonapi-resources.exceptions.parameter_not_allowed.detail',
                                                    default: "#{param} is not allowed.", param: param))]
       end
     end
