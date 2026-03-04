@@ -165,9 +165,15 @@ module JSONAPI
             related_resource_klass = join_details[:related_resource_klass]
             join_type = relationship_details[:join_type]
 
+            join_options = {
+              relationship: relationship,
+              relationship_details: relationship_details,
+              related_resource_klass: related_resource_klass,
+            }
+
             if relationship == :root
               unless source_relationship
-                add_join_details('', {alias: resource_klass._table_name, join_type: :root})
+                add_join_details('', {alias: resource_klass._table_name, join_type: :root, join_options: join_options})
               end
               next
             end
@@ -181,7 +187,7 @@ module JSONAPI
                 options: options)
             }
 
-            details = {alias: self.class.alias_from_arel_node(join_node), join_type: join_type}
+            details = {alias: self.class.alias_from_arel_node(join_node), join_type: join_type, join_options: join_options}
 
             if relationship == source_relationship
               if relationship.polymorphic? && relationship.belongs_to?

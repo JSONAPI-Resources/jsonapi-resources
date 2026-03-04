@@ -1395,7 +1395,7 @@ class PostResource < JSONAPI::Resource
 
   has_one :author, class_name: 'Person'
   has_one :section
-  has_many :tags, acts_as_set: true, inverse_relationship: :posts, eager_load_on_include: false
+  has_many :tags, acts_as_set: true, inverse_relationship: :posts
   has_many :comments, acts_as_set: false, inverse_relationship: :post
 
   # Not needed - just for testing
@@ -1919,16 +1919,7 @@ module Api
       model_name 'Person'
       attributes :name
 
-      has_many :books, inverse_relationship: :authors, relation_name: -> (options) {
-        book_admin = options[:context][:book_admin] || options[:context][:current_user].try(:book_admin)
-
-        if book_admin
-          :books
-        else
-          :not_banned_books
-        end
-      }
-
+      has_many :books
       has_many :book_comments
     end
 
@@ -1968,6 +1959,9 @@ module Api
               }
 
       filter :banned, apply: :apply_filter_banned
+      filter :title, apply: ->(records, value, options) {
+        records.where('books.title LIKE ?', "#{value[0]}%")
+      }
 
       class << self
         def books
@@ -1979,10 +1973,9 @@ module Api
         end
 
         def records(options = {})
-          context = options[:context]
-          current_user = context ? context[:current_user] : nil
+          current_user = options.dig(:context, :current_user)
 
-          records = _model_class.all
+          records = super
           # Hide the banned books from people who are not book admins
           unless current_user && current_user.book_admin
             records = records.where(not_banned_books)
@@ -1991,8 +1984,7 @@ module Api
         end
 
         def apply_filter_banned(records, value, options)
-          context = options[:context]
-          current_user = context ? context[:current_user] : nil
+          current_user = options.dig(:context, :current_user)
 
           # Only book admins might filter for banned books
           if current_user && current_user.book_admin
@@ -2032,7 +2024,7 @@ module Api
         end
 
         def records(options = {})
-          current_user = options[:context][:current_user]
+          current_user = options.dig(:context, :current_user)
           _model_class.for_user(current_user)
         end
       end
@@ -2096,7 +2088,7 @@ module Api
 
       has_one :author, class_name: 'Person', exclude_links: [:self, "related"]
       has_one :section, exclude_links: [:self, :related]
-      has_many :tags, acts_as_set: true, inverse_relationship: :posts, eager_load_on_include: false, exclude_links: :default
+      has_many :tags, acts_as_set: true, inverse_relationship: :posts, exclude_links: :default
       has_many :comments, acts_as_set: false, inverse_relationship: :post, exclude_links: ["self", :related]
     end
 

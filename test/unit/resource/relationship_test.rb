@@ -18,6 +18,30 @@ class CallableBlogPostsResource < JSONAPI::Resource
   end
 end
 
+class TestRelationshipOptionsPostsResource < JSONAPI::Resource
+  model_name 'Post'
+  has_one :author, allow_include: :is_admin, merge_resource_records: false
+end
+
+class RelationshipTest < ActiveSupport::TestCase
+  def test_merge_resource_records_enabled_by_default
+    relationship = JSONAPI::Relationship::ToOne.new(:author)
+    assert relationship.merge_resource_records
+  end
+
+  def test_merge_resource_records_is_disabled_by_deafult_with_relation_name
+    relationship = JSONAPI::Relationship::ToOne.new(:author,
+                                                    relation_name: "foo" )
+    refute relationship.merge_resource_records
+  end
+
+  def test_merge_resource_records_can_be_disabled
+    relationship = JSONAPI::Relationship::ToOne.new(:author,
+                                                    merge_resource_records: false )
+    refute relationship.merge_resource_records
+  end
+end
+
 class HasOneRelationshipTest < ActiveSupport::TestCase
 
   def test_polymorphic_type
