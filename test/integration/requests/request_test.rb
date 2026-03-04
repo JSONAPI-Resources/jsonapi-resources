@@ -813,6 +813,17 @@ class RequestTest < ActionDispatch::IntegrationTest
     JSONAPI.configuration.top_level_meta_include_record_count = false
   end
 
+  def test_pagination_none_related_resources_and_top_level_meta_include_page_count
+    Api::V2::BookResource.paginator :offset
+    Api::V2::BookCommentResource.paginator :none
+    JSONAPI.configuration.top_level_meta_include_page_count = true
+    assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments'
+    assert json_response['data']
+    assert_nil json_response.dig('meta', 'record_count')
+  ensure
+    JSONAPI.configuration.top_level_meta_include_page_count = false
+  end
+
   def test_filter_related_resources_relationship_filter
     Api::V2::BookCommentResource.paginator :offset
     JSONAPI.configuration.top_level_meta_include_record_count = true
