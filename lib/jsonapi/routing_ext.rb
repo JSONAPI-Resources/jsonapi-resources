@@ -74,6 +74,7 @@ module ActionDispatch
         def jsonapi_relationships(options = {})
           res = JSONAPI::Resource.resource_klass_for(resource_type_with_module_prefix(@resource_type))
           res._relationships.each do |relationship_name, relationship|
+            options = options.merge(relationship.options.slice(:controller))
             if relationship.is_a?(JSONAPI::Relationship::ToMany)
               jsonapi_links(relationship_name, options)
               jsonapi_related_resources(relationship_name, options)
