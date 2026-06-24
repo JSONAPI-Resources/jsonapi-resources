@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'pry'
   spec.add_development_dependency 'concurrent-ruby-ext'
   spec.add_development_dependency 'database_cleaner'
-  spec.add_dependency 'activerecord', '>= 5.1'
+  spec.add_dependency 'activerecord', '>= 6.0'
   spec.add_dependency 'railties', '>= 5.1'
   spec.add_dependency 'concurrent-ruby'
 end

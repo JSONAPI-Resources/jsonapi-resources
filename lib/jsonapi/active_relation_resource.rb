@@ -329,7 +329,7 @@ module JSONAPI
           when :inner
             records = records.joins(resource_type.to_s.singularize.to_sym)
           when :left
-            records = records.joins_left(resource_type.to_s.singularize.to_sym)
+            records = records.left_joins(resource_type.to_s.singularize.to_sym)
           end
         else
           relation_name = relationship.relation_name(options)
@@ -337,7 +337,7 @@ module JSONAPI
           when :inner
             records = records.joins(relation_name)
           when :left
-            records = records.joins_left(relation_name)
+            records = records.left_joins(relation_name)
           end
         end
         records
@@ -772,11 +772,7 @@ module JSONAPI
 
       # Assumes ActiveRecord's counting. Override if you need a different counting method
       def count_records(records)
-        if (Rails::VERSION::MAJOR == 5 && ActiveRecord::VERSION::MINOR >= 1) || Rails::VERSION::MAJOR >= 6
-          records.count(:all)
-        else
-          records.count
-        end
+        records.count(:all)
       end
 
       def filter_records(records, filters, options)

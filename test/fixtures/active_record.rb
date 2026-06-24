@@ -2319,7 +2319,7 @@ module Api
           when :inner
             records = records.joins(relationship.relation_name(options))
           when :left
-            records = records.joins_left(relationship.relation_name(options))
+            records = records.left_joins(relationship.relation_name(options))
         end
         records.where(comments: {approved: true})
       }
@@ -2369,7 +2369,7 @@ module Api
         when :inner
           records = records.joins(relationship.relation_name(options))
         when :left
-          records = records.joins_left(relationship.relation_name(options))
+          records = records.left_joins(relationship.relation_name(options))
         end
         records.where(comments: {approved: true})
       }
