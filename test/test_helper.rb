@@ -10,7 +10,7 @@ require 'database_cleaner'
 # export RAILS_VERSION=6.0.3.4; bundle update; bundle exec rake test
 # export RAILS_VERSION=6.1.1; bundle update; bundle exec rake test
 
-# We are no longer having Travis test Rails 4.2.11., but you can try it with:
+# We are no longer having CI test Rails 4.2.11., but you can try it with:
 # export RAILS_VERSION=4.2.11; bundle update rails; bundle exec rake test
 
 # To Switch rails versions and run a particular test order:
