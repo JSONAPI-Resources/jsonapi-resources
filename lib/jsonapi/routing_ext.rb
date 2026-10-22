@@ -59,7 +59,7 @@ module ActionDispatch
               end
             else
               # Rails 5
-              jsonapi_resource_scope(SingletonResource.new(@resource_type, api_only?, @scope[:shallow], options), @resource_type) do
+              jsonapi_resource_scope(SingletonResource.new(@resource_type, api_only?, @scope[:shallow], **options), @resource_type) do
                 if block_given?
                   yield
                 else
@@ -133,7 +133,7 @@ module ActionDispatch
               end
             else
               # Rails 5
-              jsonapi_resource_scope(Resource.new(@resource_type, api_only?, @scope[:shallow], options), @resource_type) do
+              jsonapi_resource_scope(Resource.new(@resource_type, api_only?, @scope[:shallow], **options), @resource_type) do
                 if block_given?
                   yield
                 else
