@@ -1,4 +1,4 @@
-# JSONAPI::Resources [![Gem Version](https://badge.fury.io/rb/jsonapi-resources.svg)](https://badge.fury.io/rb/jsonapi-resources) [![Build Status](https://secure.travis-ci.org/cerebris/jsonapi-resources.svg?branch=master)](http://travis-ci.org/cerebris/jsonapi-resources) [![Code Climate](https://codeclimate.com/github/cerebris/jsonapi-resources/badges/gpa.svg)](https://codeclimate.com/github/cerebris/jsonapi-resources)
+# JSONAPI::Resources [![Gem Version](https://badge.fury.io/rb/jsonapi-resources.svg)](https://badge.fury.io/rb/jsonapi-resources) [![Build Status](https://secure.travis-ci.org/cerebris/jsonapi-resources.svg?branch=master)](http://travis-ci.org/cerebris/jsonapi-resources)
 
 [![Join the chat at https://gitter.im/cerebris/jsonapi-resources](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cerebris/jsonapi-resources?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -49,7 +49,7 @@ gem install jsonapi-resources
 ## Contributing
 
 1. Submit an issue describing any new features you wish it add or the bug you intend to fix
-1. Fork it ( http://github.com/cerebris/jsonapi-resources/fork )
+1. Fork it ( http://github.com/JSONAPI-Resources/jsonapi-resources/fork )
 1. Create your feature branch (`git checkout -b my-new-feature`)
 1. Run the full test suite (`rake test`)
 1. Fix any failing tests
@@ -59,16 +59,16 @@ gem install jsonapi-resources
 
 ## Did you find a bug?
 
-* **Ensure the bug was not already reported** by searching on GitHub under [Issues](https://github.com/cerebris/jsonapi-resources/issues).
+* **Ensure the bug was not already reported** by searching on GitHub under [Issues](https://github.com/JSONAPI-Resources/jsonapi-resources/issues).
 
-* If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/cerebris/jsonapi-resources/issues/new). 
+* If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/JSONAPI-Resources/jsonapi-resources/issues/new). 
 Be sure to include a **title and clear description**, as much relevant information as possible, 
 and a **code sample** or an **executable test case** demonstrating the expected behavior that is not occurring.
 
 * If possible, use the relevant bug report templates to create the issue. 
 Simply copy the content of the appropriate template into a .rb file, make the necessary changes to demonstrate the issue, 
 and **paste the content into the issue description or attach as a file**:
-  * [**Rails 5** issues](https://github.com/cerebris/jsonapi-resources/blob/master/lib/bug_report_templates/rails_5_master.rb)
+  * [**Rails 5** issues](https://github.com/JSONAPI-Resources/jsonapi-resources/blob/master/lib/bug_report_templates/rails_5_master.rb)
 
 
 ## License

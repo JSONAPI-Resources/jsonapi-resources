@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ['dan@cerebris.com', 'larry@cerebris.com']
   spec.summary       = 'Easily support JSON API in Rails.'
   spec.description   = 'A resource-centric approach to implementing the controllers, routes, and serializers needed to support the JSON API spec.'
-  spec.homepage      = 'https://github.com/cerebris/jsonapi-resources'
+  spec.homepage      = 'https://github.com/JSONAPI-Resources/jsonapi-resources'
   spec.license       = 'MIT'
 
   spec.files         = Dir.glob("{bin,lib}/**/*") + %w(LICENSE.txt README.md)

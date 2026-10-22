@@ -20,7 +20,7 @@ gemfile(true, ui: ENV['SILENT'] ? Bundler::UI::Silent.new : Bundler::UI::Shell.n
   if ENV['JSONAPI_RESOURCES_PATH']
     gem 'jsonapi-resources', path: ENV['JSONAPI_RESOURCES_PATH'], require: false
   else
-    gem 'jsonapi-resources', git: 'https://github.com/cerebris/jsonapi-resources', require: false
+    gem 'jsonapi-resources', git: 'https://github.com/JSONAPI-Resources/jsonapi-resources', require: false
   end
 
 end

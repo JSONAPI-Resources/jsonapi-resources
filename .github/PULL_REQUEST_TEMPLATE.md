@@ -2,8 +2,8 @@
 
 ### All Submissions:
 
-- [ ] I've checked to ensure there aren't other open [Pull Requests](https://github.com/cerebris/jsonapi-resources/pulls) for the same update/change.
-- [ ] I've submitted a [ticket](https://github.com/cerebris/jsonapi-resources/issues) for my issue if one did not already exist.
+- [ ] I've checked to ensure there aren't other open [Pull Requests](https://github.com/JSONAPI-Resources/jsonapi-resources/pulls) for the same update/change.
+- [ ] I've submitted a [ticket](https://github.com/JSONAPI-Resources/jsonapi-resources/issues) for my issue if one did not already exist.
 - [ ] My submission passes all tests. (Please run the full test suite locally to cut down on noise from travis failures.)
 - [ ] I've used Github [auto-closing keywords](https://help.github.com/articles/closing-issues-via-commit-messages/) in the commit message or the description.
 - [ ] I've added/updated tests for this change.
