@@ -19,8 +19,9 @@ class RoutingCompatibilityTest < Minitest::Test
       jsonapi_resources :routing_compatibilities, controller: 'examples', only: [:index, :show]
     end
 
-    assert_equal '/routing-compatibilities', routes.url_helpers.routing_compatibilities_path
-    assert_equal '/routing-compatibilities/42', routes.url_helpers.routing_compatibility_path(42)
+    path = JSONAPI.configuration.route_formatter.format('routing_compatibilities')
+    assert_equal "/#{path}", routes.url_helpers.routing_compatibilities_path
+    assert_equal "/#{path}/42", routes.url_helpers.routing_compatibility_path(42)
     assert_equal ['examples'], routes.routes.map { |route| route.defaults[:controller] }.uniq
     refute_includes routes.routes.map(&:verb), 'DELETE'
   end
@@ -31,7 +32,7 @@ class RoutingCompatibilityTest < Minitest::Test
       jsonapi_resource :routing_profile, controller: 'profiles', only: [:show]
     end
 
-    assert_equal '/routing-profile', routes.url_helpers.routing_profile_path
+    assert_equal "/#{JSONAPI.configuration.route_formatter.format('routing_profile')}", routes.url_helpers.routing_profile_path
     assert_equal ['profiles'], routes.routes.map { |route| route.defaults[:controller] }.uniq
     refute_includes routes.routes.map(&:verb), 'DELETE'
   end
