@@ -1,3 +1,4 @@
+require 'logger'
 require 'simplecov'
 require 'database_cleaner'
 
