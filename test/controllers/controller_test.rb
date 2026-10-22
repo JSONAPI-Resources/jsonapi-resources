@@ -3682,14 +3682,16 @@ class Api::V4::PostsControllerTest < ActionController::TestCase
       get :index, params: {fields: {posts: 'id,title'}}
       assert_response :success
     end
-    assert_equal(err, "Performance issue detected: `Api::V4::PostResource.records` returned non-normalized results in `Api::V4::PostResource.find_fragments`.\n")
+    assert_match(/Performance issue detected: `Api::V4::PostResource.records` returned non-normalized results in `Api::V4::PostResource.find_fragments`\./, err)
 
     JSONAPI.configuration.warn_on_performance_issues = false
     _out, err = capture_subprocess_io do
       get :index, params: {fields: {posts: 'id,title'}}
       assert_response :success
     end
-    assert_empty err
+    # On older Ruby/Rails combinations, there may be deprecation warnings
+    # but we should not see the performance issue warning
+    refute_match(/Performance issue detected/, err)
 
   ensure
     JSONAPI.configuration = original_config

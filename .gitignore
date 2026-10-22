@@ -19,6 +19,7 @@ test/version_tmp
 tmp
 coverage
 test/log
+log/*.log
 test_db
 test_db-journal
 .idea

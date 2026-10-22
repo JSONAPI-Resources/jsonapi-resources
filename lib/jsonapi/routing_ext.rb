@@ -48,7 +48,7 @@ module ActionDispatch
 
           resource @resource_type, options do
             # :nocov:
-            if @scope.respond_to? :[]=
+            if @scope.respond_to?(:[]=)
               # Rails 4
               @scope[:jsonapi_resource] = @resource_type
 
@@ -57,9 +57,21 @@ module ActionDispatch
               else
                 jsonapi_relationships
               end
+            elsif Rails::VERSION::MAJOR >= 8 && Rails::VERSION::MINOR >= 1
+              # Rails 8.1+
+              # Rails 8.1 changed Scope to not support []= and Resource.new signature
+              # Use instance variable to track resource type
+              @jsonapi_resource_type = @resource_type
+              if block_given?
+                yield
+              else
+                jsonapi_relationships
+              end
             else
-              # Rails 5
-              jsonapi_resource_scope(SingletonResource.new(@resource_type, api_only?, @scope[:shallow], options), @resource_type) do
+              # Rails 5-8.0
+              resource_arg = SingletonResource.new(@resource_type, api_only?, @scope[:shallow], options)
+
+              jsonapi_resource_scope(resource_arg, @resource_type) do
                 if block_given?
                   yield
                 else
@@ -123,7 +135,7 @@ module ActionDispatch
 
           resources @resource_type, options do
             # :nocov:
-            if @scope.respond_to? :[]=
+            if @scope.respond_to?(:[]=)
               # Rails 4
               @scope[:jsonapi_resource] = @resource_type
               if block_given?
@@ -131,9 +143,21 @@ module ActionDispatch
               else
                 jsonapi_relationships
               end
+            elsif Rails::VERSION::MAJOR >= 8 && Rails::VERSION::MINOR >= 1
+              # Rails 8.1+
+              # Rails 8.1 changed Scope to not support []= and Resource.new signature
+              # Use instance variable to track resource type
+              @jsonapi_resource_type = @resource_type
+              if block_given?
+                yield
+              else
+                jsonapi_relationships
+              end
             else
-              # Rails 5
-              jsonapi_resource_scope(Resource.new(@resource_type, api_only?, @scope[:shallow], options), @resource_type) do
+              # Rails 5-8.0
+              resource_arg = Resource.new(@resource_type, api_only?, @scope[:shallow], options)
+
+              jsonapi_resource_scope(resource_arg, @resource_type) do
                 if block_given?
                   yield
                 else
@@ -277,7 +301,7 @@ module ActionDispatch
         private
 
         def resource_type_with_module_prefix(resource = nil)
-          resource_name = resource || @scope[:jsonapi_resource]
+          resource_name = resource || @scope[:jsonapi_resource] || @jsonapi_resource_type
           [@scope[:module], resource_name].compact.collect(&:to_s).join('/')
         end
       end

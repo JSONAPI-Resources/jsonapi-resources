@@ -52,7 +52,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :posts, force: true do |t|
-    t.string     :title, length: 255
+    t.string     :title, limit: 255
     t.text       :body
     t.integer    :author_id
     t.integer    :parent_post_id
@@ -324,8 +324,8 @@ ActiveRecord::Schema.define do
 
   create_table :related_things, force: true  do |t|
     t.string :name
-    t.references :from, references: :thing
-    t.references :to, references: :thing
+    t.references :from, foreign_key: false
+    t.references :to, foreign_key: false
 
     t.timestamps null: false
   end
@@ -647,8 +647,8 @@ class Breed
 end
 
 class Book < ActiveRecord::Base
-  has_many :book_comments
-  has_many :approved_book_comments, -> { where(approved: true) }, class_name: "BookComment"
+  has_many :book_comments, -> { order(:id) }
+  has_many :approved_book_comments, -> { where(approved: true).order(:id) }, class_name: "BookComment"
 
   has_and_belongs_to_many :authors, join_table: :book_authors, class_name: "Person"
 
@@ -658,6 +658,8 @@ class Book < ActiveRecord::Base
 end
 
 class BookComment < ActiveRecord::Base
+  default_scope { order(:id) }
+
   belongs_to :author, class_name: 'Person', foreign_key: 'author_id'
   belongs_to :book
 
@@ -2021,6 +2023,11 @@ module Api
       filter :body, apply: ->(records, value, options) {
         records.where(BookComment.arel_table[:body].matches("%#{value[0]}%"))
       }
+
+      # Add default sort to ensure stable ordering across cache/non-cache scenarios
+      def self.default_sort
+        [{field: 'id', direction: :asc}]
+      end
 
       class << self
         def book_comments

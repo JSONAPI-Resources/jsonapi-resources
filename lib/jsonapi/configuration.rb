@@ -227,7 +227,7 @@ module JSONAPI
     end
 
     def default_processor_klass=(default_processor_klass)
-      ActiveSupport::Deprecation.warn('`default_processor_klass` has been replaced by `default_processor_klass_name`.')
+      JSONAPI.warn_deprecated('`default_processor_klass` has been replaced by `default_processor_klass_name`.')
       @default_processor_klass = default_processor_klass
     end
 
@@ -241,18 +241,18 @@ module JSONAPI
     end
 
     def allow_include=(allow_include)
-      ActiveSupport::Deprecation.warn('`allow_include` has been replaced by `default_allow_include_to_one` and `default_allow_include_to_many` options.')
+      JSONAPI.warn_deprecated('`allow_include` has been replaced by `default_allow_include_to_one` and `default_allow_include_to_many` options.')
       @default_allow_include_to_one = allow_include
       @default_allow_include_to_many = allow_include
     end
 
     def whitelist_all_exceptions=(allow_all_exceptions)
-      ActiveSupport::Deprecation.warn('`whitelist_all_exceptions` has been replaced by `allow_all_exceptions`')
+      JSONAPI.warn_deprecated('`whitelist_all_exceptions` has been replaced by `allow_all_exceptions`')
       @allow_all_exceptions = allow_all_exceptions
     end
 
     def exception_class_whitelist=(exception_class_allowlist)
-      ActiveSupport::Deprecation.warn('`exception_class_whitelist` has been replaced by `exception_class_allowlist`')
+      JSONAPI.warn_deprecated('`exception_class_whitelist` has been replaced by `exception_class_allowlist`')
       @exception_class_allowlist = exception_class_allowlist
     end
 
@@ -314,12 +314,28 @@ module JSONAPI
   end
 
   class << self
-    attr_accessor :configuration
+    attr_writer :configuration
+
+    def configuration
+      @configuration ||= Configuration.new
+    end
   end
 
-  @configuration ||= Configuration.new
-
   def self.configure
-    yield(@configuration)
+    yield(configuration)
+  end
+
+  # Rails 7.2+ made ActiveSupport::Deprecation.warn a private method
+  # This helper provides backward-compatible deprecation warnings
+  def self.warn_deprecated(message)
+    if defined?(ActiveSupport::Deprecation) && ActiveSupport::Deprecation.respond_to?(:warn)
+      # Rails < 7.2
+      ActiveSupport::Deprecation.warn(message)
+    else
+      # Rails 7.2+ or fallback - use standard warning with deprecation formatting
+      # Rails 7.2 doesn't provide a public API for custom deprecation warnings
+      # So we use Kernel#warn with a deprecation prefix
+      warn "[DEPRECATION] #{message}"
+    end
   end
 end
