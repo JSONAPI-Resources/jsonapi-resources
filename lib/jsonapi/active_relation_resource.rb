@@ -422,9 +422,6 @@ module JSONAPI
                                join_manager: join_manager,
                                options: options)
 
-        # Break ties on the source key so the inverse linkage order doesn't depend on the query plan
-        records = records.order(Arel.sql("#{_table_name}.#{_primary_key} asc"))
-
         resource_table_alias = join_manager.join_details_by_relationship(relationship)[:alias]
 
         pluck_fields = [
