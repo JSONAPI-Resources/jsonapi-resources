@@ -884,6 +884,19 @@ class RequestTest < ActionDispatch::IntegrationTest
     assert_equal 'This is comment 18 on book 1.', json_response['data'][9]['attributes']['body']
   end
 
+  def test_included_resource_inverse_linkage_with_table_statistics
+    # Once tables have statistics (autovacuum analyzes them mid-suite in CI), Postgres can plan
+    # SELECT DISTINCT as a HashAggregate, so the cached and uncached linkage come back in different orders.
+    ActiveRecord::Base.connection.execute('ANALYZE books')
+    ActiveRecord::Base.connection.execute('ANALYZE book_comments')
+    Api::V2::BookResource.paginator :offset
+    Api::V2::BookCommentResource.paginator :offset
+
+    assert_cacheable_jsonapi_get '/api/v2/books/1/book_comments?page[limit]=10&include=book'
+    linkage_ids = json_response['included'].first['relationships']['book_comments']['data'].map { |r| r['id'] }
+    assert_equal %w[51 53 55 57 59 61 63 65 67 69], linkage_ids.sort_by(&:to_i)
+  end
+
   def test_pagination_empty_results
     Api::V2::BookResource.paginator :offset
     Api::V2::BookCommentResource.paginator :offset

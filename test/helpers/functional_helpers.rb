@@ -55,5 +55,23 @@ module Helpers
     def json_response
       JSON.parse(@response.body)
     end
+
+    # JSON:API gives no meaning to the order of to-many linkage, so sort it before comparing responses
+    def normalize_linkage_order(json)
+      return json unless json.is_a?(Hash)
+
+      json.deep_dup.tap do |normalized|
+        resources = Array.wrap(normalized['data']) + Array.wrap(normalized['included'])
+        resources.each { |resource| sort_to_many_linkage(resource) }
+      end
+    end
+
+    private
+
+    def sort_to_many_linkage(resource)
+      (resource['relationships'] || {}).each_value do |relationship|
+        relationship['data'].sort_by! { |r| [r['type'], r['id']] } if relationship['data'].is_a?(Array)
+      end
+    end
   end
 end
