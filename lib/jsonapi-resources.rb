@@ -1,3 +1,4 @@
+require 'jsonapi/deprecator'
 require 'jsonapi/naive_cache'
 require 'jsonapi/compiled_json'
 require 'jsonapi/resource'

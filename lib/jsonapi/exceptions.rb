@@ -473,7 +473,7 @@ module JSONAPI
 
       def json_api_error(attr_key, message)
         create_error_object(code: JSONAPI::VALIDATION_ERROR,
-                            status: :unprocessable_entity,
+                            status: 422, # :unprocessable_content from Rack 3.1, :unprocessable_entity before
                             title: message,
                             detail: detail(attr_key, message),
                             source: { pointer: pointer(attr_key) },
@@ -507,7 +507,7 @@ module JSONAPI
     class SaveFailed < Error
       def errors
         [create_error_object(code: JSONAPI::SAVE_FAILED,
-                             status: :unprocessable_entity,
+                             status: 422, # :unprocessable_content from Rack 3.1, :unprocessable_entity before
                              title: I18n.translate('jsonapi-resources.exceptions.save_failed.title',
                                                    default: 'Save failed or was cancelled'),
                              detail: I18n.translate('jsonapi-resources.exceptions.save_failed.detail',
