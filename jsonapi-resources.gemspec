@@ -31,4 +31,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activerecord', '>= 4.1'
   spec.add_dependency 'railties', '>= 4.1'
   spec.add_dependency 'concurrent-ruby'
+  # A bundled gem, no longer a default one, from Ruby 3.4.
+  spec.add_dependency 'csv'
 end
