@@ -632,7 +632,7 @@ class PostsControllerTest < ActionController::TestCase
         }
       }
 
-    assert_response :unprocessable_entity
+    assert_response 422
     # TODO: check if this validation is working
     assert_match /author - can't be blank/, response.body
     assert_nil response.location
@@ -715,7 +715,7 @@ class PostsControllerTest < ActionController::TestCase
         }
       }
 
-    assert_response :unprocessable_entity
+    assert_response 422
 
     assert_equal "/data/relationships/author", json_response['errors'][0]['source']['pointer']
     assert_equal "can't be blank", json_response['errors'][0]['title']
@@ -1867,7 +1867,7 @@ class PostsControllerTest < ActionController::TestCase
     delete :destroy, params: { id: post.id }
 
     assert_equal "can't destroy me", json_response['errors'][0]['title']
-    assert_response :unprocessable_entity
+    assert_response 422
   end
 
   def test_delete_single
@@ -2444,7 +2444,7 @@ class PeopleControllerTest < ActionController::TestCase
         }
       }
 
-    assert_response :unprocessable_entity
+    assert_response 422
     assert_equal 2, json_response['errors'].size
     assert_equal JSONAPI::VALIDATION_ERROR, json_response['errors'][0]['code']
     assert_equal JSONAPI::VALIDATION_ERROR, json_response['errors'][1]['code']
@@ -2466,7 +2466,7 @@ class PeopleControllerTest < ActionController::TestCase
         }
       }
 
-    assert_response :unprocessable_entity
+    assert_response 422
     assert_equal 1, json_response['errors'].size
     assert_equal JSONAPI::VALIDATION_ERROR, json_response['errors'][0]['code']
     assert_match /name - can't be blank/, response.body
@@ -3103,7 +3103,7 @@ class FactsControllerTest < ActionController::TestCase
         }
       }
 
-    assert_response :unprocessable_entity
+    assert_response 422
 
     assert_equal "/data/attributes/spouse-name", json_response['errors'][0]['source']['pointer']
     assert_equal "can't be blank", json_response['errors'][0]['title']
@@ -3651,7 +3651,7 @@ class Api::V1::PlanetsControllerTest < ActionController::TestCase
         }
       }
 
-    assert_response :unprocessable_entity
+    assert_response 422
     assert_match /Save failed or was cancelled/, json_response['errors'][0]['detail']
   end
 end
