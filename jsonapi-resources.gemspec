@@ -21,7 +21,8 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'minitest'
+  # 6 moved minitest/mock out, and Rails before 8.1 doesn't support it.
+  spec.add_development_dependency 'minitest', '~> 5.0'
   spec.add_development_dependency 'minitest-spec-rails'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'pry'

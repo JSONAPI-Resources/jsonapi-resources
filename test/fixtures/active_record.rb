@@ -287,8 +287,8 @@ ActiveRecord::Schema.define do
 
   create_table :related_things, force: true  do |t|
     t.string :name
-    t.references :from, references: :thing
-    t.references :to, references: :thing
+    t.references :from
+    t.references :to
 
     t.timestamps null: false
   end
